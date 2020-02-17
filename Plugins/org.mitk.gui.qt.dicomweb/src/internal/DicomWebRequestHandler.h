@@ -73,6 +73,9 @@ private:
   web::http::http_response HandlePut(const web::uri &uri, const web::json::value &data);
   web::http::http_response HandleGet(const web::uri &uri, const web::json::value &data);
   web::http::http_response HandleOptions(const web::uri &uri, const web::json::value &data);
+  web::http::http_response HandlePost(const web::uri &uri,
+                                      const web::json::value &data,
+                                      const mitk::RESTUtil::ParamMap &headers);
 
   std::string m_DownloadDir;
   mitk::DICOMweb m_DicomWeb;

@@ -83,6 +83,10 @@ web::http::http_response DicomWebRequestHandler::Notify(const web::uri &uri,
   {
     return HandlePut(uri, data);
   }
+  else if (method == web::http::methods::POST)
+  {
+    return HandlePost(uri, data, headers);
+  }
   else if (method == web::http::methods::OPTIONS)
   {
     return HandleOptions(uri, data);
@@ -237,6 +241,7 @@ web::http::http_response DicomWebRequestHandler::HandleGet(const web::uri &uri, 
         dto.seriesUIDList.push_back(mitk::RESTUtil::convertToTString(s));
       }
       emit InvokeProgress(20, {"incoming series request ..."});
+      emit InvokeUpdateDcmMeta(dto);
       // tasks
       std::vector<pplx::task<std::string>> tasks;
 
@@ -280,6 +285,25 @@ web::http::http_response DicomWebRequestHandler::HandleGet(const web::uri &uri, 
     MITK_INFO << "no requestType parameter was provided";
   }
 
+  return errorResponse;
+}
+
+web::http::http_response DicomWebRequestHandler::HandlePost(const web::uri &uri,
+                                                            const web::json::value &data,
+                                                            const mitk::RESTUtil::ParamMap &headers)
+{
+  if (!data.is_null()) // avoid unused warning
+    MITK_INFO << "data was not null";
+
+  auto contentType = headers.find(U("Content-Type"));
+  if ((contentType->second.find(U("multipart/form-data")) != std::string::npos) ||
+        contentType->second.find(U("multipart/related")) != std::string::npos &&
+        contentType->second.find(U("application/dicom")) != std::string::npos)
+  {
+  }
+
+  MITK_INFO <<"not implemented yet";
+  auto errorResponse = web::http::http_response(web::http::status_codes::BadRequest);
   return errorResponse;
 }
 

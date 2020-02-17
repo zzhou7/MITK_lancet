@@ -64,22 +64,13 @@ void DicomWebView::CreateQtPartControl(QWidget *parent)
   qRegisterMetaType<DicomWebRequestHandler::DicomDTO>("DicomDTO");
 
   m_Controls.cleanDicomBtn->setVisible(true);
-  m_Controls.individualWidget_2->setVisible(false);
 
-  m_Controls.sliderWidget->setMinimum(1);
-  m_Controls.sliderWidget->setMaximum(100);
-  m_Controls.sliderWidget->setTickInterval(1);
-  m_Controls.sliderWidget->setSingleStep(1);
-  m_Controls.radioA->setChecked(true);
+
 
   connect(m_Controls.buttonUpload, &QPushButton::clicked, this, &DicomWebView::UploadNewSegmentation);
-  connect(m_Controls.buttonNewSeg, &QPushButton::clicked, this, &DicomWebView::CreateNewSegmentationC);
   connect(m_Controls.cleanDicomBtn, &QPushButton::clicked, this, &DicomWebView::CleanDicomFolder);
   connect(m_Controls.restartConnection, &QPushButton::clicked, this, &DicomWebView::OnRestartConnection);
   connect(m_Controls.testConnection, &QPushButton::clicked, this, &DicomWebView::TestConnection);
-  connect(m_Controls.checkIndiv, &QCheckBox::stateChanged, this, &DicomWebView::OnIndividualCheckChange);
-  connect(
-    m_Controls.sliderWidget, &ctkSliderWidget::valueChanged, this, &DicomWebView::OnSliderWidgetChanged);
 
   m_DownloadBaseDir = mitk::IOUtil::GetTempPath() + "segrework";
   MITK_INFO << "using download base dir: " << m_DownloadBaseDir;
@@ -111,7 +102,7 @@ void DicomWebView::CreateQtPartControl(QWidget *parent)
 
   m_restURL = host.append(U("/rest-srs"));
   MITK_INFO << "rest url: " << mitk::RESTUtil::convertToUtf8(m_restURL);
-  utility::string_t pacsURL = U("http://193.174.48.78:8090");
+  utility::string_t pacsURL = U("http://10.128.129.166:8080");
   auto envPacsURL = std::getenv("PACS_URL");
 
   if (envPacsURL)
@@ -123,8 +114,6 @@ void DicomWebView::CreateQtPartControl(QWidget *parent)
 
   connect(this, &DicomWebView::InvokeProgress, this, &DicomWebView::AddProgress);
   connect(m_RequestHandler, &DicomWebRequestHandler::InvokeProgress, this, &DicomWebView::AddProgress);
-  connect(
-    m_RequestHandler, &DicomWebRequestHandler::InvokeSimilarityGraph, this, &DicomWebView::SetSimilarityGraph);
   connect(
     m_RequestHandler, &DicomWebRequestHandler::InvokeUpdateDcmMeta, this, &DicomWebView::InitializeDcmMeta);
   connect(m_RequestHandler, &DicomWebRequestHandler::InvokeLoadData, this, &DicomWebView::LoadData);
@@ -146,32 +135,6 @@ void DicomWebView::CreateQtPartControl(QWidget *parent)
   RestartConnection(pacsURL);
 }
 
-void DicomWebView::OnSliderWidgetChanged(double value)
-{
-  std::map<double, double>::iterator it;
-  unsigned int count = 0;
-  for (it = m_ScoreMap.begin(); it != m_ScoreMap.end(); it++)
-  {
-    if (it->second < value)
-    {
-      count++;
-    }
-  }
-  QString labelsToDelete = "slices to delete: " + QString::number(count);
-  m_Controls.slicesToDeleteLabel->setText(labelsToDelete);
-
-  std::map<double, double> thresholdMap;
-
-  for (it = m_ScoreMap.begin(); it != m_ScoreMap.end(); it++)
-  {
-    thresholdMap.insert(std::map<double, double>::value_type(it->first, value));
-  }
-
-  m_Controls.chartWidget->RemoveData(m_thresholdLabel);
-  m_Controls.chartWidget->AddData2D(thresholdMap, m_thresholdLabel);
-  m_Controls.chartWidget->SetChartType(m_thresholdLabel, QmitkChartWidget::ChartType::line);
-  m_Controls.chartWidget->Show();
-}
 
 void DicomWebView::AddProgress(int progress, QString status)
 {
@@ -282,17 +245,6 @@ void DicomWebView::RestartConnection(utility::string_t newHost)
   }
 }
 
-void DicomWebView::OnIndividualCheckChange(int state)
-{
-  if (state == Qt::Unchecked)
-  {
-    m_Controls.individualWidget_2->setVisible(false);
-  }
-  else if (state == Qt::Checked)
-  {
-    m_Controls.individualWidget_2->setVisible(true);
-  }
-}
 
 std::string DicomWebView::GetAlgorithmOfSegByPath(std::string path)
 {
@@ -339,35 +291,9 @@ void DicomWebView::LoadDataSegDicomWeb(std::vector<std::string> filePathList)
   auto algorithmNameB = GetAlgorithmOfSegByPath(filePathList[2]);
   m_SegA->SetName(algorithmNameA);
   m_SegB->SetName(algorithmNameB);
-  m_Controls.labelSegAValue->setText(algorithmNameA.c_str());
-  m_Controls.labelSegBValue->setText(algorithmNameB.c_str());
-  m_Controls.labelGroundTruthValue->setText(m_GroundTruth.c_str());
   emit InvokeProgress(20, {""});
 }
 
-void DicomWebView::SetSimilarityGraph(std::vector<double> simScoreArray, int sliceMinStart)
-{
-  std::string label = "similarity graph";
-  m_thresholdLabel = "threshold";
-
-  double sliceIndex = sliceMinStart;
-  for (double score : simScoreArray)
-  {
-    m_ScoreMap.insert(std::map<double, double>::value_type(sliceIndex, score));
-    sliceIndex++;
-  }
-
-  std::map<double, double> thresholdMap;
-
-  m_Controls.chartWidget->AddData2D(m_ScoreMap, label);
-  m_Controls.chartWidget->AddData2D(thresholdMap, m_thresholdLabel);
-  m_Controls.chartWidget->SetChartType(label, QmitkChartWidget::ChartType::line);
-  m_Controls.chartWidget->SetChartType(m_thresholdLabel, QmitkChartWidget::ChartType::line);
-  m_Controls.chartWidget->SetXAxisLabel("slice number");
-  m_Controls.chartWidget->SetYAxisLabel("similarity in percent");
-  m_Controls.chartWidget->SetTitle("Similartiy Score for Segmentation Comparison");
-  m_Controls.chartWidget->Show();
-}
 
 void DicomWebView::StartServer()
 {
@@ -495,84 +421,6 @@ std::vector<unsigned int> DicomWebView::CreateSegmentation(mitk::Image::Pointer 
   }
   MITK_INFO << "slices deleted " << count;
   return sliceIndices;
-}
-
-void DicomWebView::CreateNewSegmentationC()
-{
-  mitk::ToolManager *toolManager = mitk::ToolManagerProvider::GetInstance()->GetToolManager();
-  toolManager->InitializeTools();
-  toolManager->SetReferenceData(m_Image);
-
-  mitk::Image::Pointer baseImage;
-  if (m_Controls.radioA->isChecked())
-  {
-    baseImage = dynamic_cast<mitk::Image *>(m_SegA->GetData())->Clone();
-  }
-  else if (m_Controls.radioB->isChecked())
-  {
-    baseImage = dynamic_cast<mitk::Image *>(m_SegB->GetData())->Clone();
-  }
-
-  if (m_Controls.checkIndiv->isChecked())
-  {
-    auto sliceIndices = CreateSegmentation(baseImage, m_Controls.sliderWidget->value());
-  }
-
-  QmitkNewSegmentationDialog *dialog = new QmitkNewSegmentationDialog(m_Parent);
-
-  int dialogReturnValue = dialog->exec();
-  if (dialogReturnValue == QDialog::Rejected)
-  {
-    // user clicked cancel or pressed Esc or something similar
-    return;
-  }
-
-  // ask the user about an organ type and name, add this information to the image's (!) propertylist
-  // create a new image of the same dimensions and smallest possible pixel type
-  mitk::Tool *firstTool = toolManager->GetToolById(0);
-  if (firstTool)
-  {
-    try
-    {
-      std::string newNodeName = dialog->GetSegmentationName().toStdString();
-      if (newNodeName.empty())
-      {
-        newNodeName = "no_name";
-      }
-
-      mitk::DataNode::Pointer newSegmentation =
-        firstTool->CreateSegmentationNode(baseImage, newNodeName, dialog->GetColor());
-      // initialize showVolume to false to prevent recalculating the volume while working on the segmentation
-      newSegmentation->SetProperty("showVolume", mitk::BoolProperty::New(false));
-      if (!newSegmentation)
-      {
-        return; // could be aborted by user
-      }
-
-      if (mitk::ToolManagerProvider::GetInstance()->GetToolManager()->GetWorkingData(0))
-      {
-        mitk::ToolManagerProvider::GetInstance()->GetToolManager()->GetWorkingData(0)->SetSelected(false);
-      }
-      newSegmentation->SetSelected(true);
-      this->GetDataStorage()->Add(
-        newSegmentation,
-        toolManager->GetReferenceData(0)); // add as a child, because the segmentation "derives" from the original
-
-      m_SegC = newSegmentation;
-
-      auto referencedImages = m_Image->GetData()->GetProperty("files");
-      m_SegC->GetData()->SetProperty("referenceFiles", referencedImages);
-    }
-    catch (std::bad_alloc)
-    {
-      QMessageBox::warning(
-        nullptr, tr("Create new segmentation"), tr("Could not allocate memory for new segmentation"));
-    }
-  }
-  else
-  {
-    MITK_INFO << "no tools...";
-  }
 }
 
 void DicomWebView::CleanDicomFolder()

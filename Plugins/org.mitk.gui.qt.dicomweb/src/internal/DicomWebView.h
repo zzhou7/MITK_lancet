@@ -64,15 +64,6 @@ public:
   void LoadDataSegDicomWeb(std::vector<std::string> filePathList);
 
   /**
-   * @brief Calculates how many slices would be delete if the given threshold would be applied to the segmentation
-   * volume. The information about the segmentation similarity is used and slices below the threshold are to be
-   * discarded. Updates the display.
-   *
-   * @param value the threshold value (between 0 and 1).
-   */
-  void OnSliderWidgetChanged(double value);
-
-  /**
    * @brief Progress is added to the progressbar in a percent value and the given status is displayed. The progress will
    * not exceed 100 points.
    *
@@ -101,14 +92,11 @@ protected:
 
   virtual void SetFocus() override;
 
-  void CreateNewSegmentationC();
-
   void CleanDicomFolder();
   void UploadNewSegmentation();
   void RestartConnection(utility::string_t newHost);
   void OnRestartConnection();
   pplx::task<bool> TestConnection();
-  void OnIndividualCheckChange(int state);
 
   Ui::DicomWebViewControls m_Controls;
 
