@@ -18,18 +18,21 @@ See LICENSE.txt or http://www.mitk.org for details.
 #define DicomWebView_h
 
 #include <berryISelectionListener.h>
-
 #include <QmitkAbstractView.h>
-
-#include "ui_DicomWebViewControls.h"
-
+#include <mitkILifecycleAwarePart.h>
+#include <mitkIRenderWindowPartListener.h>
 #include "DicomWebRequestHandler.h"
 #include <mitkIRESTManager.h>
-#include <mitkImage.h>
-#include <mitkLabelSetImage.h>
 #include <berryIPartListener.h>
-#include <mitkILifecycleAwarePart.h>
 
+
+
+
+
+#include "ui_DicomWebViewControls.h"
+#include "mitkNodePredicateNot.h"
+#include "mitkNodePredicateAnd.h"
+#include "mitkNodePredicateOr.h"
 /**
   @brief DicomWebView
 
@@ -40,6 +43,7 @@ See LICENSE.txt or http://www.mitk.org for details.
   \ingroup ${plugin_target}_internal
 */
 class DicomWebView : public QmitkAbstractView, public mitk::ILifecycleAwarePart
+//, public mitk::IRenderWindowPartListener
 {
   Q_OBJECT
 
@@ -53,15 +57,6 @@ public:
    * @return set of objects containing the newly loaded data nodes
    */
   mitk::DataStorage::SetOfObjects::Pointer LoadData(std::vector<std::string> filePathList);
-
-  /**
-   * @brief Loads the files given by a list of file paths. This method expects exactly three items in the list (image
-   * series, seg series a, seg series b). Additional information for segmentation DicomWeb is displayed.
-   *
-   *
-   * @param filePathList a list of absolute file paths
-   */
-  void LoadDataSegDicomWeb(std::vector<std::string> filePathList);
 
   /**
    * @brief Progress is added to the progressbar in a percent value and the given status is displayed. The progress will
@@ -90,6 +85,7 @@ signals:
 protected:
   virtual void CreateQtPartControl(QWidget *parent) override;
 
+	void SetPredicates();
   virtual void SetFocus() override;
 
   void CleanDicomFolder();
@@ -99,11 +95,15 @@ protected:
   pplx::task<bool> TestConnection();
 
   Ui::DicomWebViewControls m_Controls;
+  mitk::NodePredicateNot::Pointer m_IsNotAHelperObject;
+  mitk::NodePredicateAnd::Pointer m_IsOfTypeImagePredicate;
+  mitk::NodePredicateOr::Pointer m_IsASegmentationImagePredicate;
+  mitk::NodePredicateAnd::Pointer m_IsAPatientImagePredicate;
 
 private:
-  std::vector<unsigned int> CreateSegmentation(mitk::Image::Pointer baseSegmentation, double threshold);
+  // std::vector<unsigned int> CreateSegmentation(mitk::Image::Pointer baseSegmentation, double threshold);
 
-  std::string GetAlgorithmOfSegByPath(std::string path);
+  //std::string GetAlgorithmOfSegByPath(std::string path);
 
   void SetSimilarityGraph(std::vector<double> simScoreArray, int sliceMinStart);
 
@@ -125,7 +125,6 @@ private:
   std::map<double, double> m_ScoreMap;
   std::string m_GroundTruth;
   std::string m_thresholdLabel;
-  mitk::DICOMweb m_DicomWeb;
 
   QWidget *m_Parent;
 

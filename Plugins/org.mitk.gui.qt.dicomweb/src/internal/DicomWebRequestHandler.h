@@ -60,6 +60,8 @@ public:
                                   const web::json::value &data,
                                   const web::http::method &method,
                                   const mitk::RESTUtil::ParamMap &headers);
+  void UpdateDicomWebUrl(utility::string_t pacsURI);
+  mitk::DICOMweb DicomWebGet();
 
 signals:
   void InvokeProgress(int, QString status);
@@ -67,6 +69,7 @@ signals:
   void InvokeUpdateDcmMeta(DicomDTO dto);
   void InvokeLoadData(std::vector<std::string>);
   void InvokeLoadDataSegDicomWeb(std::vector<std::string>);
+;
 
 private:
   DicomDTO ExtractDTO(const web::json::value &data);

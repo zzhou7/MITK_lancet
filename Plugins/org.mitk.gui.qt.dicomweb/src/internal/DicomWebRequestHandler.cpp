@@ -30,7 +30,15 @@ DicomWebRequestHandler::DicomWebRequestHandler() {}
 DicomWebRequestHandler::DicomWebRequestHandler(std::string downloadDir, utility::string_t pacsURI)
   : m_DownloadDir{downloadDir}
 {
-  m_DicomWeb = mitk::DICOMweb(pacsURI + U("/dcm4chee-arc/aets/DCM4CHEE/"));
+  m_DicomWeb = mitk::DICOMweb(pacsURI);
+}
+
+void DicomWebRequestHandler::UpdateDicomWebUrl(utility::string_t pacsURI) {
+  m_DicomWeb = mitk::DICOMweb(pacsURI);
+}
+
+mitk::DICOMweb DicomWebRequestHandler::DicomWebGet() {
+  return m_DicomWeb;
 }
 
 DicomWebRequestHandler::DicomDTO DicomWebRequestHandler::ExtractDTO(const web::json::value &data)

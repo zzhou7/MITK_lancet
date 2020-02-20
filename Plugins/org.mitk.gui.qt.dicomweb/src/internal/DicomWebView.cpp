@@ -17,10 +17,7 @@ See LICENSE.txt or http://www.mitk.org for details.
 // Blueberry
 #include <berryISelectionService.h>
 #include <berryIWorkbenchWindow.h>
-
 // Qmitk
-#include "DicomWebView.h"
-
 #include <Poco/File.h>
 #include <itkFileTools.h>
 
@@ -29,23 +26,15 @@ See LICENSE.txt or http://www.mitk.org for details.
 #include <QProgressBar>
 
 // mitk 
-#include <QmitkNewSegmentationDialog.h>
-#include <mitkExtractSliceFilter.h>
-#include <mitkIOUtil.h>
-#include <mitkImagePixelWriteAccessor.h>
-#include <mitkOverwriteSliceImageFilter.h>
-#include <mitkSegTool2D.h>
-#include <mitkSegmentationInterpolationController.h>
-#include <mitkToolManagerProvider.h>
-#include <mitkVtkImageOverwrite.h>
+#include "DicomWebView.h"
 
-#include <usGetModuleContext.h>
-#include <usModule.h>
-#include <usModuleRegistry.h>
-#include <usServiceTracker.h>
 
-#include <mitkDICOMweb.h>
-
+#include "mitkLabelSetImage.h"
+#include <mitkWorkbenchUtil.h>
+#include "mitkIOUtil.h"
+#include "mitkNodePredicateProperty.h"
+#include "mitkImage.h"
+#include "mitkNodePredicateDataType.h"
 #include <mitkDICOMDCMTKTagScanner.h>
 #include <mitkDICOMSegIOMimeTypes.h>
 
@@ -59,6 +48,11 @@ void DicomWebView::CreateQtPartControl(QWidget *parent)
   m_Controls.setupUi(parent);
   m_Parent = parent;
 
+  SetPredicates();
+
+  
+
+
   qRegisterMetaType<std::vector<std::string>>("std::vector<std::string>");
   qRegisterMetaType<std::vector<double>>("std::vector<double>");
   qRegisterMetaType<DicomWebRequestHandler::DicomDTO>("DicomDTO");
@@ -70,7 +64,14 @@ void DicomWebView::CreateQtPartControl(QWidget *parent)
   connect(m_Controls.buttonUpload, &QPushButton::clicked, this, &DicomWebView::UploadNewSegmentation);
   connect(m_Controls.cleanDicomBtn, &QPushButton::clicked, this, &DicomWebView::CleanDicomFolder);
   connect(m_Controls.restartConnection, &QPushButton::clicked, this, &DicomWebView::OnRestartConnection);
-  connect(m_Controls.testConnection, &QPushButton::clicked, this, &DicomWebView::TestConnection);
+  connect(m_Controls.patImageSelector,
+          SIGNAL(CurrentSelectionChanged(QList<mitk::DataNode::Pointer>)),
+          this,
+          SLOT(OnPatientSelectionChanged(QList<mitk::DataNode::Pointer>)));
+  connect(m_Controls.segImageSelector,
+          SIGNAL(CurrentSelectionChanged(QList<mitk::DataNode::Pointer>)),
+          this,
+          SLOT(OnSegmentationSelectionChanged(QList<mitk::DataNode::Pointer>)));
 
   m_DownloadBaseDir = mitk::IOUtil::GetTempPath() + "segrework";
   MITK_INFO << "using download base dir: " << m_DownloadBaseDir;
@@ -102,7 +103,7 @@ void DicomWebView::CreateQtPartControl(QWidget *parent)
 
   m_restURL = host.append(U("/rest-srs"));
   MITK_INFO << "rest url: " << mitk::RESTUtil::convertToUtf8(m_restURL);
-  utility::string_t pacsURL = U("http://10.128.129.166:8080");
+  utility::string_t pacsURL = U("");// e.g. http://10.128.129.166:8080
   auto envPacsURL = std::getenv("PACS_URL");
 
   if (envPacsURL)
@@ -117,8 +118,6 @@ void DicomWebView::CreateQtPartControl(QWidget *parent)
   connect(
     m_RequestHandler, &DicomWebRequestHandler::InvokeUpdateDcmMeta, this, &DicomWebView::InitializeDcmMeta);
   connect(m_RequestHandler, &DicomWebRequestHandler::InvokeLoadData, this, &DicomWebView::LoadData);
-  connect(
-    m_RequestHandler, &DicomWebRequestHandler::InvokeLoadDataSegDicomWeb, this, &DicomWebView::LoadDataSegDicomWeb);
 
   // Get the micro service
   us::ModuleContext *context = us::ModuleRegistry::GetModule(1)->GetModuleContext();
@@ -132,7 +131,58 @@ void DicomWebView::CreateQtPartControl(QWidget *parent)
     }
   }
 
-  RestartConnection(pacsURL);
+  // Should be done last, if everything else is configured because it triggers the autoselection of data.
+  m_Controls.patImageSelector->SetAutoSelectNewNodes(true);
+  m_Controls.segImageSelector->SetAutoSelectNewNodes(true);
+  //RestartConnection(pacsURL);
+}
+
+void DicomWebView::SetPredicates() {
+  mitk::TNodePredicateDataType<mitk::Image>::Pointer isImage = mitk::TNodePredicateDataType<mitk::Image>::New();
+  mitk::NodePredicateDataType::Pointer isDwi = mitk::NodePredicateDataType::New("DiffusionImage");
+  mitk::NodePredicateDataType::Pointer isDti = mitk::NodePredicateDataType::New("TensorImage");
+  mitk::NodePredicateDataType::Pointer isOdf = mitk::NodePredicateDataType::New("OdfImage");
+  auto isSegment = mitk::NodePredicateDataType::New("Segment");
+
+  mitk::NodePredicateOr::Pointer validImages = mitk::NodePredicateOr::New();
+  validImages->AddPredicate(mitk::NodePredicateAnd::New(isImage, mitk::NodePredicateNot::New(isSegment)));
+  validImages->AddPredicate(isDwi);
+  validImages->AddPredicate(isDti);
+  validImages->AddPredicate(isOdf);
+
+  m_IsNotAHelperObject =
+    mitk::NodePredicateNot::New(mitk::NodePredicateProperty::New("helper object", mitk::BoolProperty::New(true)));
+
+  m_IsOfTypeImagePredicate = mitk::NodePredicateAnd::New(validImages, m_IsNotAHelperObject);
+
+  mitk::NodePredicateProperty::Pointer isBinaryPredicate =
+    mitk::NodePredicateProperty::New("binary", mitk::BoolProperty::New(true));
+  mitk::NodePredicateNot::Pointer isNotBinaryPredicate = mitk::NodePredicateNot::New(isBinaryPredicate);
+
+  mitk::NodePredicateAnd::Pointer isABinaryImagePredicate =
+    mitk::NodePredicateAnd::New(m_IsOfTypeImagePredicate, isBinaryPredicate);
+  mitk::NodePredicateAnd::Pointer isNotABinaryImagePredicate =
+    mitk::NodePredicateAnd::New(m_IsOfTypeImagePredicate, isNotBinaryPredicate);
+
+  m_IsASegmentationImagePredicate =
+    mitk::NodePredicateOr::New(isABinaryImagePredicate, mitk::TNodePredicateDataType<mitk::LabelSetImage>::New());
+  m_IsAPatientImagePredicate = mitk::NodePredicateAnd::New(
+    isNotABinaryImagePredicate, mitk::NodePredicateNot::New(mitk::TNodePredicateDataType<mitk::LabelSetImage>::New()));
+
+  m_Controls.patImageSelector->SetDataStorage(GetDataStorage());
+  m_Controls.patImageSelector->SetNodePredicate(m_IsAPatientImagePredicate);
+  m_Controls.patImageSelector->SetSelectionIsOptional(false);
+  m_Controls.patImageSelector->SetInvalidInfo("Select an image.");
+  m_Controls.patImageSelector->SetPopUpTitel("Select an image.");
+  m_Controls.patImageSelector->SetPopUpHint(
+    "Select an image that should be used and could be uploaded."); // TODO: set Image to uplaod
+
+  m_Controls.segImageSelector->SetDataStorage(GetDataStorage());
+  m_Controls.segImageSelector->SetNodePredicate(m_IsASegmentationImagePredicate);
+  m_Controls.segImageSelector->SetSelectionIsOptional(false);
+  m_Controls.segImageSelector->SetInvalidInfo("Select a segmentation.");
+  m_Controls.segImageSelector->SetPopUpTitel("Select a segmentation.");
+  m_Controls.segImageSelector->SetPopUpHint("Select a segmentation that should be uploaded.");
 }
 
 
@@ -187,7 +237,7 @@ pplx::task<bool> DicomWebView::TestConnection()
   seriesInstancesParams.insert(mitk::RESTUtil::ParamMap::value_type(U("limit"), U("1")));
   m_Controls.connectionStatus->setText(QString("Testing connection ..."));
 
-  return m_DicomWeb.SendQIDO(seriesInstancesParams).then([=](pplx::task<web::json::value> resultTask) {
+  return m_RequestHandler->DicomWebGet().SendQIDO(seriesInstancesParams).then([=](pplx::task<web::json::value> resultTask) {
     try
     {
       auto result = resultTask.get();
@@ -232,7 +282,7 @@ void DicomWebView::RestartConnection(utility::string_t newHost)
   m_Controls.connectionStatus->setText(QString("Restarting connection..."));
   m_Controls.dcm4cheeURL->setText({(utility::conversions::to_utf8string(url).c_str())});
 
-  m_DicomWeb = mitk::DICOMweb(url);
+  m_RequestHandler->UpdateDicomWebUrl(url);
 
   if (!TestConnection().get())
   {
@@ -246,27 +296,6 @@ void DicomWebView::RestartConnection(utility::string_t newHost)
 }
 
 
-std::string DicomWebView::GetAlgorithmOfSegByPath(std::string path)
-{
-  auto scanner = mitk::DICOMDCMTKTagScanner::New();
-
-  mitk::DICOMTagPath algorithmName;
-  algorithmName.AddAnySelection(0x0062, 0x0002).AddElement(0x0062, 0x0009);
-
-  mitk::StringList files;
-  files.push_back(path);
-  scanner->SetInputFiles(files);
-  scanner->AddTagPath(algorithmName);
-
-  scanner->Scan();
-
-  mitk::DICOMDatasetAccessingImageFrameList frames = scanner->GetFrameInfoList();
-  auto findings = frames.front()->GetTagValueAsString(algorithmName);
-  if (findings.size() != 0)
-    MITK_INFO << findings.front().value;
-  return findings.front().value;
-}
-
 mitk::DataStorage::SetOfObjects::Pointer DicomWebView::LoadData(std::vector<std::string> filePathList)
 {
   MITK_INFO << "Pushing data to data storage ...";
@@ -277,22 +306,6 @@ mitk::DataStorage::SetOfObjects::Pointer DicomWebView::LoadData(std::vector<std:
   return dataNodes;
 }
 
-void DicomWebView::LoadDataSegDicomWeb(std::vector<std::string> filePathList)
-{
-  auto dataNodes = LoadData(filePathList);
-
-  // find data nodes
-  m_Image = dataNodes->at(0);
-  m_Image->SetName("image data");
-  m_SegA = dataNodes->at(1);
-  m_SegB = dataNodes->at(2);
-
-  auto algorithmNameA = GetAlgorithmOfSegByPath(filePathList[1]);
-  auto algorithmNameB = GetAlgorithmOfSegByPath(filePathList[2]);
-  m_SegA->SetName(algorithmNameA);
-  m_SegB->SetName(algorithmNameB);
-  emit InvokeProgress(20, {""});
-}
 
 
 void DicomWebView::StartServer()
@@ -345,7 +358,7 @@ void DicomWebView::UploadNewSegmentation()
   auto filePath = utility::conversions::to_string_t(savePath);
   try
   {
-    m_DicomWeb.SendSTOW(filePath, mitk::RESTUtil::convertToTString(m_CurrentStudyUID)).then([=] {
+    m_RequestHandler->DicomWebGet().SendSTOW(filePath, mitk::RESTUtil::convertToTString(m_CurrentStudyUID)).then([=] {
       emit InvokeProgress(50, {"persist reworked SEG to evaluation database"});
 
       mitk::DICOMweb::MitkUriBuilder queryBuilder(m_restURL + U("/tasks/evaluations/"));
@@ -384,44 +397,45 @@ void DicomWebView::UploadNewSegmentation()
   }
 }
 
-std::vector<unsigned int> DicomWebView::CreateSegmentation(mitk::Image::Pointer baseSegmentation,
-                                                                     double threshold)
-{
-  MITK_INFO << "handle individual segmentation creation";
-  std::map<double, double>::iterator it;
 
-  std::vector<unsigned int> sliceIndices;
-
-  unsigned int count = 0;
-  for (it = m_ScoreMap.begin(); it != m_ScoreMap.end(); it++)
-  {
-    if (it->second < threshold)
-    {
-      auto index = it->first;
-      try
-      {
-        mitk::ImagePixelWriteAccessor<unsigned short, 3> imageAccessor(baseSegmentation);
-        for (unsigned int x = 0; x < baseSegmentation->GetDimension(0); x++)
-        {
-          for (unsigned int y = 0; y < baseSegmentation->GetDimension(1); y++)
-          {
-            imageAccessor.SetPixelByIndex({{x, y, int(index)}}, 0);
-          }
-        }
-      }
-      catch (mitk::Exception &e)
-      {
-        MITK_ERROR << e.what();
-      }
-
-      count++;
-      sliceIndices.push_back(index);
-      MITK_INFO << "slice " << it->first << " removed ";
-    }
-  }
-  MITK_INFO << "slices deleted " << count;
-  return sliceIndices;
-}
+//std::vector<unsigned int> DicomWebView::CreateSegmentation(mitk::Image::Pointer baseSegmentation,
+//                                                                     double threshold)
+//{
+//  MITK_INFO << "handle individual segmentation creation";
+//  std::map<double, double>::iterator it;
+//
+//  std::vector<unsigned int> sliceIndices;
+//
+//  unsigned int count = 0;
+//  for (it = m_ScoreMap.begin(); it != m_ScoreMap.end(); it++)
+//  {
+//    if (it->second < threshold)
+//    {
+//      auto index = it->first;
+//      try
+//      {
+//        mitk::ImagePixelWriteAccessor<unsigned short, 3> imageAccessor(baseSegmentation);
+//        for (unsigned int x = 0; x < baseSegmentation->GetDimension(0); x++)
+//        {
+//          for (unsigned int y = 0; y < baseSegmentation->GetDimension(1); y++)
+//          {
+//            imageAccessor.SetPixelByIndex({{x, y, int(index)}}, 0);
+//          }
+//        }
+//      }
+//      catch (mitk::Exception &e)
+//      {
+//        MITK_ERROR << e.what();
+//      }
+//
+//      count++;
+//      sliceIndices.push_back(index);
+//      MITK_INFO << "slice " << it->first << " removed ";
+//    }
+//  }
+//  MITK_INFO << "slices deleted " << count;
+//  return sliceIndices;
+//}
 
 void DicomWebView::CleanDicomFolder()
 {
