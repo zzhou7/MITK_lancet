@@ -82,6 +82,11 @@ public:
 signals:
   void InvokeProgress(int, QString status);
 
+protected slots:
+  void OnPatientSelectionChanged(QList<mitk::DataNode::Pointer> nodes);
+  void OnSegmentationSelectionChanged(QList<mitk::DataNode::Pointer> nodes);
+
+
 protected:
   virtual void CreateQtPartControl(QWidget *parent) override;
 
@@ -99,6 +104,7 @@ protected:
   mitk::NodePredicateAnd::Pointer m_IsOfTypeImagePredicate;
   mitk::NodePredicateOr::Pointer m_IsASegmentationImagePredicate;
   mitk::NodePredicateAnd::Pointer m_IsAPatientImagePredicate;
+  
 
 private:
   // std::vector<unsigned int> CreateSegmentation(mitk::Image::Pointer baseSegmentation, double threshold);

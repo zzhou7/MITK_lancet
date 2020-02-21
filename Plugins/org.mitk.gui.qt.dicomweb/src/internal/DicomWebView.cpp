@@ -332,12 +332,15 @@ void DicomWebView::StartServer()
 
 void DicomWebView::UploadNewSegmentation()
 {
+  auto segNote = m_Controls.segImageSelector->GetSelectedNode();
+  if (!segNote)
+    return;
   AddProgress(10, {"save SEG to temp folder"});
   std::string folderPathSeg = mitk::IOUtil::CreateTemporaryDirectory("XXXXXX", m_UploadBaseDir) + "/";
 
-  const std::string savePath = folderPathSeg + m_SegC->GetName() + ".dcm";
+  const std::string savePath = folderPathSeg + segNote->GetName() + ".dcm";
   const std::string mimeType = mitk::MitkDICOMSEGIOMimeTypes::DICOMSEG_MIMETYPE_NAME();
-  mitk::IOUtil::Save(m_SegC->GetData(), mimeType, savePath);
+  mitk::IOUtil::Save(segNote->GetData(), mimeType, savePath);
 
   // get Series Instance UID from new SEG
   auto scanner = mitk::DICOMDCMTKTagScanner::New();
@@ -361,34 +364,40 @@ void DicomWebView::UploadNewSegmentation()
     m_RequestHandler->DicomWebGet().SendSTOW(filePath, mitk::RESTUtil::convertToTString(m_CurrentStudyUID)).then([=] {
       emit InvokeProgress(50, {"persist reworked SEG to evaluation database"});
 
-      mitk::DICOMweb::MitkUriBuilder queryBuilder(m_restURL + U("/tasks/evaluations/"));
-      queryBuilder.append_query(U("srUID"), utility::conversions::to_string_t(m_SRUID));
+      MITK_INFO << "successfully stored";
+      emit InvokeProgress(30, {"successfully stored"});
 
-      m_ManagerService->SendRequest(queryBuilder.to_uri(), mitk::IRESTManager::RequestType::Get)
-        .then([=](web::json::value result) {
-          MITK_INFO << "after GET";
-          MITK_INFO << utility::conversions::to_utf8string(result.serialize());
-          auto updatedContent = result.as_array()[0];
-          updatedContent[U("reworkedSegmentationUID")] =
-            web::json::value::string(utility::conversions::to_string_t(segSeriesUID));
+      // TODO update content on server?? needed?
+     // mitk::DICOMweb::MitkUriBuilder queryBuilder(m_restURL + U("/tasks/evaluations/"));
+      //TODO update content on server?? needed?
+      //queryBuilder.append_query(U("srUID"), utility::conversions::to_string_t(m_SRUID));
+          
 
-          auto id = updatedContent.at(U("id")).as_integer();
-          MITK_INFO << id;
-          auto idParam = std::to_string(id).append("/");
+      //m_ManagerService->SendRequest(queryBuilder.to_uri(), mitk::IRESTManager::RequestType::Get)
+      //  .then([=](web::json::value result) {
+      //    MITK_INFO << "after GET";
+      //    MITK_INFO << utility::conversions::to_utf8string(result.serialize());
+      //    auto updatedContent = result.as_array()[0];
+      //    updatedContent[U("reworkedSegmentationUID")] =
+      //      web::json::value::string(utility::conversions::to_string_t(segSeriesUID));
 
-          mitk::DICOMweb::MitkUriBuilder queryBuilder(m_restURL + U("/tasks/evaluations"));
-          queryBuilder.append_path(utility::conversions::to_string_t(idParam));
+      //    auto id = updatedContent.at(U("id")).as_integer();
+      //    MITK_INFO << id;
+      //    auto idParam = std::to_string(id).append("/");
 
-          m_ManagerService->SendJSONRequest(queryBuilder.to_uri(), mitk::IRESTManager::RequestType::Put, &updatedContent)
-            .then([=](web::json::value result) {
-              MITK_INFO << utility::conversions::to_utf8string(result.serialize());
-              if (result[U("reworkedSegmentationUID")].as_string() == utility::conversions::to_string_t(segSeriesUID))
-              {
-                MITK_INFO << "successfully stored";
-                emit InvokeProgress(30, {"successfully stored"});
-              }
-            });
-        });
+      //    mitk::DICOMweb::MitkUriBuilder queryBuilder(m_restURL + U("/tasks/evaluations"));
+      //    queryBuilder.append_path(utility::conversions::to_string_t(idParam));
+
+      //    m_ManagerService->SendJSONRequest(queryBuilder.to_uri(), mitk::IRESTManager::RequestType::Put, &updatedContent)
+      //      .then([=](web::json::value result) {
+      //        MITK_INFO << utility::conversions::to_utf8string(result.serialize());
+      //        if (result[U("reworkedSegmentationUID")].as_string() == utility::conversions::to_string_t(segSeriesUID))
+      //        {
+      //          MITK_INFO << "successfully stored";
+      //          emit InvokeProgress(30, {"successfully stored"});
+      //        }
+      //      });
+      //  });
     });
   }
   catch (const std::exception &exception)
@@ -398,55 +407,59 @@ void DicomWebView::UploadNewSegmentation()
 }
 
 
-//std::vector<unsigned int> DicomWebView::CreateSegmentation(mitk::Image::Pointer baseSegmentation,
-//                                                                     double threshold)
-//{
-//  MITK_INFO << "handle individual segmentation creation";
-//  std::map<double, double>::iterator it;
-//
-//  std::vector<unsigned int> sliceIndices;
-//
-//  unsigned int count = 0;
-//  for (it = m_ScoreMap.begin(); it != m_ScoreMap.end(); it++)
-//  {
-//    if (it->second < threshold)
-//    {
-//      auto index = it->first;
-//      try
-//      {
-//        mitk::ImagePixelWriteAccessor<unsigned short, 3> imageAccessor(baseSegmentation);
-//        for (unsigned int x = 0; x < baseSegmentation->GetDimension(0); x++)
-//        {
-//          for (unsigned int y = 0; y < baseSegmentation->GetDimension(1); y++)
-//          {
-//            imageAccessor.SetPixelByIndex({{x, y, int(index)}}, 0);
-//          }
-//        }
-//      }
-//      catch (mitk::Exception &e)
-//      {
-//        MITK_ERROR << e.what();
-//      }
-//
-//      count++;
-//      sliceIndices.push_back(index);
-//      MITK_INFO << "slice " << it->first << " removed ";
-//    }
-//  }
-//  MITK_INFO << "slices deleted " << count;
-//  return sliceIndices;
-//}
+void DicomWebView::OnPatientSelectionChanged(QList<mitk::DataNode::Pointer> nodes)
+{
+  if (!nodes.empty())
+  {
+    auto node = nodes.first();
+    m_Controls.segImageSelector->SetNodePredicate(m_IsASegmentationImagePredicate);
+
+    mitk::DataNode *segNode = m_Controls.segImageSelector->GetSelectedNode();
+    if (segNode)
+    {
+      // Doing this we can assure that the segmenation is always visible if the segmentation and the patient image are
+      // loaded separately
+      int layer(10);
+      node->GetIntProperty("layer", layer);
+      layer++;
+      segNode->SetProperty("layer", mitk::IntProperty::New(layer));
+      m_Controls.buttonUpload->setEnabled(true);
+    }
+  }
+  else
+  {
+    m_Controls.segImageSelector->SetNodePredicate(m_IsASegmentationImagePredicate);
+    m_Controls.buttonUpload->setEnabled(false);
+  }
+}
+
+void DicomWebView::OnSegmentationSelectionChanged(QList<mitk::DataNode::Pointer> nodes)
+{
+  m_Controls.buttonUpload->setEnabled(false);
+  if (nodes.empty())
+    return;
+  
+
+  auto refNode = m_Controls.patImageSelector->GetSelectedNode();
+  auto segNode = nodes.front();
+
+  if (!refNode)
+    return;
+
+  if (segNode)
+  {
+    // Doing this we can assure that the segmenation is always visible if the segmentation and the patient image are
+    // loaded separately
+    int layer(10);
+    refNode->GetIntProperty("layer", layer);
+    layer++;
+    segNode->SetProperty("layer", mitk::IntProperty::New(layer));
+    m_Controls.buttonUpload->setEnabled(true);
+  }
+}
 
 void DicomWebView::CleanDicomFolder()
 {
-  if (m_SegA || m_SegB || m_SegC)
-  {
-    QMessageBox::warning(nullptr,
-                         tr("Clean dicom folder"),
-                         tr("Please remove the data in data storage before cleaning the download folder"));
-    return;
-  }
-
   auto downloadDir = Poco::File(m_DownloadBaseDir);
   downloadDir.remove(true);
 }

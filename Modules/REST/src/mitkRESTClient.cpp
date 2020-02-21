@@ -73,10 +73,12 @@ pplx::task<web::json::value> mitk::RESTClient::Get(const web::uri &uri,
       auto response = responseTask.get();
 
       bool isjson = CheckResponseContentType(response);
-      if (isjson)
-        return response.extract_json().get();
-      web::http::http_response dummy;
-      return dummy.extract_json().get();
+      if (!isjson)
+      {
+        web::json::value dummy;
+        return dummy;
+      }
+      return response.extract_json().get();
     }
     catch (const std::exception &e)
     {
@@ -138,10 +140,12 @@ pplx::task<web::json::value> mitk::RESTClient::Put(const web::uri &uri, const we
       auto response = responseTask.get();
 
       bool isjson = CheckResponseContentType(response);
-      if (isjson)
-        return response.extract_json().get();
-      web::http::http_response dummy;
-      return dummy.extract_json().get();
+      if (!isjson)
+      {
+        web::json::value dummy;
+        return dummy;
+      }
+      return response.extract_json().get();
     }
     catch (std::exception &e)
     {
@@ -197,10 +201,12 @@ pplx::task<web::json::value> mitk::RESTClient::ExecutePost(const web::uri &uri, 
       auto response = responseTask.get();
 
       bool isjson = CheckResponseContentType(response);
-      if (isjson)
-        return response.extract_json().get();
-      web::http::http_response dummy;
-      return dummy.extract_json().get();
+      if (!isjson)
+      {
+        web::json::value dummy;
+        return dummy;
+      }
+      return response.extract_json().get();
     }
     catch (std::exception &e)
     {
