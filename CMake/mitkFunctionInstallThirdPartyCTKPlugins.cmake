@@ -1,4 +1,4 @@
-#! \brief Install external CTK plug-ins.
+#[=[#! \brief Install external CTK plug-ins.
 #!
 #! Use this macro to call mitkFunctionInstallCTKPlugin() for all known
 #! or given external CTK plug-ins. The arguments given until a known argument name
@@ -65,4 +65,4 @@ function(mitkFunctionInstallThirdPartyCTKPlugins)
     endforeach()
   endif()
 
-endfunction()
+endfunction()]=]

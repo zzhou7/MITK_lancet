@@ -1,4 +1,4 @@
-#
+#[=[#
 # MITK specific cross plattform install macro
 #
 # Usage: MITK_INSTALL_TARGETS(target1 [target2] ....)
@@ -68,4 +68,4 @@ macro(MITK_INSTALL_TARGETS)
       endforeach()
     endif()
   endforeach()
-endmacro()
+endmacro()]=]

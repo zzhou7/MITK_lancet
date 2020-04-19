@@ -187,7 +187,7 @@ if(WIN32)
   )
 endif(WIN32)
 
-# -----------------------------------------------------------------------
+#[=[# -----------------------------------------------------------------------
 # Install support
 # -----------------------------------------------------------------------
 
@@ -220,7 +220,7 @@ if(NOT _APP_NO_INSTALL)
   # Tell cpack the executables that you want in the start menu as links
   set(MITK_CPACK_PACKAGE_EXECUTABLES ${MITK_CPACK_PACKAGE_EXECUTABLES} "${_APP_NAME};${_APP_DESCRIPTION}" CACHE INTERNAL "Collecting windows shortcuts to executables")
 
-endif()
+endif()]=]
 
 endfunction()
 

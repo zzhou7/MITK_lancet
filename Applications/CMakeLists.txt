@@ -1,4 +1,4 @@
-set(MITK_CPACK_PACKAGE_EXECUTABLES "" CACHE INTERNAL "Collecting windows shortcuts to executables" FORCE)
+#[=[set(MITK_CPACK_PACKAGE_EXECUTABLES "" CACHE INTERNAL "Collecting windows shortcuts to executables" FORCE)]=]
 set(MITK_DIR ${PROJECT_BINARY_DIR})
 set(MITK_EXPORTS_FILE_INCLUDED 1)
 

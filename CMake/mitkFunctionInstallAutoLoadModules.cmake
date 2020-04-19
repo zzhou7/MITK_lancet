@@ -1,5 +1,4 @@
-
-#! \brief Install auto-load modules needed by plug-ins.
+#[=[#! \brief Install auto-load modules needed by plug-ins.
 #!
 #! Uses the MITK_AUTOLOAD_TARGETS target property of the plug-in
 #! targets to extract a list of auto-load target names which will
@@ -104,4 +103,4 @@ function(BlueBerryApplicationInstallHook)
     DESTINATION ${_destination}
    )
 
-endfunction()
+endfunction()]=]

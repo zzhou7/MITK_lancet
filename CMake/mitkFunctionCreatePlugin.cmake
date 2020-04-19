@@ -268,7 +268,7 @@ function(mitk_create_plugin)
   #------------------------------------------------------------#
   #------------------ Installer support -----------------------#
   if(NOT _PLUGIN_NO_INSTALL)
-    set(install_directories "")
+    #[=[set(install_directories "")
     if(NOT MACOSX_BUNDLE_NAMES)
       set(install_directories bin/plugins)
     else(NOT MACOSX_BUNDLE_NAMES)
@@ -282,7 +282,7 @@ function(mitk_create_plugin)
       mitkFunctionInstallCTKPlugin(TARGETS ${PLUGIN_TARGET}
                                    DESTINATION ${install_subdir})
 
-    endforeach()
+    endforeach()]=]
 
     set(_autoload_targets )
     foreach(_dependency ${_module_deps})

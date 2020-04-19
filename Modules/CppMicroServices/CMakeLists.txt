@@ -399,7 +399,7 @@ configure_file(
 export(TARGETS ${US_RCC_EXECUTABLE_NAME}
        FILE ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Targets.cmake)
 
-if(NOT US_NO_INSTALL)
+#[=[if(NOT US_NO_INSTALL)
 
   install(EXPORT ${PROJECT_NAME}Targets
           FILE ${PROJECT_NAME}Targets.cmake
@@ -441,4 +441,4 @@ if(NOT US_NO_INSTALL)
           ${US_SDK_INSTALL_COMPONENT}
     )
 
-endif()
+endif()]=]

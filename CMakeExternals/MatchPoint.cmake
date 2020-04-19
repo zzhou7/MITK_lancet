@@ -60,7 +60,7 @@ if(MITK_USE_MatchPoint)
 
     ExternalProject_Get_Property(${proj} binary_dir)
     set(${proj}_DIR ${binary_dir})
-    mitkFunctionInstallExternalCMakeProject(${proj})
+    #[=[mitkFunctionInstallExternalCMakeProject(${proj})]=]
 
   else()
     mitkMacroEmptyExternalProject(${proj} "${proj_DEPENDENCIES}")

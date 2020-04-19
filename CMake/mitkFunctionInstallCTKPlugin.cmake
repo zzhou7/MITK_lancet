@@ -1,5 +1,4 @@
-
-#! \brief Install CTK plug-ins.
+#[=[#! \brief Install CTK plug-ins.
 #!
 #! Installs the given list of CTK plug-in targets in the given
 #! <code>DESTINATION</code>. If an entry in <code>TARGETS</code>
@@ -57,4 +56,4 @@ function(mitkFunctionInstallCTKPlugin)
     endif()
   endforeach()
 
-endfunction()
+endfunction()]=]

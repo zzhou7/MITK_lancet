@@ -302,7 +302,7 @@ ctkMacroSetupPlugins(${PROJECT_PLUGINS}
 
 add_subdirectory(Apps/$(project-app-name))
 
-#-----------------------------------------------------------------------------
+#[=[#-----------------------------------------------------------------------------
 # Installation
 #-----------------------------------------------------------------------------
 
@@ -322,7 +322,7 @@ set(CPACK_PROJECT_CONFIG_FILE "${PROJECT_BINARY_DIR}/${PROJECT_NAME}CPackOptions
 include(CPack)
 
 # Additional installation rules
-include(mitkInstallRules)
+include(mitkInstallRules)]=]
 
 #-----------------------------------------------------------------------------
 # Last configuration steps

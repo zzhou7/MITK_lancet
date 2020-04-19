@@ -47,7 +47,7 @@ if(NOT DEFINED VTK_DIR)
       "-DCMAKE_PROJECT_${proj}_INCLUDE:FILEPATH=${CMAKE_ROOT}/Modules/CTestUseLaunchers.cmake"
       )
   endif()
-  
+
   set (VTK_PATCH_OPTION
        PATCH_COMMAND ${PATCH_COMMAND} -p1 -i ${CMAKE_CURRENT_LIST_DIR}/VTK-8.1.0.patch)
 
@@ -80,7 +80,7 @@ if(NOT DEFINED VTK_DIR)
     )
 
   set(VTK_DIR ${ep_prefix})
-  mitkFunctionInstallExternalCMakeProject(${proj})
+  #[[mitkFunctionInstallExternalCMakeProject(${proj})]]
 
 else()
 

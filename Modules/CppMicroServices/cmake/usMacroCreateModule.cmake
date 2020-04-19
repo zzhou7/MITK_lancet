@@ -146,7 +146,7 @@ if(${PROJECT_NAME}_BINARY_RESOURCES)
 endif()
 usFunctionEmbedResources(TARGET ${${PROJECT_NAME}_TARGET})
 
-#-----------------------------------------------------------------------------
+#[=[#-----------------------------------------------------------------------------
 # Install support
 #-----------------------------------------------------------------------------
 
@@ -158,7 +158,7 @@ if(NOT US_NO_INSTALL)
           ARCHIVE DESTINATION ${ARCHIVE_INSTALL_DIR} ${US_SDK_INSTALL_COMPONENT}
           PUBLIC_HEADER DESTINATION ${HEADER_INSTALL_DIR} ${US_SDK_INSTALL_COMPONENT}
           PRIVATE_HEADER DESTINATION ${HEADER_INSTALL_DIR} ${US_SDK_INSTALL_COMPONENT})
-endif()
+endif()]=]
 
 #-----------------------------------------------------------------------------
 # US testing
@@ -190,11 +190,11 @@ configure_file(
 
 export(TARGETS ${${PROJECT_NAME}_TARGET} ${US_LIBRARIES}
        FILE ${CppMicroServices_BINARY_DIR}/us${PROJECT_NAME}Targets.cmake)
-if(NOT US_NO_INSTALL)
+#[=[if(NOT US_NO_INSTALL)
   install(EXPORT us${PROJECT_NAME}Targets
           FILE us${PROJECT_NAME}Targets.cmake
           DESTINATION ${AUXILIARY_CMAKE_INSTALL_DIR})
-endif()
+endif()]=]
 
 # Configure config file for the build tree
 
@@ -211,7 +211,7 @@ configure_file(
 
 # Configure config file for the install tree
 
-if(NOT US_NO_INSTALL)
+#[=[if(NOT US_NO_INSTALL)
   set(CONFIG_INCLUDE_DIR ${HEADER_INSTALL_DIR})
   set(CONFIG_RUNTIME_LIBRARY_DIR ${RUNTIME_INSTALL_DIR})
 
@@ -228,7 +228,7 @@ if(NOT US_NO_INSTALL)
                 ${CppMicroServices_BINARY_DIR}/us${PROJECT_NAME}ConfigVersion.cmake
           DESTINATION ${AUXILIARY_CMAKE_INSTALL_DIR}
           ${US_SDK_INSTALL_COMPONENT})
-endif()
+endif()]=]
 
 #-----------------------------------------------------------------------------
 # Build the examples

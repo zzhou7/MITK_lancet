@@ -41,7 +41,7 @@ if(NOT DEFINED CppUnit_DIR)
     )
 
   set(${proj}_DIR ${ep_prefix}/lib/cmake/CppUnit)
-  mitkFunctionInstallExternalCMakeProject(${proj})
+  #[=[mitkFunctionInstallExternalCMakeProject(${proj})]=]
 
 else()
 

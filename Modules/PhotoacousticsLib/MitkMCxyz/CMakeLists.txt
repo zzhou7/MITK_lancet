@@ -7,5 +7,5 @@ IF(BUILD_PhotoacousticSimulationMCxyz)
       PACKAGE_DEPENDS
       CPP_FILES MitkMCxyz.cpp)
 
-  install(TARGETS ${EXECUTABLE_TARGET} RUNTIME DESTINATION bin)
+  #[=[install(TARGETS ${EXECUTABLE_TARGET} RUNTIME DESTINATION bin)]=]
  ENDIF()

@@ -59,7 +59,7 @@ if(MITK_USE_DCMTK)
       DEPENDS ${proj_DEPENDENCIES}
       )
     set(DCMTK_DIR ${ep_prefix})
-    mitkFunctionInstallExternalCMakeProject(${proj})
+    #[=[mitkFunctionInstallExternalCMakeProject(${proj})]=]
 
   else()
 

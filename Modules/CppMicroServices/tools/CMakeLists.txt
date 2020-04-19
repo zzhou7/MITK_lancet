@@ -22,9 +22,9 @@ set_property(
   FOLDER "${MITK_ROOT_FOLDER}/CppMicroServices/Snippets"
   )
 
-if(NOT US_NO_INSTALL)
+#[=[if(NOT US_NO_INSTALL)
   install(TARGETS ${US_RCC_EXECUTABLE_NAME}
           EXPORT ${PROJECT_NAME}Targets
           FRAMEWORK DESTINATION . ${US_SDK_INSTALL_COMPONENT}
           RUNTIME DESTINATION bin ${US_SDK_INSTALL_COMPONENT})
-endif()
+endif()]=]

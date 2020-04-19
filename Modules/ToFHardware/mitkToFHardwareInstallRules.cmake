@@ -1,5 +1,4 @@
-
-mitkMacroGetPMDPlatformString(_PLATFORM_STRING)
+#[=[mitkMacroGetPMDPlatformString(_PLATFORM_STRING)
 
 #Only for CamCube
 if(MITK_USE_TOF_PMDCAMCUBE)
@@ -26,4 +25,4 @@ endif()
 
 if(WIN32 AND MITK_USE_TOF_PMDO3)
   MITK_INSTALL(FILES ${MITK_PMD_SDK_DIR}/plugins/o3d.W32.pcp CONFIGURATIONS Release)
-ENDIF()
+ENDIF()]=]

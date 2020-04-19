@@ -103,6 +103,6 @@ function(mitkFunctionCreateMatchPointDeployedAlgorithm)
     endif()
   endif()
 
-  MITK_INSTALL(TARGETS ${ALG_TARGET})
+  #[=[MITK_INSTALL(TARGETS ${ALG_TARGET})]=]
 
 endfunction()

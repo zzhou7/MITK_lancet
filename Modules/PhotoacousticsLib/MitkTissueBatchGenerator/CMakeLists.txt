@@ -7,5 +7,5 @@ IF(BUILD_PhotoacousticTissueBatchGenerator)
       PACKAGE_DEPENDS
       CPP_FILES TissueBatchGenerator.cpp)
 
-  install(TARGETS ${EXECUTABLE_TARGET} RUNTIME DESTINATION bin)
+  #[=[install(TARGETS ${EXECUTABLE_TARGET} RUNTIME DESTINATION bin)]=]
  ENDIF()

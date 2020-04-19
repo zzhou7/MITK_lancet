@@ -1,4 +1,4 @@
-#-----------------------------------------------------------------------------
+#[=[#-----------------------------------------------------------------------------
 # Installation
 #-----------------------------------------------------------------------------
 
@@ -49,5 +49,4 @@ set(CPACK_PACKAGE_VERSION_PATCH "${VERSION_PATCH}")
 # tell cpack to strip all debug symbols from all files
 set(CPACK_STRIP_FILES ON)
 
-include(CPack)
-
+include(CPack)]=]

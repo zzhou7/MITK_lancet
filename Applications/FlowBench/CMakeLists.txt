@@ -40,9 +40,9 @@ endif()
 #Setting application icon for macOS systems
 set_target_properties(MitkFlowBench PROPERTIES MACOSX_BUNDLE_ICON_FILE "icon.icns")
 
-if(APPLE)
+#[=[if(APPLE)
   install(FILES "icons/icon.icns" DESTINATION "MitkFlowBench.app/Contents/Resources")
-endif(APPLE)
+endif(APPLE)]=]
 
 # Add a build time dependency to legacy BlueBerry bundles.
 if(MITK_MODULES_ENABLED_PLUGINS)

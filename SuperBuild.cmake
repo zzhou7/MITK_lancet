@@ -95,7 +95,7 @@ endif()
 
 include(ExternalProject)
 include(mitkMacroQueryCustomEPVars)
-include(mitkFunctionInstallExternalCMakeProject)
+#[=[include(mitkFunctionInstallExternalCMakeProject)]=]
 include(mitkFunctionCleanExternalProject)
 
 option(MITK_AUTOCLEAN_EXTERNAL_PROJECTS "Experimental: Clean external project builds if updated" OFF)
@@ -475,7 +475,7 @@ ExternalProject_Add(${proj}
     MITK-Utilities
   )
 
-mitkFunctionInstallExternalCMakeProject(${proj})
+#[=[mitkFunctionInstallExternalCMakeProject(${proj})]=]
 
 #-----------------------------------------------------------------------------
 # MITK

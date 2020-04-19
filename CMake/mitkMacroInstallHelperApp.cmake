@@ -1,4 +1,4 @@
-#! MITK specific cross plattform install macro
+#[=[#! MITK specific cross plattform install macro
 #!
 #! Usage: MITK_INSTALL_HELPER_APP(target1 [target2] ....)
 #!
@@ -71,4 +71,4 @@ Prefix=${_qt_conf_plugin_install_prefix}
     endif()
   endforeach()
 
-endmacro(MITK_INSTALL_HELPER_APP)
+endmacro(MITK_INSTALL_HELPER_APP)]=]

@@ -1,4 +1,4 @@
-#
+#[=[#
 # MITK specific install macro
 #
 # On Mac everything is installed for each bundle listed in MACOSX_BUNDLE_NAMES
@@ -201,4 +201,4 @@ macro(_fixup_target)
       include(FixMacOSInstaller)
     endif()
   ")
-endmacro()
+endmacro()]=]

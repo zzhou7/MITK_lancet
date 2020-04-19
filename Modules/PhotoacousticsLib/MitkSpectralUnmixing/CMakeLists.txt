@@ -7,5 +7,5 @@ IF(BUILD_PhotoacousticSpectralUnmixing)
       PACKAGE_DEPENDS
       CPP_FILES SpectralUnmixingApp.cpp)
 
-  install(TARGETS ${EXECUTABLE_TARGET} RUNTIME DESTINATION bin)
+  #[=[install(TARGETS ${EXECUTABLE_TARGET} RUNTIME DESTINATION bin)]=]
  ENDIF()

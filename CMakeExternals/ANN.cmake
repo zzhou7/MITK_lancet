@@ -42,7 +42,7 @@ if(MITK_USE_ANN)
       )
 
     set(ANN_DIR ${ep_prefix}/lib/cmake/ANN)
-    mitkFunctionInstallExternalCMakeProject(${proj})
+    #[=[mitkFunctionInstallExternalCMakeProject(${proj})]=]
 
   else()
 

@@ -7,5 +7,5 @@ IF(BUILD_PhotoacousticResampleCropTool)
       PACKAGE_DEPENDS tinyxml
       CPP_FILES PAResampleCropTool.cpp)
 
-  install(TARGETS ${EXECUTABLE_TARGET} RUNTIME DESTINATION bin)
+  #[=[install(TARGETS ${EXECUTABLE_TARGET} RUNTIME DESTINATION bin)]=]
  ENDIF()

@@ -30,7 +30,7 @@ MITK_CREATE_MODULE(
   ADDITIONAL_LIBS "${ADDITIONAL_LIBS}"
 )
 
-if(MitkIGT_IS_ENABLED)
+#[=[if(MitkIGT_IS_ENABLED)
   MITK_INSTALL(FILES ${MITK_SOURCE_DIR}/Modules/IGT/Resources/ClaronMicron.stl )
   MITK_INSTALL(FILES ${MITK_SOURCE_DIR}/Modules/IGT/Resources/IntuitiveDaVinci.stl )
   MITK_INSTALL(FILES ${MITK_SOURCE_DIR}/Modules/IGT/Resources/NDIAurora.stl )
@@ -43,7 +43,7 @@ if(MitkIGT_IS_ENABLED)
   MITK_INSTALL(FILES ${MITK_SOURCE_DIR}/Modules/IGT/Resources/NDIPolarisSpectra.stl )
   MITK_INSTALL(FILES ${MITK_SOURCE_DIR}/Modules/IGT/Resources/NDIPolarisSpectraExtendedPyramid.stl )
   MITK_INSTALL(FILES ${MITK_SOURCE_DIR}/Modules/IGT/Resources/NDIPolarisVicra.stl )
-endif()
+endif()]=]
 
 if(NOT MODULE_IS_ENABLED)
   message(STATUS "IGTTutorialStep1 won't be built. Missing: ${_RESULT}")

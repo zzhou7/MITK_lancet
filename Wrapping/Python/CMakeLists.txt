@@ -58,7 +58,7 @@ mitk_target_link_libraries_with_dynamic_lookup(${SWIG_MODULE_pyMITK_REAL_NAME} $
 if(DEFINED SKBUILD)
   message(WARNING "SKBuild exists")
   # Currently this installation
-  install(FILES
+  #[=[install(FILES
       ${CMAKE_CURRENT_BINARY_DIR}/pyMITK.py
       ${CMAKE_CURRENT_SOURCE_DIR}/Packaging/__init__.py
     #  ${MITK_DOC_FILES}
@@ -70,7 +70,7 @@ if(DEFINED SKBUILD)
     RUNTIME DESTINATION pyMITK
     LIBRARY DESTINATION pyMITK
     COMPONENT Runtime
-    )
+    )]=]
 else()
   message(WARNING "SKBuild missing")
   include(LegacyPackaging.cmake)

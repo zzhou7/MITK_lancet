@@ -41,7 +41,7 @@ if(MITK_USE_ACVD)
     )
 
     set(ACVD_DIR ${ep_prefix})
-    mitkFunctionInstallExternalCMakeProject(${proj})
+    #[=[mitkFunctionInstallExternalCMakeProject(${proj})]=]
 
   else()
     mitkMacroEmptyExternalProject(${proj} "${proj_DEPENDENCIES}")

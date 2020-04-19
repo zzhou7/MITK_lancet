@@ -43,7 +43,7 @@ if(NOT DEFINED tinyxml_DIR)
     )
 
   set(${proj}_DIR ${ep_prefix})
-  mitkFunctionInstallExternalCMakeProject(${proj})
+  #[=[mitkFunctionInstallExternalCMakeProject(${proj})]=]
 
 else()
 

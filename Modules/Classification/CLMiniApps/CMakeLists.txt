@@ -55,7 +55,7 @@ if(BUILD_ClassificationMiniApps OR MITK_BUILD_ALL_APPS)
       CPP_FILES ${appname}.cpp
       )
 
-      if(EXECUTABLE_IS_ENABLED)
+      #[=[if(EXECUTABLE_IS_ENABLED)
 
         # On Linux, create a shell script to start a relocatable application
         if(UNIX AND NOT APPLE)
@@ -96,7 +96,7 @@ if(BUILD_ClassificationMiniApps OR MITK_BUILD_ALL_APPS)
          set(_qt_conf_install_dirs bin)
          install(TARGETS ${EXECUTABLE_TARGET} RUNTIME DESTINATION bin)
        endif()
-      endif()
+      endif()]=]
     endforeach()
 
   mitk_create_executable(CLMatchPointReg
@@ -105,13 +105,13 @@ if(BUILD_ClassificationMiniApps OR MITK_BUILD_ALL_APPS)
     CPP_FILES CLMatchPointReg.cpp
   )
 
-  # On Linux, create a shell script to start a relocatable application
+  #[=[# On Linux, create a shell script to start a relocatable application
   if(UNIX AND NOT APPLE)
     install(PROGRAMS "${MITK_SOURCE_DIR}/CMake/RunInstalledApp.sh" DESTINATION "." RENAME ${EXECUTABLE_TARGET}.sh)
   endif()
 
   if(EXECUTABLE_IS_ENABLED)
     MITK_INSTALL_TARGETS(EXECUTABLES ${EXECUTABLE_TARGET})
-  endif()
+  endif()]=]
 
 endif()

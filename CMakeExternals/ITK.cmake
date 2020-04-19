@@ -76,7 +76,7 @@ if(NOT DEFINED ITK_DIR)
     )
 
   set(ITK_DIR ${ep_prefix})
-  mitkFunctionInstallExternalCMakeProject(${proj})
+  #[=[mitkFunctionInstallExternalCMakeProject(${proj})]=]
 
 else()
 

@@ -524,10 +524,10 @@ include(mitkFunctionCreateProvisioningFile)
 include(mitkFunctionGetLibrarySearchPaths)
 include(mitkFunctionGetVersion)
 include(mitkFunctionGetVersionDescription)
-include(mitkFunctionInstallAutoLoadModules)
+#[=[include(mitkFunctionInstallAutoLoadModules)
 include(mitkFunctionInstallCTKPlugin)
 include(mitkFunctionInstallProvisioningFiles)
-include(mitkFunctionInstallThirdPartyCTKPlugins)
+include(mitkFunctionInstallThirdPartyCTKPlugins)]=]
 include(mitkFunctionOrganizeSources)
 include(mitkFunctionUseModules)
 if( ${MITK_USE_MatchPoint} )
@@ -539,9 +539,9 @@ include(mitkMacroCreateModuleTests)
 include(mitkMacroGenerateToolsLibrary)
 include(mitkMacroGetLinuxDistribution)
 include(mitkMacroGetPMDPlatformString)
-include(mitkMacroInstall)
+#[=[include(mitkMacroInstall)
 include(mitkMacroInstallHelperApp)
-include(mitkMacroInstallTargets)
+include(mitkMacroInstallTargets)]=]
 include(mitkMacroMultiplexPicType)
 
 # Deprecated
@@ -1178,7 +1178,7 @@ if(DOXYGEN_FOUND)
   add_subdirectory(Documentation)
 endif()
 
-#-----------------------------------------------------------------------------
+#[=[#-----------------------------------------------------------------------------
 # Installation
 #-----------------------------------------------------------------------------
 
@@ -1264,7 +1264,7 @@ endif()
 include(CPack)
 
 # Additional installation rules
-include(mitkInstallRules)
+include(mitkInstallRules)]=]
 
 #-----------------------------------------------------------------------------
 # Last configuration steps

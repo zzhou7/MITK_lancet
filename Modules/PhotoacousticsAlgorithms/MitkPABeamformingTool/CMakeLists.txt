@@ -7,5 +7,5 @@ IF(BUILD_PhotoacousticBeamformingTool)
       PACKAGE_DEPENDS tinyxml
       CPP_FILES PABeamformingTool.cpp)
 
-  install(TARGETS ${EXECUTABLE_TARGET} RUNTIME DESTINATION bin)
+  #[=[install(TARGETS ${EXECUTABLE_TARGET} RUNTIME DESTINATION bin)]=]
  ENDIF()

@@ -7,5 +7,5 @@ IF(BUILD_PhotoacousticPhantomGenerator)
       PACKAGE_DEPENDS
       CPP_FILES PAPhantomGenerator.cpp)
 
-  install(TARGETS ${EXECUTABLE_TARGET} RUNTIME DESTINATION bin)
+  #[=[install(TARGETS ${EXECUTABLE_TARGET} RUNTIME DESTINATION bin)]=]
  ENDIF()

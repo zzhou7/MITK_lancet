@@ -69,10 +69,10 @@ if(NOT US_IS_EMBEDDED AND NOT US_NO_DOCUMENTATION)
                       VERBATIM
                       )
 
-    install(CODE "execute_process(COMMAND \"${CMAKE_COMMAND}\" --build \"${PROJECT_BINARY_DIR}\" --target doc)")
+    #[=[install(CODE "execute_process(COMMAND \"${CMAKE_COMMAND}\" --build \"${PROJECT_BINARY_DIR}\" --target doc)")
 
     install(DIRECTORY "${US_DOXYGEN_OUTPUT_DIR}/${US_DOXYGEN_HTML_OUTPUT}"
             DESTINATION "${AUXILIARY_INSTALL_DIR}/doc/"
-            COMPONENT doc)
+            COMPONENT doc)]=]
   endif()
 endif()
