@@ -52,9 +52,8 @@ if(NOT DEFINED ITK_DIR)
   ExternalProject_Add(${proj}
      LIST_SEPARATOR ${sep}
      UPDATE_COMMAND ""
-     # ITK 4.13.2 + GCC9 patch
-     URL ${MITK_THIRDPARTY_DOWNLOAD_PREFIX_URL}/ITK_a092294.tar.gz
-     URL_MD5 5e3f39105917d992d5079be473994bc6
+     URL https://github.com/InsightSoftwareConsortium/ITK/releases/download/v5.1rc03/InsightToolkit-5.1rc03.tar.gz
+     URL_MD5 9a5fb6ae97e6ec8bf2430a2d20227bdd
      CMAKE_GENERATOR ${gen}
      CMAKE_GENERATOR_PLATFORM ${gen_platform}
      CMAKE_ARGS
@@ -62,6 +61,7 @@ if(NOT DEFINED ITK_DIR)
        ${additional_cmake_args}
        -DBUILD_EXAMPLES:BOOL=OFF
        -DITK_USE_SYSTEM_GDCM:BOOL=ON
+       -DITKV4_COMPATIBILITY:BOOL=ON
        -DGDCM_DIR:PATH=${GDCM_DIR}
        -DITK_USE_SYSTEM_HDF5:BOOL=ON
        -DHDF5_DIR:PATH=${HDF5_DIR}
