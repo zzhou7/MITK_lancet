@@ -15,7 +15,7 @@ found in the LICENSE file.
 
 #include <mitkNavigationDataPlayerBase.h>
 
-#include <itkMultiThreader.h>
+#include <itkMultiThreaderBase.h>
 
 namespace mitk {
   /**Documentation

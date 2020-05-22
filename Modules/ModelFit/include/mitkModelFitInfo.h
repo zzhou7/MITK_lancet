@@ -14,7 +14,7 @@ found in the LICENSE file.
 #define mitkModelFitInfo_h
 
 #include <itkMutexLockHolder.h>
-#include <itkSimpleFastMutexLock.h>
+#include <mutex>
 
 #include <mitkDataStorage.h>
 
@@ -121,10 +121,10 @@ namespace mitk
 
     private:
       typedef ParamListType::iterator IterType;
-      typedef itk::MutexLockHolder<itk::SimpleFastMutexLock> LockType;
+      typedef itk::MutexLockHolder<std::mutex> LockType;
 
       ParamListType parameterList;
-      itk::SimpleFastMutexLock mutex;
+      std::mutex mutex;
     };
 
     /**

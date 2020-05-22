@@ -282,7 +282,7 @@ void QmitkImageStatisticsTreeModel::UpdateByDataStorage()
   }
 
   {
-    itk::MutexLockHolder<itk::SimpleFastMutexLock> locked(m_Mutex);
+    itk::MutexLockHolder<std::mutex> locked(m_Mutex);
     m_Statistics = newStatistics;
   }
 

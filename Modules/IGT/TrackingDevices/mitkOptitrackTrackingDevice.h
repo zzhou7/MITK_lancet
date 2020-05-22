@@ -15,7 +15,7 @@ found in the LICENSE file.
 
 #include <MitkIGTExports.h>
 #include <mitkTrackingDevice.h>
-#include <itkMultiThreader.h>
+#include <itkMultiThreaderBase.h>
 #include <mitkTrackingTypes.h>
 #include <mitkIGTTimeStamp.h>
 #include <itkFastMutexLock.h>

@@ -18,7 +18,7 @@ found in the LICENSE file.
 #include <mitkIGTConfig.h>
 #include <mitkTrackingDevice.h>
 #include <mitkPolhemusTool.h>
-#include <itkMultiThreader.h>
+#include <itkMultiThreaderBase.h>
 
 namespace mitk
 {

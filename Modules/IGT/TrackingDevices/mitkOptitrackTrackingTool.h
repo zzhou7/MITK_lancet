@@ -14,7 +14,7 @@ found in the LICENSE file.
 #define OptiTrackTrackingTool_H_HEADER_INCLUDED_
 
 #include <MitkIGTExports.h>
-#include <itkMultiThreader.h>
+#include <itkMultiThreaderBase.h>
 #include "itkFastMutexLock.h"
 #include "mitkTrackingDevice.h"
 #include "mitkTrackingTool.h"

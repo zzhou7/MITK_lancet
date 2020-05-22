@@ -13,7 +13,7 @@ found in the LICENSE file.
 #include "mitkStandaloneDataStorage.h"
 
 #include "itkMutexLockHolder.h"
-#include "itkSimpleFastMutexLock.h"
+#include <mutex>
 #include "mitkDataNode.h"
 #include "mitkGroupTagProperty.h"
 #include "mitkNodePredicateBase.h"
@@ -40,7 +40,7 @@ bool mitk::StandaloneDataStorage::IsInitialized() const
 void mitk::StandaloneDataStorage::Add(mitk::DataNode *node, const mitk::DataStorage::SetOfObjects *parents)
 {
   {
-    itk::MutexLockHolder<itk::SimpleFastMutexLock> locked(m_Mutex);
+    itk::MutexLockHolder<std::mutex> locked(m_Mutex);
     if (!IsInitialized())
       throw std::logic_error("DataStorage not initialized");
     /* check if node is in its own list of sources */
@@ -108,7 +108,7 @@ void mitk::StandaloneDataStorage::Remove(const mitk::DataNode *node)
   /* Notify observers of imminent node removal */
   EmitRemoveNodeEvent(node);
   {
-    itk::MutexLockHolder<itk::SimpleFastMutexLock> locked(m_Mutex);
+    itk::MutexLockHolder<std::mutex> locked(m_Mutex);
     /* remove node from both relation adjacency lists */
     this->RemoveFromRelation(node, m_SourceNodes);
     this->RemoveFromRelation(node, m_DerivedNodes);
@@ -117,7 +117,7 @@ void mitk::StandaloneDataStorage::Remove(const mitk::DataNode *node)
 
 bool mitk::StandaloneDataStorage::Exists(const mitk::DataNode *node) const
 {
-  itk::MutexLockHolder<itk::SimpleFastMutexLock> locked(m_Mutex);
+  itk::MutexLockHolder<std::mutex> locked(m_Mutex);
   return (m_SourceNodes.find(node) != m_SourceNodes.end());
 }
 
@@ -145,7 +145,7 @@ void mitk::StandaloneDataStorage::RemoveFromRelation(const mitk::DataNode *node,
 
 mitk::DataStorage::SetOfObjects::ConstPointer mitk::StandaloneDataStorage::GetAll() const
 {
-  itk::MutexLockHolder<itk::SimpleFastMutexLock> locked(m_Mutex);
+  itk::MutexLockHolder<std::mutex> locked(m_Mutex);
   if (!IsInitialized())
     throw std::logic_error("DataStorage not initialized");
 
@@ -240,14 +240,14 @@ mitk::DataStorage::SetOfObjects::ConstPointer mitk::StandaloneDataStorage::GetRe
 mitk::DataStorage::SetOfObjects::ConstPointer mitk::StandaloneDataStorage::GetSources(
   const mitk::DataNode *node, const NodePredicateBase *condition, bool onlyDirectSources) const
 {
-  itk::MutexLockHolder<itk::SimpleFastMutexLock> locked(m_Mutex);
+  itk::MutexLockHolder<std::mutex> locked(m_Mutex);
   return this->GetRelations(node, m_SourceNodes, condition, onlyDirectSources);
 }
 
 mitk::DataStorage::SetOfObjects::ConstPointer mitk::StandaloneDataStorage::GetDerivations(
   const mitk::DataNode *node, const NodePredicateBase *condition, bool onlyDirectDerivations) const
 {
-  itk::MutexLockHolder<itk::SimpleFastMutexLock> locked(m_Mutex);
+  itk::MutexLockHolder<std::mutex> locked(m_Mutex);
   return this->GetRelations(node, m_DerivedNodes, condition, onlyDirectDerivations);
 }
 

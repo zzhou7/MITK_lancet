@@ -19,7 +19,7 @@ found in the LICENSE file.
 
 #include <itkObject.h>
 #include <itkObjectFactory.h>
-#include <itkMultiThreader.h>
+#include <itkMultiThreaderBase.h>
 #include <itkFastMutexLock.h>
 
 #include <vtkSmartPointer.h>

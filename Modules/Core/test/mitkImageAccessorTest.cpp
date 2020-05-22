@@ -19,7 +19,7 @@ found in the LICENSE file.
 #include "mitkImageTimeSelector.h"
 #include "mitkImageWriteAccessor.h"
 #include <fstream>
-#include <itkMultiThreader.h>
+#include <itkMultiThreaderBase.h>
 #include <itksys/SystemTools.hxx>
 #include <mitkTestingMacros.h>
 #include <cstdlib>
@@ -33,7 +33,7 @@ struct ThreadData
   bool m_Successful;               // to check if everything worked
 };
 
-itk::SimpleFastMutexLock testMutex;
+std::mutex testMutex;
 
 ITK_THREAD_RETURN_TYPE ThreadMethod(void *data)
 {

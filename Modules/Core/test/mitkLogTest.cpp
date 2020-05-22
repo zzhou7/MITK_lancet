@@ -12,7 +12,7 @@ found in the LICENSE file.
 
 #include "mitkCommon.h"
 #include "mitkTestingMacros.h"
-#include <itkMultiThreader.h>
+#include <itkMultiThreaderBase.h>
 #include <itksys/SystemTools.hxx>
 #include <mitkLog.h>
 #include <mitkNumericTypes.h>

@@ -16,7 +16,7 @@ found in the LICENSE file.
 #include <MitkIGTExports.h>
 #include <mitkTrackingDevice.h>
 #include <mitkVirtualTrackingTool.h>
-#include <itkMultiThreader.h>
+#include <itkMultiThreaderBase.h>
 
 #include "itkFastMutexLock.h"
 #include <vector>

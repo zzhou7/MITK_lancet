@@ -15,13 +15,13 @@ found in the LICENSE file.
 #include <mitkLogMacros.h>
 
 #include <itkOutputWindow.h>
-#include <itkSimpleFastMutexLock.h>
+#include <mutex>
 
 #include <cstdio>
 #include <fstream>
 #include <iostream>
 
-static itk::SimpleFastMutexLock logMutex;
+static std::mutex logMutex;
 static mitk::LoggingBackend *mitkLogBackend = nullptr;
 static std::ofstream *logFile = nullptr;
 static std::string logFileName = "";

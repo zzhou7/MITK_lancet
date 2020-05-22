@@ -14,7 +14,7 @@ found in the LICENSE file.
 #define mitkMessageHIncluded
 
 #include <functional>
-#include <itkSimpleFastMutexLock.h>
+#include <mutex>
 #include <vector>
 
 /**
@@ -392,18 +392,18 @@ namespace mitk
     void operator+=(const AbstractDelegate &delegate) const { this->AddListener(delegate); }
     void RemoveListener(const AbstractDelegate &delegate) const
     {
-      m_Mutex.Lock();
+      m_Mutex.lock();
       for (auto iter = m_Listeners.begin(); iter != m_Listeners.end(); ++iter)
       {
         if ((*iter)->operator==(&delegate))
         {
           delete *iter;
           m_Listeners.erase(iter);
-          m_Mutex.Unlock();
+          m_Mutex.unlock();
           return;
         }
       }
-      m_Mutex.Unlock();
+      m_Mutex.unlock();
     }
 
     void operator-=(const AbstractDelegate &delegate) const { this->RemoveListener(delegate); }
@@ -429,7 +429,7 @@ namespace mitk
      *  mutable so that AddListener and RemoveListener can modify it regardless of the object's constness.
      */
     mutable ListenerList m_Listeners;
-    mutable itk::SimpleFastMutexLock m_Mutex;
+    mutable std::mutex m_Mutex;
   };
 
   /**

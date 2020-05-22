@@ -89,7 +89,7 @@ namespace mitk
     SetOfObjects::ConstPointer GetAll() const override;
 
     /*ITK Mutex */
-    mutable itk::SimpleFastMutexLock m_Mutex;
+    mutable std::mutex m_Mutex;
 
   protected:
     //##Documentation

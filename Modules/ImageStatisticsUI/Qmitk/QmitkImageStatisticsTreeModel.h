@@ -14,7 +14,7 @@ found in the LICENSE file.
 #ifndef QmitkImageStatisticsTreeModel_h
 #define QmitkImageStatisticsTreeModel_h
 
-#include "itkSimpleFastMutexLock.h"
+#include <mutex>
 
 #include "QmitkAbstractDataStorageModel.h"
 
@@ -116,7 +116,7 @@ private:
     std::vector<std::pair<mitk::DataNode::ConstPointer, unsigned int>> m_TimeStepResolvedMaskNodes;
     std::vector<std::string> m_StatisticNames;
 
-    itk::SimpleFastMutexLock m_Mutex;
+    std::mutex m_Mutex;
     QmitkImageStatisticsTreeItem *m_RootItem;
     QVariant m_HeaderFirstColumn;
 

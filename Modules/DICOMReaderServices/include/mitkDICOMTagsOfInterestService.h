@@ -51,10 +51,10 @@ namespace mitk
   private:
 
     typedef std::set<DICOMTagPath> InternalTagSetType;
-    typedef itk::MutexLockHolder<itk::SimpleFastMutexLock> MutexHolder;
+    typedef itk::MutexLockHolder<std::mutex> MutexHolder;
 
     InternalTagSetType m_Tags;
-    mutable itk::SimpleFastMutexLock m_Lock;
+    mutable std::mutex m_Lock;
 
     DICOMTagsOfInterestService(const DICOMTagsOfInterestService&);
     DICOMTagsOfInterestService& operator=(const DICOMTagsOfInterestService&);

@@ -18,7 +18,7 @@ found in the LICENSE file.
 #include <mitkIGTConfig.h>
 #include <mitkTrackingDevice.h>
 #include <mitkClaronTool.h>
-#include <itkMultiThreader.h>
+#include <itkMultiThreaderBase.h>
 
 //only include MicronTracker if cmake Variable is on else the ClaronInterfaceStub is included
 #ifdef MITK_USE_MICRON_TRACKER

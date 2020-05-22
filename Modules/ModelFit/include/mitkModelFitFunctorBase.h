@@ -128,7 +128,7 @@ namespace mitk
     typedef std::map<std::string, SVModelFitCostFunction::Pointer> CostFunctionMapType;
     CostFunctionMapType m_CostFunctionMap;
     bool m_DebugParameterMaps;
-    ::itk::SimpleFastMutexLock m_Mutex;
+    ::std::mutex m_Mutex;
   };
 
 }

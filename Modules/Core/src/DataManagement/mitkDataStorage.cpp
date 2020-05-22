@@ -210,7 +210,7 @@ void mitk::DataStorage::OnNodeModifiedOrDeleted(const itk::Object *caller, const
 
 void mitk::DataStorage::AddListeners(const DataNode *_Node)
 {
-  itk::MutexLockHolder<itk::SimpleFastMutexLock> locked(m_MutexOne);
+  itk::MutexLockHolder<std::mutex> locked(m_MutexOne);
   // node must not be 0 and must not be yet registered
   auto *NonConstNode = const_cast<DataNode *>(_Node);
   if (_Node && m_NodeModifiedObserverTags.find(NonConstNode) == m_NodeModifiedObserverTags.end())
@@ -235,7 +235,7 @@ void mitk::DataStorage::AddListeners(const DataNode *_Node)
 
 void mitk::DataStorage::RemoveListeners(const DataNode *_Node)
 {
-  itk::MutexLockHolder<itk::SimpleFastMutexLock> locked(m_MutexOne);
+  itk::MutexLockHolder<std::mutex> locked(m_MutexOne);
   // node must not be 0 and must be registered
   auto *NonConstNode = const_cast<DataNode *>(_Node);
   if (_Node && m_NodeModifiedObserverTags.find(NonConstNode) != m_NodeModifiedObserverTags.end())

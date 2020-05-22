@@ -18,7 +18,7 @@ found in the LICENSE file.
 //itk
 #include "itkObject.h"
 #include "itkFastMutexLock.h"
-#include "itkMultiThreader.h"
+#include "itkMultiThreaderBase.h"
 
 //igtl
 #include "igtlSocket.h"

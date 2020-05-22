@@ -17,7 +17,7 @@ found in the LICENSE file.
 #include <itkFastMutexLock.h>
 #include <itkImage.h>
 #include <itkMacro.h>
-#include <itkMultiThreader.h>
+#include <itkMultiThreaderBase.h>
 #include <itkObjectFactory.h>
 
 #include "mitkCommon.h"
