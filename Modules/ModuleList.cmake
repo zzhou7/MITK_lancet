@@ -55,6 +55,8 @@ set(MITK_MODULES
   Remeshing
   Python
   QtPython
+  PythonService
+  QtPythonService
   Persistence
   OpenIGTLinkUI
   IGTUI

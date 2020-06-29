@@ -10,7 +10,7 @@ found in the LICENSE file.
 
 ============================================================================*/
 
-#include "mitkPythonService.h"
+#include "mitkQtPythonService.h"
 #include <Python.h>
 #include <mitkIOUtil.h>
 #include <QFile>
@@ -47,7 +47,7 @@ found in the LICENSE file.
 
 typedef itksys::SystemTools ist;
 
-mitk::PythonService::PythonService()
+mitk::QtPythonService::QtPythonService()
   : m_ItkWrappingAvailable( true )
   , m_OpenCVWrappingAvailable( true )
   , m_VtkWrappingAvailable( true )
@@ -92,12 +92,12 @@ mitk::PythonService::PythonService()
   }
 }
 
-mitk::PythonService::~PythonService()
+mitk::QtPythonService::~QtPythonService()
 {
-  MITK_DEBUG("mitk::PythonService") << "destructing PythonService";
+  MITK_DEBUG("mitk::QtPythonService") << "destructing QtPythonService";
 }
 
-void mitk::PythonService::AddRelativeSearchDirs(std::vector< std::string > dirs)
+void mitk::QtPythonService::AddRelativeSearchDirs(std::vector< std::string > dirs)
 {
   std::string programPath = QCoreApplication::applicationDirPath().toStdString() + "/";
   std::string cwd = ist::GetCurrentWorkingDirectory() + "/";
@@ -109,7 +109,7 @@ void mitk::PythonService::AddRelativeSearchDirs(std::vector< std::string > dirs)
   }
 }
 
-void mitk::PythonService::AddAbsoluteSearchDirs(std::vector< std::string > dirs)
+void mitk::QtPythonService::AddAbsoluteSearchDirs(std::vector< std::string > dirs)
 {
   for (auto dir : dirs)
   {
@@ -117,7 +117,7 @@ void mitk::PythonService::AddAbsoluteSearchDirs(std::vector< std::string > dirs)
   }
 }
 
-std::string mitk::PythonService::Execute(const std::string &stdpythonCommand, int commandType)
+std::string mitk::QtPythonService::Execute(const std::string &stdpythonCommand, int commandType)
 {
   QString pythonCommand = QString::fromStdString(stdpythonCommand);
   QVariant result;
@@ -141,7 +141,7 @@ std::string mitk::PythonService::Execute(const std::string &stdpythonCommand, in
   return result.toString().toStdString();
 }
 
-void mitk::PythonService::ExecuteScript( const std::string& pythonScript )
+void mitk::QtPythonService::ExecuteScript( const std::string& pythonScript )
 {
   std::ifstream t(pythonScript.c_str());
   std::string str((std::istreambuf_iterator<char>(t)),
@@ -151,7 +151,7 @@ void mitk::PythonService::ExecuteScript( const std::string& pythonScript )
   m_PythonManager.executeString(QString::fromStdString(str));
 }
 
-std::vector<mitk::PythonVariable> mitk::PythonService::GetVariableStack() const
+std::vector<mitk::PythonVariable> mitk::QtPythonService::GetVariableStack() const
 {
   std::vector<mitk::PythonVariable> list;
 
@@ -188,7 +188,7 @@ std::vector<mitk::PythonVariable> mitk::PythonService::GetVariableStack() const
   return list;
 }
 
-std::string mitk::PythonService::GetVariable(const std::string& name) const
+std::string mitk::QtPythonService::GetVariable(const std::string& name) const
 {
   std::vector<mitk::PythonVariable> allVars = this->GetVariableStack();
   for(unsigned int i = 0; i< allVars.size(); i++)
@@ -200,7 +200,7 @@ std::string mitk::PythonService::GetVariable(const std::string& name) const
   return "";
 }
 
-bool mitk::PythonService::DoesVariableExist(const std::string& name) const
+bool mitk::QtPythonService::DoesVariableExist(const std::string& name) const
 {
   bool varExists = false;
 
@@ -217,27 +217,27 @@ bool mitk::PythonService::DoesVariableExist(const std::string& name) const
   return varExists;
 }
 
-void mitk::PythonService::AddPythonCommandObserver(mitk::PythonCommandObserver *observer)
+void mitk::QtPythonService::AddPythonCommandObserver(mitk::PythonCommandObserver *observer)
 {
   if(!m_Observer.contains(observer))
     m_Observer.append(observer);
 }
 
-void mitk::PythonService::RemovePythonCommandObserver(mitk::PythonCommandObserver *observer)
+void mitk::QtPythonService::RemovePythonCommandObserver(mitk::PythonCommandObserver *observer)
 {
   m_Observer.removeOne(observer);
 }
 
-void mitk::PythonService::NotifyObserver(const std::string &command)
+void mitk::QtPythonService::NotifyObserver(const std::string &command)
 {
-  MITK_DEBUG("mitk::PythonService") << "number of observer " << m_Observer.size();
+  MITK_DEBUG("mitk::QtPythonService") << "number of observer " << m_Observer.size();
   for( int i=0; i< m_Observer.size(); ++i )
   {
     m_Observer.at(i)->CommandExecuted(command);
   }
 }
 
-bool mitk::PythonService::CopyToPythonAsSimpleItkImage(mitk::Image *image, const std::string &stdvarName)
+bool mitk::QtPythonService::CopyToPythonAsSimpleItkImage(mitk::Image *image, const std::string &stdvarName)
 {
   QString varName = QString::fromStdString( stdvarName );
   QString command;
@@ -416,7 +416,7 @@ bool mitk::PythonService::CopyToPythonAsSimpleItkImage(mitk::Image *image, const
   command.append( QString("_SimpleITK._SetImageFromArray(%1_numpy_array,%1)\n").arg(varName) );
   command.append( QString("del %1_numpy_array").arg(varName) );
 
-  MITK_DEBUG("PythonService") << "Issuing python command " << command.toStdString();
+  MITK_DEBUG("QtPythonService") << "Issuing python command " << command.toStdString();
 
 
   this->Execute( command.toStdString(), IPythonService::MULTI_LINE_COMMAND );
@@ -523,7 +523,7 @@ mitk::PixelType DeterminePixelType(const std::string& pythonPixeltype, unsigned 
   return pixelType;
 }
 
-mitk::Image::Pointer mitk::PythonService::CopySimpleItkImageFromPython(const std::string &stdvarName)
+mitk::Image::Pointer mitk::QtPythonService::CopySimpleItkImageFromPython(const std::string &stdvarName)
 {
   double*ds = nullptr;
   // access python module
@@ -545,7 +545,7 @@ mitk::Image::Pointer mitk::PythonService::CopySimpleItkImageFromPython(const std
   command.append( QString("%1_dtype = %1_numpy_array.dtype.name\n").arg(varName) );
 
 
-  MITK_DEBUG("PythonService") << "Issuing python command " << command.toStdString();
+  MITK_DEBUG("QtPythonService") << "Issuing python command " << command.toStdString();
   this->Execute(command.toStdString(), IPythonService::MULTI_LINE_COMMAND );
 
   PyObject* py_dtype = PyDict_GetItemString(pyDict,QString("%1_dtype").arg(varName).toStdString().c_str() );
@@ -629,7 +629,7 @@ mitk::Image::Pointer mitk::PythonService::CopySimpleItkImageFromPython(const std
   command.append( QString("del %1_origin\n").arg(varName) );
   command.append( QString("del %1_direction\n").arg(varName) );
   command.append( QString("del %1_nrComponents\n").arg(varName) );
-  MITK_DEBUG("PythonService") << "Issuing python command " << command.toStdString();
+  MITK_DEBUG("QtPythonService") << "Issuing python command " << command.toStdString();
   this->Execute(command.toStdString(), IPythonService::MULTI_LINE_COMMAND );
 
   delete[] dimensions;
@@ -638,7 +638,7 @@ mitk::Image::Pointer mitk::PythonService::CopySimpleItkImageFromPython(const std
   return mitkImage;
 }
 
-bool mitk::PythonService::CopyToPythonAsCvImage( mitk::Image* image, const std::string& stdvarName )
+bool mitk::QtPythonService::CopyToPythonAsCvImage( mitk::Image* image, const std::string& stdvarName )
 {
   QString varName = QString::fromStdString( stdvarName );
   QString command;
@@ -734,7 +734,7 @@ bool mitk::PythonService::CopyToPythonAsCvImage( mitk::Image* image, const std::
   command.append( QString("del %1_numpy_array\n").arg(varName) );
   command.append( QString("del %1_array_tmp").arg(varName) );
 
-  MITK_DEBUG("PythonService") << "Issuing python command " << command.toStdString();
+  MITK_DEBUG("QtPythonService") << "Issuing python command " << command.toStdString();
 
   this->Execute( command.toStdString(), IPythonService::MULTI_LINE_COMMAND );
 
@@ -742,7 +742,7 @@ bool mitk::PythonService::CopyToPythonAsCvImage( mitk::Image* image, const std::
 }
 
 
-mitk::Image::Pointer mitk::PythonService::CopyCvImageFromPython( const std::string& stdvarName )
+mitk::Image::Pointer mitk::QtPythonService::CopyCvImageFromPython( const std::string& stdvarName )
 {
 
   // access python module
@@ -759,7 +759,7 @@ mitk::Image::Pointer mitk::PythonService::CopyCvImageFromPython( const std::stri
   command.append( QString("%1_np_array=%1[:,...,::-1]\n").arg(varName));
   command.append( QString("%1_np_array=np.reshape(%1_np_array,%1.shape[0] * %1.shape[1] * %1.shape[2])").arg(varName) );
 
-  MITK_DEBUG("PythonService") << "Issuing python command " << command.toStdString();
+  MITK_DEBUG("QtPythonService") << "Issuing python command " << command.toStdString();
   this->Execute(command.toStdString(), IPythonService::MULTI_LINE_COMMAND );
 
   PyObject* py_dtype = PyDict_GetItemString(pyDict,QString("%1_dtype").arg(varName).toStdString().c_str() );
@@ -796,18 +796,18 @@ mitk::Image::Pointer mitk::PythonService::CopyCvImageFromPython( const std::stri
   command.append( QString("del %1_dtype\n").arg(varName) );
   command.append( QString("del %1_np_array").arg(varName));
 
-  MITK_DEBUG("PythonService") << "Issuing python command " << command.toStdString();
+  MITK_DEBUG("QtPythonService") << "Issuing python command " << command.toStdString();
   this->Execute(command.toStdString(), IPythonService::MULTI_LINE_COMMAND );
 
   return mitkImage;
 }
 
-ctkAbstractPythonManager *mitk::PythonService::GetPythonManager()
+ctkAbstractPythonManager *mitk::QtPythonService::GetPythonManager()
 {
   return &m_PythonManager;
 }
 
-mitk::Surface::Pointer mitk::PythonService::CopyVtkPolyDataFromPython( const std::string& stdvarName )
+mitk::Surface::Pointer mitk::QtPythonService::CopyVtkPolyDataFromPython( const std::string& stdvarName )
 {
   // access python module
   PyObject *pyMod = PyImport_AddModule((char*)"__main__");
@@ -825,7 +825,7 @@ mitk::Surface::Pointer mitk::PythonService::CopyVtkPolyDataFromPython( const std
   // remove 0x from the address
   command.append( QString("%1_addr = int(%1_addr_str[5:],16)").arg(varName) );
 
-  MITK_DEBUG("PythonService") << "Issuing python command " << command.toStdString();
+  MITK_DEBUG("QtPythonService") << "Issuing python command " << command.toStdString();
   this->Execute(command.toStdString(), IPythonService::MULTI_LINE_COMMAND );
 
   // get address of the object
@@ -845,13 +845,13 @@ mitk::Surface::Pointer mitk::PythonService::CopyVtkPolyDataFromPython( const std
   command.append( QString("del %1_addr_str\n").arg(varName) );
   command.append( QString("del %1_addr").arg(varName) );
 
-  MITK_DEBUG("PythonService") << "Issuing python command " << command.toStdString();
+  MITK_DEBUG("QtPythonService") << "Issuing python command " << command.toStdString();
   this->Execute(command.toStdString(), IPythonService::MULTI_LINE_COMMAND );
 
   return surface;
 }
 
-bool mitk::PythonService::CopyToPythonAsVtkPolyData( mitk::Surface* surface, const std::string& stdvarName )
+bool mitk::QtPythonService::CopyToPythonAsVtkPolyData( mitk::Surface* surface, const std::string& stdvarName )
 {
   QString varName = QString::fromStdString( stdvarName );
   std::ostringstream oss;
@@ -869,13 +869,13 @@ bool mitk::PythonService::CopyToPythonAsVtkPolyData( mitk::Surface* surface, con
 
   command.append( QString("%1 = vtk.vtkPolyData(\"%2\")\n").arg(varName).arg(address) );
 
-  MITK_DEBUG("PythonService") << "Issuing python command " << command.toStdString();
+  MITK_DEBUG("QtPythonService") << "Issuing python command " << command.toStdString();
   this->Execute(command.toStdString(), IPythonService::MULTI_LINE_COMMAND );
 
   return true;
 }
 
-bool mitk::PythonService::IsSimpleItkPythonWrappingAvailable()
+bool mitk::QtPythonService::IsSimpleItkPythonWrappingAvailable()
 {
   this->Execute( "import SimpleITK as sitk\n", IPythonService::SINGLE_LINE_COMMAND );
   // directly access cpp lib
@@ -893,7 +893,7 @@ bool mitk::PythonService::IsSimpleItkPythonWrappingAvailable()
   return m_ItkWrappingAvailable;
 }
 
-bool mitk::PythonService::IsOpenCvPythonWrappingAvailable()
+bool mitk::QtPythonService::IsOpenCvPythonWrappingAvailable()
 {
   this->Execute( "import cv2\n", IPythonService::SINGLE_LINE_COMMAND );
   m_OpenCVWrappingAvailable = !this->PythonErrorOccured();
@@ -901,7 +901,7 @@ bool mitk::PythonService::IsOpenCvPythonWrappingAvailable()
   return m_OpenCVWrappingAvailable;
 }
 
-bool mitk::PythonService::IsVtkPythonWrappingAvailable()
+bool mitk::QtPythonService::IsVtkPythonWrappingAvailable()
 {
   this->Execute( "import vtk", IPythonService::SINGLE_LINE_COMMAND );
   //this->Execute( "print \"Using VTK version \" + vtk.vtkVersion.GetVTKVersion()\n", IPythonService::SINGLE_LINE_COMMAND );
@@ -910,8 +910,7 @@ bool mitk::PythonService::IsVtkPythonWrappingAvailable()
   return m_VtkWrappingAvailable;
 }
 
-bool mitk::PythonService::PythonErrorOccured() const
+bool mitk::QtPythonService::PythonErrorOccured() const
 {
   return m_ErrorOccured;
 }
-

@@ -13,7 +13,7 @@ if(UNIX AND NOT APPLE)
     add_test(
       NAME mitkPythonTest
       COMMAND ${CMAKE_COMMAND} -E env "LD_LIBRARY_PATH=${ld_library_path}"
-        ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${TESTDRIVER} mitkPythonTest
+        ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${TESTDRIVER} mitkPythonConsoleTest
     )
   endif()
 endif()

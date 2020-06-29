@@ -36,6 +36,7 @@ namespace mitk
 
           us::ServiceProperties _PythonServiceProps;
           _PythonServiceProps["Name"] = std::string("PythonService");
+          _PythonServiceProps["service.ranking"] = int(0);
 
           m_PythonServiceRegistration = context->RegisterService<mitk::IPythonService>(m_PythonService.GetPointer(), _PythonServiceProps);
         }

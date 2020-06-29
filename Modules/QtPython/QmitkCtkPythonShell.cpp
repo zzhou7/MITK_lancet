@@ -46,7 +46,7 @@ QmitkCtkPythonShell::QmitkCtkPythonShell(QWidget* parent)
   Q_ASSERT( d->m_PythonService );
 
   MITK_DEBUG("QmitkCtkPythonShell") << "initialize  m_PythonService";
-  this->initialize( d->m_PythonService->GetPythonManager() );
+  //this->initialize( d->m_PythonService->GetPythonManager() );
 
   MITK_DEBUG("QmitkCtkPythonShell") << "m_PythonService initialized";
   mitk::IPythonService::ForceLoadModule();

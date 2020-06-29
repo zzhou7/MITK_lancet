@@ -9,8 +9,8 @@ Use of this source code is governed by a 3-clause BSD license that can be
 found in the LICENSE file.
 
 ============================================================================*/
-#ifndef mitkPythonService_h
-#define mitkPythonService_h
+#ifndef mitkQtPythonService_h
+#define mitkQtPythonService_h
 
 #include <ctkAbstractPythonManager.h>
 #include "mitkIPythonService.h"
@@ -22,18 +22,17 @@ namespace mitk
   ///
   /// implementation of the IPythonService using ctkabstractpythonmanager
   /// \see IPythonService
-  class PythonService: public itk::LightObject, public mitk::IPythonService
+  class QtPythonService: public itk::LightObject, public mitk::IPythonService
   {
   public:
-      ///
       /// instantiate python manager here
-      PythonService();
+      QtPythonService();
       ///
       /// empty implementation...
-      ~PythonService() override;
+      ~QtPythonService() override;
       ///
       /// \see IPythonService::Execute()
-      std::string Execute( const std::string& pythonCommand, int commandType = SINGLE_LINE_COMMAND ) override;
+      std::string Execute( const std::string& pythonCommand, int commandType = SINGLE_LINE_COMMAND) override;
       ///
       /// \see IPythonService::ExecuteScript()
       void ExecuteScript(const std::string &pathToPythonScript) override;
@@ -87,7 +86,7 @@ namespace mitk
       mitk::Surface::Pointer CopyVtkPolyDataFromPython( const std::string& varName ) override;
       ///
       /// \return the ctk abstract python manager instance
-      ctkAbstractPythonManager* GetPythonManager() override;
+      ctkAbstractPythonManager* GetPythonManager() /*override*/;
 
       void AddRelativeSearchDirs(std::vector< std::string > dirs) override;
 

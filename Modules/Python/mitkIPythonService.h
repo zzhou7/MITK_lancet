@@ -21,7 +21,7 @@ found in the LICENSE file.
 #include <vector>
 
 
-class ctkAbstractPythonManager;
+//class ctkAbstractPythonManager;
 
 namespace mitk
 {
@@ -66,11 +66,11 @@ namespace mitk
         /// Constant representing a single line command x which is run as "eval(x)"
         /// \see IPythonService::Execute()
         static const int EVAL_COMMAND = 2;
-
+        ///
         ///
         /// Executes a python command.
         /// \return A variant containing the return value as string of the python code (if any)
-        virtual std::string Execute( const std::string& pythonCommand, int commandType = SINGLE_LINE_COMMAND ) = 0;
+        virtual std::string Execute( const std::string& pythonCommand, int commandType= MULTI_LINE_COMMAND) = 0;
         ///
         /// Executes a python script.
         virtual void ExecuteScript( const std::string& pathToPythonScript ) = 0;
@@ -133,7 +133,7 @@ namespace mitk
         virtual mitk::Surface::Pointer CopyVtkPolyDataFromPython( const std::string& varName ) = 0;
 
         /// \return the ctk abstract python manager instance
-        virtual ctkAbstractPythonManager* GetPythonManager() = 0;
+        //virtual ctkAbstractPythonManager* GetPythonManager() = 0;
 
         ///
         /// nothing to do here
@@ -144,7 +144,10 @@ namespace mitk
 
         virtual void AddRelativeSearchDirs(std::vector< std::string > dirs) = 0;
 
-        virtual void AddAbsoluteSearchDirs(std::vector< std::string > dirs) = 0;
+        virtual void AddAbsoluteSearchDirs(std::vector<std::string> dirs) = 0;
+
+        protected:
+
     };
 }
 
