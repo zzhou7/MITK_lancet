@@ -91,12 +91,13 @@ namespace mitk
       void AddRelativeSearchDirs(std::vector< std::string > dirs) override;
 
       void AddAbsoluteSearchDirs(std::vector< std::string > dirs) override;
+     
 
   protected:
 
   private:
       QList<PythonCommandObserver*> m_Observer;
-      ctkAbstractPythonManager m_PythonManager;
+      ctkAbstractPythonManager* m_PythonManager;
       bool m_ItkWrappingAvailable;
       bool m_OpenCVWrappingAvailable;
       bool m_VtkWrappingAvailable;

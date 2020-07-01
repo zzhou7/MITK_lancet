@@ -31,23 +31,23 @@ namespace mitk
         void Load(us::ModuleContext* context) override
         {
           MITK_DEBUG << "QtPythonActivator::Load";
-          // Registering QtPythonService as MicroService
-          //m_PythonService = itk::SmartPointer<mitk::QtPythonService>(new QtPythonService());
+           //Registering QtPythonService as MicroService
+          m_PythonService = itk::SmartPointer<mitk::QtPythonService>(new QtPythonService());
 
-          //us::ServiceProperties _PythonServiceProps;
-          //_PythonServiceProps["Name"] = std::string("QtPythonService");
-          //_PythonServiceProps["service.ranking"] = int(1);
+          us::ServiceProperties _PythonServiceProps;
+          _PythonServiceProps["Name"] = std::string("QtPythonService");
+          _PythonServiceProps["service.ranking"] = int(1);
 
-          //m_PythonServiceRegistration = context->RegisterService<mitk::IPythonService>(m_PythonService.GetPointer(), _PythonServiceProps);
+          m_PythonServiceRegistration = context->RegisterService<mitk::IPythonService>(m_PythonService.GetPointer(), _PythonServiceProps);
         }
 
         void Unload(us::ModuleContext*) override
         {
-          //MITK_DEBUG("QtPythonActivator") << "QtPythonActivator::Unload";
-          //MITK_DEBUG("QtPythonActivator") << "m_PythonService GetReferenceCount " << m_PythonService->GetReferenceCount();
-          //m_PythonServiceRegistration.Unregister();
-          //m_PythonService->Delete();
-          //MITK_DEBUG("QtPythonActivator") << "m_PythonService GetReferenceCount " << m_PythonService->GetReferenceCount();
+          MITK_DEBUG("QtPythonActivator") << "QtPythonActivator::Unload";
+          MITK_DEBUG("QtPythonActivator") << "m_PythonService GetReferenceCount " << m_PythonService->GetReferenceCount();
+          m_PythonServiceRegistration.Unregister();
+          m_PythonService->Delete();
+          MITK_DEBUG("QtPythonActivator") << "m_PythonService GetReferenceCount " << m_PythonService->GetReferenceCount();
         }
 
         ~QtPythonActivator() override

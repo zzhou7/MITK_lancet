@@ -2,7 +2,7 @@ mitkFunctionCheckCompilerFlags("-Wno-cpp" CMAKE_CXX_FLAGS)
 
 mitk_create_module(PythonService
   DEPENDS MitkPython
-  AUTOLOAD_WITH MitkCore
+  AUTOLOAD_WITH MitkPython
 )
 
 if(TARGET ${MODULE_TARGET})

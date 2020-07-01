@@ -53,6 +53,7 @@ mitk::QtPythonService::QtPythonService()
   , m_VtkWrappingAvailable( true )
   , m_ErrorOccured( false )
 {
+  m_PythonManager = new ctkAbstractPythonManager();
   bool pythonInitialized = static_cast<bool>( Py_IsInitialized() ); //m_PythonManager.isPythonInitialized() );
 
   // due to strange static var behaviour on windows Py_IsInitialized() returns correct value while
@@ -70,7 +71,6 @@ mitk::QtPythonService::QtPythonService()
 #endif
 
     std::string programPath = QCoreApplication::applicationDirPath().toStdString() + "/";
-
     QString pythonCommand;
     pythonCommand.append( QString("import site, sys\n") );
     pythonCommand.append( QString("import SimpleITK as sitk\n") );
@@ -82,14 +82,20 @@ mitk::QtPythonService::QtPythonService()
     pythonCommand.append( QString("sys.path.append('%1')\n").arg(EXTERNAL_DIST_PACKAGES) );
     pythonCommand.append( QString("\nsite.addsitedir('%1')").arg(EXTERNAL_SITE_PACKAGES) );
 
-    if( pythonInitialized )
-      m_PythonManager.setInitializationFlags(PythonQt::RedirectStdOut|PythonQt::PythonAlreadyInitialized);
-    else
-      m_PythonManager.setInitializationFlags(PythonQt::RedirectStdOut);
-    m_PythonManager.initialize();
+    //if( pythonInitialized )
+    //  m_PythonManager->setInitializationFlags(PythonQt::RedirectStdOut|PythonQt::PythonAlreadyInitialized);
+    //else
+    //  m_PythonManager->setInitializationFlags(PythonQt::RedirectStdOut);
 
-    m_PythonManager.executeString( pythonCommand, ctkAbstractPythonManager::FileInput );
+    if (pythonInitialized)
+      m_PythonManager->setInitializationFlags(PythonQt::PythonAlreadyInitialized);
+
+    m_PythonManager->initialize();
+
+    m_PythonManager->executeString( pythonCommand, ctkAbstractPythonManager::FileInput );
   }
+  std::string programPath = QCoreApplication::applicationDirPath().toStdString() + "/";
+  MITK_INFO << programPath;
 }
 
 mitk::QtPythonService::~QtPythonService()
@@ -104,8 +110,8 @@ void mitk::QtPythonService::AddRelativeSearchDirs(std::vector< std::string > dir
 
   for (auto dir : dirs)
   {
-    m_PythonManager.executeString(QString("sys.path.append('%1')").arg((programPath + dir).c_str()), ctkAbstractPythonManager::SingleInput );
-    m_PythonManager.executeString(QString("sys.path.append('%1')").arg((cwd + dir).c_str()), ctkAbstractPythonManager::SingleInput );
+    m_PythonManager->executeString(QString("sys.path.append('%1')").arg((programPath + dir).c_str()), ctkAbstractPythonManager::SingleInput );
+    m_PythonManager->executeString(QString("sys.path.append('%1')").arg((cwd + dir).c_str()), ctkAbstractPythonManager::SingleInput );
   }
 }
 
@@ -113,7 +119,7 @@ void mitk::QtPythonService::AddAbsoluteSearchDirs(std::vector< std::string > dir
 {
   for (auto dir : dirs)
   {
-    m_PythonManager.executeString(QString("sys.path.append('%1')").arg(dir.c_str()), ctkAbstractPythonManager::SingleInput );
+    m_PythonManager->executeString(QString("sys.path.append('%1')").arg(dir.c_str()), ctkAbstractPythonManager::SingleInput );
   }
 }
 
@@ -124,11 +130,11 @@ std::string mitk::QtPythonService::Execute(const std::string &stdpythonCommand, 
 
   bool commandIssued = true;
   if(commandType == IPythonService::SINGLE_LINE_COMMAND )
-    result = m_PythonManager.executeString(pythonCommand, ctkAbstractPythonManager::SingleInput );
+    result = m_PythonManager->executeString(pythonCommand, ctkAbstractPythonManager::SingleInput );
   else if(commandType == IPythonService::MULTI_LINE_COMMAND )
-    result = m_PythonManager.executeString(pythonCommand, ctkAbstractPythonManager::FileInput );
+    result = m_PythonManager->executeString(pythonCommand, ctkAbstractPythonManager::FileInput );
   else if(commandType == IPythonService::EVAL_COMMAND )
-    result = m_PythonManager.executeString(pythonCommand, ctkAbstractPythonManager::EvalInput );
+    result = m_PythonManager->executeString(pythonCommand, ctkAbstractPythonManager::EvalInput );
   else
     commandIssued = false;
 
@@ -148,7 +154,7 @@ void mitk::QtPythonService::ExecuteScript( const std::string& pythonScript )
                   std::istreambuf_iterator<char>());
   t.close();
 
-  m_PythonManager.executeString(QString::fromStdString(str));
+  m_PythonManager->executeString(QString::fromStdString(str));
 }
 
 std::vector<mitk::PythonVariable> mitk::QtPythonService::GetVariableStack() const
@@ -804,7 +810,7 @@ mitk::Image::Pointer mitk::QtPythonService::CopyCvImageFromPython( const std::st
 
 ctkAbstractPythonManager *mitk::QtPythonService::GetPythonManager()
 {
-  return &m_PythonManager;
+  return m_PythonManager;
 }
 
 mitk::Surface::Pointer mitk::QtPythonService::CopyVtkPolyDataFromPython( const std::string& stdvarName )

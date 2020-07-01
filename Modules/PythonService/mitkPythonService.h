@@ -107,6 +107,8 @@ namespace mitk
       //QList<PythonCommandObserver*> m_Observer;
       //ctkAbstractPythonManager m_PythonManager;
       PyThreadState *m_ThreadState;
+      PyObject *m_GlobalDictionary;
+      PyObject *m_LocalDictionary;
       bool m_ItkWrappingAvailable;
       bool m_OpenCVWrappingAvailable;
       bool m_VtkWrappingAvailable;

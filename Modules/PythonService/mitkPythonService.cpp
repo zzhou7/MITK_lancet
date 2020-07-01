@@ -61,6 +61,25 @@ mitk::PythonService::PythonService()
     m_VtkWrappingAvailable(true),
     m_ErrorOccured(false)
 {
+  if (!Py_IsInitialized())
+  {
+    Py_Initialize();
+  }
+  std::string programPath = mitk::IOUtil::GetProgramPath();
+  std::replace(programPath.begin(), programPath.end(), '\\', '/');
+  programPath.append("/");
+  MITK_INFO << programPath;
+  std::string pythonCommand;
+  pythonCommand.append("import site, sys\n");
+  pythonCommand.append("sys.path.append('')\n");
+  pythonCommand.append("sys.path.append('" + programPath + "')\n");
+  pythonCommand.append("sys.path.append('" +std::string(EXTERNAL_DIST_PACKAGES) + "')\n");
+  pythonCommand.append("\nsite.addsitedir('"+std::string(EXTERNAL_SITE_PACKAGES)+"')");
+  PyRun_SimpleString(pythonCommand.c_str());
+
+  PyObject *main = PyImport_AddModule("__main__");
+  m_GlobalDictionary = PyModule_GetDict(main);
+  m_LocalDictionary = m_GlobalDictionary;
 }
 
 mitk::PythonService::~PythonService()
@@ -106,11 +125,7 @@ std::string mitk::PythonService::Execute(const std::string &stdpythonCommand, in
       default:
         commandType = Py_file_input;
     }
-
-    PyObject *main = PyImport_AddModule("__main__");
-    PyObject *globalDictionary = PyModule_GetDict(main);
-    PyObject *localDictionary = globalDictionary;
-    PyObject* executionResult = PyRun_String(stdpythonCommand.c_str(), commandType, globalDictionary, localDictionary);
+    PyObject* executionResult = PyRun_String(stdpythonCommand.c_str(), commandType, m_GlobalDictionary, m_LocalDictionary);
     if (executionResult)
     {
       PyObject *objectsRepresentation = PyObject_Repr(executionResult);
@@ -136,7 +151,11 @@ void mitk::PythonService::ExecuteScript( const std::string& pythonScript )
   std::ifstream t(pythonScript.c_str());
   std::string str((std::istreambuf_iterator<char>(t)), std::istreambuf_iterator<char>());
   t.close();
-
+  std::string pythonCommand;
+  std::string path = std::string(MITK_ROOT) + "Modules/Python/test/hello_world_project";
+  
+  pythonCommand.append("import sys\nsys.path.append('"+path+"')\n");
+  this->Execute(pythonCommand.c_str());
   try
   {
     this->Execute(str.c_str());

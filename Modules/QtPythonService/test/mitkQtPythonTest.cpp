@@ -30,7 +30,7 @@ public:
     std::string result = "";
     us::ModuleContext *context = us::GetModuleContext();
     std::string filter = "(Name=QtPythonService)";
-    auto m_PythonServiceRefs = context->GetServiceReferences<mitk::IPythonService>(filter);
+    auto m_PythonServiceRefs = context->GetServiceReferences<mitk::IPythonService>(/*filter*/);
 
     if (!m_PythonServiceRefs.empty())
     {
