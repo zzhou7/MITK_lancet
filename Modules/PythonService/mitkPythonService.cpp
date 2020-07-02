@@ -75,7 +75,10 @@ mitk::PythonService::PythonService()
   pythonCommand.append("sys.path.append('" + programPath + "')\n");
   pythonCommand.append("sys.path.append('" +std::string(EXTERNAL_DIST_PACKAGES) + "')\n");
   pythonCommand.append("\nsite.addsitedir('"+std::string(EXTERNAL_SITE_PACKAGES)+"')");
-  PyRun_SimpleString(pythonCommand.c_str());
+  if (PyRun_SimpleString(pythonCommand.c_str()) == -1)
+  {
+    MITK_ERROR << "Something went wrong in setting the path in Python";
+  }
 
   PyObject *main = PyImport_AddModule("__main__");
   m_GlobalDictionary = PyModule_GetDict(main);
@@ -101,7 +104,7 @@ void mitk::PythonService::AddAbsoluteSearchDirs(std::vector< std::string > dirs)
   
 }
 
-std::string mitk::PythonService::Execute(const std::string &stdpythonCommand, int commandType)
+std::string mitk::PythonService::Execute(const std::string &stdpythonCommand, int commandType, std::string projectPath)
 {
   if (!Py_IsInitialized())
   {
@@ -109,6 +112,12 @@ std::string mitk::PythonService::Execute(const std::string &stdpythonCommand, in
   }
   std::string result = "";
   PyGILState_STATE gState = PyGILState_Ensure();
+  if (projectPath!="")
+  {
+    this->SetProjectPath(projectPath);
+    //As the Method SetProjectPath sets free the GIL we need to re-ensure it
+    PyGILState_STATE gState = PyGILState_Ensure();
+  }
   try
   {
     switch (commandType)
@@ -146,19 +155,29 @@ std::string mitk::PythonService::Execute(const std::string &stdpythonCommand, in
   return result;
 }
 
-void mitk::PythonService::ExecuteScript( const std::string& pythonScript )
+void mitk::PythonService::SetProjectPath(std::string projectPath) 
+{
+  try
+  {
+    std::string path = std::string(MITK_ROOT) + projectPath;
+    std::string pythonCommand = "import sys\nsys.path.append('" + path + "')\n";
+    this->Execute(pythonCommand.c_str());
+  }
+  catch (const mitk::Exception)
+  {
+    mitkThrow() << "An error occured setting the project path";
+  }
+}
+
+
+void mitk::PythonService::ExecuteScript(const std::string &pythonScript, std::string projectPath)
 {
   std::ifstream t(pythonScript.c_str());
   std::string str((std::istreambuf_iterator<char>(t)), std::istreambuf_iterator<char>());
   t.close();
-  std::string pythonCommand;
-  std::string path = std::string(MITK_ROOT) + "Modules/Python/test/hello_world_project";
-  
-  pythonCommand.append("import sys\nsys.path.append('"+path+"')\n");
-  this->Execute(pythonCommand.c_str());
   try
   {
-    this->Execute(str.c_str());
+    this->Execute(str.c_str(), MULTI_LINE_COMMAND, projectPath);
   }
   catch (const mitk::Exception)
   {

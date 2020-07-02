@@ -70,10 +70,10 @@ namespace mitk
         ///
         /// Executes a python command.
         /// \return A variant containing the return value as string of the python code (if any)
-        virtual std::string Execute( const std::string& pythonCommand, int commandType= MULTI_LINE_COMMAND) = 0;
+        virtual std::string Execute( const std::string& pythonCommand, int commandType= MULTI_LINE_COMMAND, std::string projectPath = "") = 0;
         ///
         /// Executes a python script.
-        virtual void ExecuteScript( const std::string& pathToPythonScript ) = 0;
+        virtual void ExecuteScript(const std::string &pathToPythonScript, std::string projectPath = "") = 0;
         ///
         /// \return true if the last call to Execute...() resulted in an error, false otherwise
         virtual bool PythonErrorOccured() const = 0;

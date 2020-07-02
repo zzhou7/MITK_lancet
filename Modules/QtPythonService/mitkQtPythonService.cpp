@@ -123,7 +123,9 @@ void mitk::QtPythonService::AddAbsoluteSearchDirs(std::vector< std::string > dir
   }
 }
 
-std::string mitk::QtPythonService::Execute(const std::string &stdpythonCommand, int commandType)
+std::string mitk::QtPythonService::Execute(const std::string &stdpythonCommand,
+                                           int commandType,
+                                           std::string projectPath)
 {
   QString pythonCommand = QString::fromStdString(stdpythonCommand);
   QVariant result;
@@ -147,7 +149,7 @@ std::string mitk::QtPythonService::Execute(const std::string &stdpythonCommand, 
   return result.toString().toStdString();
 }
 
-void mitk::QtPythonService::ExecuteScript( const std::string& pythonScript )
+void mitk::QtPythonService::ExecuteScript(const std::string &pythonScript, std::string projectPath)
 {
   std::ifstream t(pythonScript.c_str());
   std::string str((std::istreambuf_iterator<char>(t)),

@@ -200,7 +200,8 @@ public:
         std::string pythonFileName = "call_hello.py";
         std::string fileName =
           mitk::StandardFileLocations::GetInstance()->FindFile(pythonFileName.c_str(), "Modules/Python/test/hello_world_project");
-        m_PythonService->ExecuteScript(fileName);
+        std::string path = "Modules/Python/test/hello_world_project";
+        m_PythonService->ExecuteScript(fileName, path);
       }
       catch (const mitk::Exception &e)
       {
@@ -231,7 +232,8 @@ public:
           std::string pythonFileName = "call_hello_in_subfolder.py";
           std::string fileName = mitk::StandardFileLocations::GetInstance()->FindFile(
             pythonFileName.c_str(), "Modules/Python/test/hello_world_project");
-          m_PythonService->ExecuteScript(fileName);
+          std::string path = "Modules/Python/test/hello_world_project";
+          m_PythonService->ExecuteScript(fileName, path);
         }
         catch (const mitk::Exception &e)
         {

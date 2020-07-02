@@ -41,10 +41,14 @@ namespace mitk
       ~PythonService() override;
       ///
       /// \see IPythonService::Execute()
-      std::string Execute( const std::string& pythonCommand, int commandType = Py_file_input) override;
+      std::string Execute(const std::string &pythonCommand,
+                          int commandType = Py_file_input,
+                          std::string projectPath= "") override;
+
+      void SetProjectPath(std::string projectPath);
       ///
       /// \see IPythonService::ExecuteScript()
-      void ExecuteScript(const std::string &pathToPythonScript) override;
+      void ExecuteScript(const std::string &pathToPythonScript, std::string projectPath = "") override;
       ///
       /// \see IPythonService::PythonErrorOccured()
       bool PythonErrorOccured() const override;
