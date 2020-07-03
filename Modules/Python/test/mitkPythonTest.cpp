@@ -32,6 +32,7 @@ class mitkPythonTestSuite : public mitk::TestFixture
   MITK_TEST(TestRunningScript);
   MITK_TEST(TestRunningScriptCallOtherScript);
   MITK_TEST(TestRunningScriptCallOtherScriptInSubfolder);
+  MITK_TEST(TestGetVariableStack);
   CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -249,6 +250,41 @@ public:
       {
         CPPUNIT_FAIL("No Service Reference found");
       }
+   }
+
+     void TestGetVariableStack()
+   {
+     us::ModuleContext *context = us::GetModuleContext();
+     std::string filter = "(Name=PythonService)";
+     auto m_PythonServiceRefs = context->GetServiceReferences<mitk::IPythonService>(filter);
+
+     if (!m_PythonServiceRefs.empty())
+     {
+       mitk::IPythonService *m_PythonService =
+         dynamic_cast<mitk::IPythonService *>(context->GetService<mitk::IPythonService>(m_PythonServiceRefs.front()));
+       try
+       {
+         auto list = m_PythonService->GetVariableStack();
+         if (!(list.size() > 0))
+         {
+           CPPUNIT_FAIL("Failed to get variable stack");
+         }
+         //for (mitk::PythonVariable var : list)
+         //{
+         //  MITK_INFO << var.m_Name << ", " << var.m_Value << ", " << var.m_Type;
+         //}
+       }
+       catch (const mitk::Exception &e)
+       {
+         MITK_ERROR << e.GetDescription();
+         CPPUNIT_FAIL("Error in getting variable stack");
+         return;
+       }       
+     }
+     else
+     {
+       CPPUNIT_FAIL("No Service Reference found");
+     }
    }
 };
 

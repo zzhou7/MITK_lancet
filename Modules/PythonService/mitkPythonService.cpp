@@ -185,19 +185,70 @@ void mitk::PythonService::ExecuteScript(const std::string &pythonScript, std::st
   }
 }
 
-std::vector<mitk::PythonVariable> mitk::PythonService::GetVariableStack() const
+std::vector<mitk::PythonVariable> mitk::PythonService::GetVariableStack()
 {
   std::vector<mitk::PythonVariable> list;
+  PyGILState_STATE gState = PyGILState_Ensure();
+  try
+  {
+    PyObject *dict = PyImport_GetModuleDict();
+    PyObject *object = PyDict_GetItemString(dict, "__main__");
+    if (!object)
+    {
+      mitkThrow() << "An error occured getting the Dictionary";
+    }
+    PyObject *dirMain = PyObject_Dir(object);
+    PyObject *tempObject = nullptr;
 
+    if (dirMain)
+    {
+      std::string name, attrValue, attrType;
+
+      for (int i = 0; i < PyList_Size(dirMain); i++)
+      {
+        tempObject = PyList_GetItem(dirMain, i);
+        if (!tempObject)
+        {
+          mitkThrow() << "An error occured getting an item from the dictionary";
+        }
+        PyObject *objectsRepresentation = PyObject_Repr(tempObject);
+        const char *objectChar = PyUnicode_AsUTF8(objectsRepresentation);
+        std::string name = std::string(objectChar);
+        name = name.substr(1, name.size() - 2);
+        tempObject = PyObject_GetAttrString(object, name.c_str());
+        if (!tempObject)
+        {
+          mitkThrow() << "Could not get the attribute to determine type";
+        }
+        attrType = tempObject->ob_type->tp_name;
+
+        PyObject *valueStringRepresentation = PyObject_Repr(tempObject);
+        const char *valueChar = PyUnicode_AsUTF8(valueStringRepresentation);
+        std::string attrValue = std::string(valueChar);
+
+        mitk::PythonVariable var;
+        var.m_Name = name;
+        var.m_Value = attrValue;
+        var.m_Type = attrType;
+        list.push_back(var);
+      }
+    }
+    m_ThreadState = PyEval_SaveThread();
+  }
+  catch (const mitk::Exception)
+  {
+    m_ThreadState = PyEval_SaveThread();
+    throw;
+  }
   return list;
 }
 
-std::string mitk::PythonService::GetVariable(const std::string& name) const
+std::string mitk::PythonService::GetVariable(const std::string& name)
 {
   return NULL;
 }
 
-bool mitk::PythonService::DoesVariableExist(const std::string& name) const
+bool mitk::PythonService::DoesVariableExist(const std::string& name)
 {
   return NULL;
 }

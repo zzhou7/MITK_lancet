@@ -159,7 +159,7 @@ void mitk::QtPythonService::ExecuteScript(const std::string &pythonScript, std::
   m_PythonManager->executeString(QString::fromStdString(str));
 }
 
-std::vector<mitk::PythonVariable> mitk::QtPythonService::GetVariableStack() const
+std::vector<mitk::PythonVariable> mitk::QtPythonService::GetVariableStack()
 {
   std::vector<mitk::PythonVariable> list;
 
@@ -196,7 +196,7 @@ std::vector<mitk::PythonVariable> mitk::QtPythonService::GetVariableStack() cons
   return list;
 }
 
-std::string mitk::QtPythonService::GetVariable(const std::string& name) const
+std::string mitk::QtPythonService::GetVariable(const std::string& name)
 {
   std::vector<mitk::PythonVariable> allVars = this->GetVariableStack();
   for(unsigned int i = 0; i< allVars.size(); i++)
@@ -208,7 +208,7 @@ std::string mitk::QtPythonService::GetVariable(const std::string& name) const
   return "";
 }
 
-bool mitk::QtPythonService::DoesVariableExist(const std::string& name) const
+bool mitk::QtPythonService::DoesVariableExist(const std::string& name)
 {
   bool varExists = false;
 

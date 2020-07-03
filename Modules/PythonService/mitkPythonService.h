@@ -54,13 +54,13 @@ namespace mitk
       bool PythonErrorOccured() const override;
       ///
       /// \see IPythonService::GetVariableStack()
-      std::vector<PythonVariable> GetVariableStack() const override;
+      std::vector<PythonVariable> GetVariableStack() override;
       ///
       /// \see IPythonService::DoesVariableExist()
-      bool DoesVariableExist(const std::string& name) const override;
+      bool DoesVariableExist(const std::string& name) override;
       ///
       /// \see IPythonService::GetVariable()
-      std::string GetVariable(const std::string& name) const override;
+      std::string GetVariable(const std::string& name) override;
       ///
       /// \see IPythonService::AddPythonCommandObserver()
       void AddPythonCommandObserver( PythonCommandObserver* observer ) override;
