@@ -245,7 +245,22 @@ std::vector<mitk::PythonVariable> mitk::PythonService::GetVariableStack()
 
 std::string mitk::PythonService::GetVariable(const std::string& name)
 {
-  return NULL;
+  std::vector<mitk::PythonVariable> allVars;
+  try
+  {
+    allVars = this->GetVariableStack();
+  }
+  catch (const mitk::Exception)
+  {
+    mitkThrow() << "Error getting the variable stack";
+  }
+  for (unsigned int i = 0; i < allVars.size(); i++)
+  {
+    if (allVars.at(i).m_Name == name)
+      return allVars.at(i).m_Value;
+  }
+
+  return "";
 }
 
 bool mitk::PythonService::DoesVariableExist(const std::string& name)

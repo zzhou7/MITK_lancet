@@ -29,6 +29,7 @@ class mitkQtPythonTestSuite : public mitk::TestFixture
   MITK_TEST(TestSettingVariableAndUseIt);
   MITK_TEST(TestRunningScript);
   MITK_TEST(TestGetVariableStack);
+  MITK_TEST(TestGetVariable);
   MITK_TEST(TestDoesVariableExist_True);
   MITK_TEST(TestDoesVariableExist_False);
   CPPUNIT_TEST_SUITE_END();
@@ -216,6 +217,28 @@ public:
          CPPUNIT_FAIL("Error in getting variable stack");
          return;
        }       
+     }
+     else
+     {
+       CPPUNIT_FAIL("No Service Reference found");
+     }
+   }
+
+   void TestGetVariable() 
+   {
+     us::ModuleContext *context = us::GetModuleContext();
+     std::string filter = "(Name=QtPythonService)";
+     auto m_PythonServiceRefs = context->GetServiceReferences<mitk::IPythonService>(filter);
+
+     if (!m_PythonServiceRefs.empty())
+     {
+       mitk::IPythonService *m_PythonService =
+         dynamic_cast<mitk::IPythonService *>(context->GetService<mitk::IPythonService>(m_PythonServiceRefs.front()));
+
+       m_PythonService->Execute("variable_to_get ='Get this variable'");
+
+       std::string variableToGet = m_PythonService->GetVariable("variable_to_get");
+       CPPUNIT_ASSERT_MESSAGE("Testing if getting a variable as string representation works", variableToGet == "Get this variable");
      }
      else
      {

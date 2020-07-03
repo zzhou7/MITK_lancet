@@ -33,6 +33,7 @@ class mitkPythonTestSuite : public mitk::TestFixture
   MITK_TEST(TestRunningScriptCallOtherScript);
   MITK_TEST(TestRunningScriptCallOtherScriptInSubfolder);
   MITK_TEST(TestGetVariableStack);
+  MITK_TEST(TestGetVariable);
   MITK_TEST(TestDoesVariableExist_True);
   MITK_TEST(TestDoesVariableExist_False);
   CPPUNIT_TEST_SUITE_END();
@@ -282,6 +283,46 @@ public:
          CPPUNIT_FAIL("Error in getting variable stack");
          return;
        }       
+     }
+     else
+     {
+       CPPUNIT_FAIL("No Service Reference found");
+     }
+   }
+
+   void TestGetVariable()
+   {
+     us::ModuleContext *context = us::GetModuleContext();
+     std::string filter = "(Name=PythonService)";
+     auto m_PythonServiceRefs = context->GetServiceReferences<mitk::IPythonService>(filter);
+
+     if (!m_PythonServiceRefs.empty())
+     {
+       mitk::IPythonService *m_PythonService =
+         dynamic_cast<mitk::IPythonService *>(context->GetService<mitk::IPythonService>(m_PythonServiceRefs.front()));
+
+       try
+       {
+         m_PythonService->Execute("variable_to_get ='Get this variable'");
+       }
+       catch (const mitk::Exception &e)
+       {
+         MITK_ERROR << e.GetDescription();
+         CPPUNIT_FAIL("Error in setting the variable");
+         return;
+       }   
+       try
+       {
+         std::string variableToGet = m_PythonService->GetVariable("variable_to_get");
+         CPPUNIT_ASSERT_MESSAGE("Testing if getting a variable as string representation works",
+                                variableToGet == "'Get this variable'");
+       }
+       catch (const mitk::Exception &e)
+       {
+         MITK_ERROR << e.GetDescription();
+         CPPUNIT_FAIL("Error in getting a variable as string representation");
+         return;
+       }   
      }
      else
      {
