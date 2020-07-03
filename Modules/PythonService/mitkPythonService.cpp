@@ -250,7 +250,27 @@ std::string mitk::PythonService::GetVariable(const std::string& name)
 
 bool mitk::PythonService::DoesVariableExist(const std::string& name)
 {
-  return NULL;
+  bool varExists = false;
+  std::vector<mitk::PythonVariable> allVars;
+  try
+  {
+    allVars = this->GetVariableStack();
+  }
+  catch (const mitk::Exception)
+  {
+    mitkThrow() << "Error getting the variable stack";
+  }
+ 
+  for (unsigned int i = 0; i < allVars.size(); i++)
+  {
+    if (allVars.at(i).m_Name == name)
+    {
+      varExists = true;
+      break;
+    }
+  }
+
+  return varExists;
 }
 
 void mitk::PythonService::AddPythonCommandObserver(mitk::PythonCommandObserver *observer)

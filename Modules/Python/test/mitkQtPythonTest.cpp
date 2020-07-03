@@ -29,6 +29,8 @@ class mitkQtPythonTestSuite : public mitk::TestFixture
   MITK_TEST(TestSettingVariableAndUseIt);
   MITK_TEST(TestRunningScript);
   MITK_TEST(TestGetVariableStack);
+  MITK_TEST(TestDoesVariableExist_True);
+  MITK_TEST(TestDoesVariableExist_False);
   CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -214,6 +216,48 @@ public:
          CPPUNIT_FAIL("Error in getting variable stack");
          return;
        }       
+     }
+     else
+     {
+       CPPUNIT_FAIL("No Service Reference found");
+     }
+   }
+
+   void TestDoesVariableExist_True() 
+   {
+     us::ModuleContext *context = us::GetModuleContext();
+     std::string filter = "(Name=QtPythonService)";
+     auto m_PythonServiceRefs = context->GetServiceReferences<mitk::IPythonService>(filter);
+
+     if (!m_PythonServiceRefs.empty())
+     {
+       mitk::IPythonService *m_PythonService =
+         dynamic_cast<mitk::IPythonService *>(context->GetService<mitk::IPythonService>(m_PythonServiceRefs.front()));
+
+       m_PythonService->Execute("existingVariable ='This variable exists'");
+
+       bool variableExists = m_PythonService->DoesVariableExist("existingVariable");
+       CPPUNIT_ASSERT_MESSAGE("Testing if an existing variable is recognized", variableExists == true);
+     }
+     else
+     {
+       CPPUNIT_FAIL("No Service Reference found");
+     }
+   }
+
+   void TestDoesVariableExist_False()
+   {
+     us::ModuleContext *context = us::GetModuleContext();
+     std::string filter = "(Name=QtPythonService)";
+     auto m_PythonServiceRefs = context->GetServiceReferences<mitk::IPythonService>(filter);
+
+     if (!m_PythonServiceRefs.empty())
+     {
+       mitk::IPythonService *m_PythonService =
+         dynamic_cast<mitk::IPythonService *>(context->GetService<mitk::IPythonService>(m_PythonServiceRefs.front()));
+
+       bool variableExists = m_PythonService->DoesVariableExist("nonExistingVariable");
+       CPPUNIT_ASSERT_MESSAGE("Testing if an not existing variable is not recognized", variableExists == false);
      }
      else
      {

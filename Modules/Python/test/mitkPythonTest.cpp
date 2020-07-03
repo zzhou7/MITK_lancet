@@ -33,6 +33,8 @@ class mitkPythonTestSuite : public mitk::TestFixture
   MITK_TEST(TestRunningScriptCallOtherScript);
   MITK_TEST(TestRunningScriptCallOtherScriptInSubfolder);
   MITK_TEST(TestGetVariableStack);
+  MITK_TEST(TestDoesVariableExist_True);
+  MITK_TEST(TestDoesVariableExist_False);
   CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -280,6 +282,73 @@ public:
          CPPUNIT_FAIL("Error in getting variable stack");
          return;
        }       
+     }
+     else
+     {
+       CPPUNIT_FAIL("No Service Reference found");
+     }
+   }
+
+   void TestDoesVariableExist_True()
+   {
+     us::ModuleContext *context = us::GetModuleContext();
+     std::string filter = "(Name=PythonService)";
+     auto m_PythonServiceRefs = context->GetServiceReferences<mitk::IPythonService>(filter);
+     if (!m_PythonServiceRefs.empty())
+     {
+       mitk::IPythonService *m_PythonService =
+         dynamic_cast<mitk::IPythonService *>(context->GetService<mitk::IPythonService>(m_PythonServiceRefs.front()));
+
+       try
+       {
+         m_PythonService->Execute("existingVariable ='This variable exists'");
+       }
+       catch (const mitk::Exception &e)
+       {
+         MITK_ERROR << e.GetDescription();
+         CPPUNIT_FAIL("Error in setting the variable");
+         return;
+       }   
+       try
+       {
+         bool variableExists = m_PythonService->DoesVariableExist("existingVariable");
+         CPPUNIT_ASSERT_MESSAGE("Testing if an existing variable is recognized", variableExists == true);
+       }
+       catch (const mitk::Exception &e)
+       {
+         MITK_ERROR << e.GetDescription();
+         CPPUNIT_FAIL("Error in checking if a variable exists");
+         return;
+       }   
+     }
+     else
+     {
+       CPPUNIT_FAIL("No Service Reference found");
+     }
+   }
+
+   void TestDoesVariableExist_False()
+   {
+     us::ModuleContext *context = us::GetModuleContext();
+     std::string filter = "(Name=PythonService)";
+     auto m_PythonServiceRefs = context->GetServiceReferences<mitk::IPythonService>(filter);
+
+     if (!m_PythonServiceRefs.empty())
+     {
+       mitk::IPythonService *m_PythonService =
+         dynamic_cast<mitk::IPythonService *>(context->GetService<mitk::IPythonService>(m_PythonServiceRefs.front()));
+
+       try
+       {
+         bool variableExists = m_PythonService->DoesVariableExist("nonExistingVariable");
+         CPPUNIT_ASSERT_MESSAGE("Testing if an not existing variable is not recognized", variableExists == false);
+       }
+       catch (const mitk::Exception &e)
+       {
+         MITK_ERROR << e.GetDescription();
+         CPPUNIT_FAIL("Error in checking if a variable exists");
+         return;
+       }   
      }
      else
      {
