@@ -36,7 +36,10 @@ class mitkPythonTestSuite : public mitk::TestFixture
 
 public:
 
-
+    void setUp() 
+    { 
+      mitk::IPythonService::ForceLoadModule(); 
+    }
 
   void TestEvaluateOperationWithResult()
   {

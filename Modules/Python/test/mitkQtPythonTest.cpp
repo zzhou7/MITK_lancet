@@ -16,20 +16,28 @@ found in the LICENSE file.
 #include <mitkIPythonService.h>
 #include <mitkTestingMacros.h>
 #include <mitkTestFixture.h>
+#include <mitkStandardFileLocations.h>
+
 //#include <mitkQtPythonService.h>
 
 class mitkQtPythonTestSuite : public mitk::TestFixture
 {
   CPPUNIT_TEST_SUITE(mitkQtPythonTestSuite);
   MITK_TEST(TestEvaluateOperationWithResult);
+  MITK_TEST(TestExecuteStatement);
   MITK_TEST(TestSettingVariable);
   MITK_TEST(TestSettingVariableAndUseIt);
-
+  MITK_TEST(TestRunningScript);
   CPPUNIT_TEST_SUITE_END();
 
 public:
 
-  void TestEvaluateOperationWithResult()
+  void setUp() 
+  { 
+    mitk::IPythonService::ForceLoadModule();
+  }
+
+ void TestEvaluateOperationWithResult()
   {
     std::string result = "";
     us::ModuleContext *context = us::GetModuleContext();
@@ -40,12 +48,40 @@ public:
     {
       mitk::IPythonService *m_PythonService =
         dynamic_cast<mitk::IPythonService *>(context->GetService<mitk::IPythonService>(m_PythonServiceRefs.front()));
-      auto i = m_PythonServiceRefs.front().GetProperty("service.ranking");
       result = m_PythonService->Execute("5+5", mitk::IPythonService::EVAL_COMMAND);
       try
       {
         std::string result = m_PythonService->Execute("5+5", mitk::IPythonService::EVAL_COMMAND);
         CPPUNIT_ASSERT_MESSAGE("Testing if running python code 5+5 results in 10", result == "10");
+      }
+      catch (const mitk::Exception &e)
+      {
+        MITK_ERROR << e.GetDescription();
+        CPPUNIT_FAIL("Error in Python Execution");
+      }
+    }
+    else
+    {
+      CPPUNIT_FAIL("No Service Reference found");
+    }
+  }
+
+   void TestExecuteStatement()
+  {
+    us::ModuleContext *context = us::GetModuleContext();
+    std::string filter = "(Name=QtPythonService)";
+    auto m_PythonServiceRefs = context->GetServiceReferences<mitk::IPythonService>(filter);
+
+    if (!m_PythonServiceRefs.empty())
+    {
+      mitk::IPythonService *m_PythonService =
+        dynamic_cast<mitk::IPythonService *>(context->GetService<mitk::IPythonService>(m_PythonServiceRefs.front()));
+
+      try
+      {
+        std::string result = m_PythonService->Execute("print('Hello')");
+        // std::string result = "None";
+        CPPUNIT_ASSERT_MESSAGE("Testing if executing a statement works", result == "");
       }
       catch (const mitk::Exception &e)
       {
@@ -109,6 +145,37 @@ public:
       {
         MITK_ERROR << e.GetDescription();
         CPPUNIT_FAIL("Error in Python Execution");
+      }
+    }
+    else
+    {
+      CPPUNIT_FAIL("No Service Reference found");
+    }
+  }
+
+   void TestRunningScript()
+  {
+    us::ModuleContext *context = us::GetModuleContext();
+    std::string filter = "(Name=QtPythonService)";
+    auto m_PythonServiceRefs = context->GetServiceReferences<mitk::IPythonService>(filter);
+
+    if (!m_PythonServiceRefs.empty())
+    {
+      mitk::IPythonService *m_PythonService =
+        dynamic_cast<mitk::IPythonService *>(context->GetService<mitk::IPythonService>(m_PythonServiceRefs.front()));
+
+      try
+      {
+        std::string pythonFileName = "hello.py";
+        std::string fileName = mitk::StandardFileLocations::GetInstance()->FindFile(
+          pythonFileName.c_str(), "Modules/Python/test/hello_world_project");
+        m_PythonService->ExecuteScript(fileName);
+      }
+      catch (const mitk::Exception &e)
+      {
+        MITK_ERROR << e.GetDescription();
+        CPPUNIT_FAIL("Error in Python Execution for Script");
+        return;
       }
     }
     else
