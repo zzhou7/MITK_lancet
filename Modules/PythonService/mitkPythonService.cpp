@@ -96,15 +96,38 @@ mitk::PythonService::~PythonService()
 
 void mitk::PythonService::AddRelativeSearchDirs(std::vector< std::string > dirs)
 {
-  
+  for (auto dir : dirs)
+  {
+    try
+    {
+      std::string path = std::string(MITK_ROOT) + dir;
+      std::string pythonCommand = "import sys\nsys.path.append('" + path + "')\n";
+      this->Execute(pythonCommand.c_str());
+    }
+    catch (const mitk::Exception)
+    {
+      mitkThrow() << "An error occured setting the relative project path";
+    }
+  }
 }
 
 void mitk::PythonService::AddAbsoluteSearchDirs(std::vector< std::string > dirs)
 {
-  
+  for (auto dir : dirs)
+  {
+    try
+    {
+      std::string pythonCommand = "import sys\nsys.path.append('" + dir + "')\n";
+      this->Execute(pythonCommand.c_str());
+    }
+    catch (const mitk::Exception)
+    {
+      mitkThrow() << "An error occured setting the absolute project path";
+    }
+  }
 }
 
-std::string mitk::PythonService::Execute(const std::string &stdpythonCommand, int commandType, std::string projectPath)
+std::string mitk::PythonService::Execute(const std::string &stdpythonCommand, int commandType)
 {
   if (!Py_IsInitialized())
   {
@@ -112,12 +135,7 @@ std::string mitk::PythonService::Execute(const std::string &stdpythonCommand, in
   }
   std::string result = "";
   PyGILState_STATE gState = PyGILState_Ensure();
-  if (projectPath!="")
-  {
-    this->SetProjectPath(projectPath);
-    //As the Method SetProjectPath sets free the GIL we need to re-ensure it
-    PyGILState_STATE gState = PyGILState_Ensure();
-  }
+
   try
   {
     switch (commandType)
@@ -155,29 +173,15 @@ std::string mitk::PythonService::Execute(const std::string &stdpythonCommand, in
   return result;
 }
 
-void mitk::PythonService::SetProjectPath(std::string projectPath) 
-{
-  try
-  {
-    std::string path = std::string(MITK_ROOT) + projectPath;
-    std::string pythonCommand = "import sys\nsys.path.append('" + path + "')\n";
-    this->Execute(pythonCommand.c_str());
-  }
-  catch (const mitk::Exception)
-  {
-    mitkThrow() << "An error occured setting the project path";
-  }
-}
 
-
-void mitk::PythonService::ExecuteScript(const std::string &pythonScript, std::string projectPath)
+void mitk::PythonService::ExecuteScript(const std::string &pythonScript)
 {
   std::ifstream t(pythonScript.c_str());
   std::string str((std::istreambuf_iterator<char>(t)), std::istreambuf_iterator<char>());
   t.close();
   try
   {
-    this->Execute(str.c_str(), MULTI_LINE_COMMAND, projectPath);
+    this->Execute(str.c_str(), MULTI_LINE_COMMAND);
   }
   catch (const mitk::Exception)
   {

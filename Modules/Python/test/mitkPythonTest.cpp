@@ -204,11 +204,24 @@ public:
 
       try
       {
+        try
+        {
+          std::string path = "Modules/Python/test/hello_world_project";
+          std::vector<std::string> pathVector;
+          pathVector.push_back(path);
+          m_PythonService->AddRelativeSearchDirs(pathVector);
+        }
+        catch (const mitk::Exception &e)
+        {
+          MITK_ERROR << e.GetDescription();
+          CPPUNIT_FAIL("Error in setting the search directory");
+          return;
+        }
+
         std::string pythonFileName = "call_hello.py";
-        std::string fileName =
-          mitk::StandardFileLocations::GetInstance()->FindFile(pythonFileName.c_str(), "Modules/Python/test/hello_world_project");
-        std::string path = "Modules/Python/test/hello_world_project";
-        m_PythonService->ExecuteScript(fileName, path);
+        std::string fileName = mitk::StandardFileLocations::GetInstance()->FindFile(
+          pythonFileName.c_str(), "Modules/Python/test/hello_world_project");
+        m_PythonService->ExecuteScript(fileName);
       }
       catch (const mitk::Exception &e)
       {
@@ -236,11 +249,24 @@ public:
 
         try
         {
+          try
+          {
+            std::string path = "Modules/Python/test/hello_world_project";
+            std::vector<std::string> pathVector;
+            pathVector.push_back(path);
+            m_PythonService->AddRelativeSearchDirs(pathVector);
+          }
+          catch (const mitk::Exception &e)
+          {
+            MITK_ERROR << e.GetDescription();
+            CPPUNIT_FAIL("Error in setting the search directory");
+            return;
+          }
+
           std::string pythonFileName = "call_hello_in_subfolder.py";
           std::string fileName = mitk::StandardFileLocations::GetInstance()->FindFile(
             pythonFileName.c_str(), "Modules/Python/test/hello_world_project");
-          std::string path = "Modules/Python/test/hello_world_project";
-          m_PythonService->ExecuteScript(fileName, path);
+          m_PythonService->ExecuteScript(fileName);
         }
         catch (const mitk::Exception &e)
         {
