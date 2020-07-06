@@ -68,6 +68,9 @@ namespace mitk
       /// \see IPythonService::NotifyObserver()
       void NotifyObserver( const std::string& command ) override;
       ///
+      /// \see IPythonService::GetNumberOfObserver()
+      int GetNumberOfObserver() override;
+      ///
       /// \see IPythonService::IsItkPythonWrappingAvailable()
       bool IsSimpleItkPythonWrappingAvailable() override;
       ///
@@ -105,8 +108,8 @@ namespace mitk
   protected:
 
   private:
-      //QList<PythonCommandObserver*> m_Observer;
       //ctkAbstractPythonManager m_PythonManager;
+      std::vector<PythonCommandObserver*> m_Observer;
       PyThreadState *m_ThreadState;
       PyObject *m_GlobalDictionary;
       PyObject *m_LocalDictionary;

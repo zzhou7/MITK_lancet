@@ -98,7 +98,9 @@ namespace mitk
         /// the the Execute() method of this service, e.g. the shell widget uses this function
         /// since it does not use Execute()
         virtual void NotifyObserver( const std::string& command ) = 0;
-
+        ///
+        /// \return the number of registered Observers
+        virtual int GetNumberOfObserver() = 0;
         ///
         /// \return true, if itk wrapping is available, false otherwise
         virtual bool IsSimpleItkPythonWrappingAvailable() = 0;

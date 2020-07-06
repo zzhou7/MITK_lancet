@@ -58,6 +58,9 @@ namespace mitk
       /// \see IPythonService::NotifyObserver()
       void NotifyObserver( const std::string& command ) override;
       ///
+      /// \see IPythonService::GetNumberOfObserver()
+      int GetNumberOfObserver() override;
+      ///
       /// \see IPythonService::IsItkPythonWrappingAvailable()
       bool IsSimpleItkPythonWrappingAvailable() override;
       ///

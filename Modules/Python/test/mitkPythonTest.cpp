@@ -17,6 +17,7 @@ found in the LICENSE file.
 #include <mitkTestingMacros.h>
 #include <mitkTestFixture.h>
 #include <mitkStandardFileLocations.h>
+#include <mitkPythonObserverMock.h>
 
 
 
@@ -36,6 +37,9 @@ class mitkPythonTestSuite : public mitk::TestFixture
   MITK_TEST(TestGetVariable);
   MITK_TEST(TestDoesVariableExist_True);
   MITK_TEST(TestDoesVariableExist_False);
+  MITK_TEST(TestAddObserver);
+  MITK_TEST(TestRemoveObserver);
+  MITK_TEST(TestNotifyObserver);
   CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -420,6 +424,79 @@ public:
      else
      {
        CPPUNIT_FAIL("No Service Reference found");
+     }
+   }
+
+   void TestAddObserver() 
+   {
+     us::ModuleContext *context = us::GetModuleContext();
+     std::string filter = "(Name=PythonService)";
+     auto m_PythonServiceRefs = context->GetServiceReferences<mitk::IPythonService>(filter);
+
+     if (!m_PythonServiceRefs.empty())
+     {
+       mitk::IPythonService *m_PythonService =
+         dynamic_cast<mitk::IPythonService *>(context->GetService<mitk::IPythonService>(m_PythonServiceRefs.front()));
+
+       int numberBeforeAdding = m_PythonService->GetNumberOfObserver();
+       auto observer = new PythonObserverMock;
+       m_PythonService->AddPythonCommandObserver(observer);
+       int numberAfterAdding = m_PythonService->GetNumberOfObserver();
+       CPPUNIT_ASSERT_MESSAGE("Testing if a new command observer can be added", numberAfterAdding == numberBeforeAdding+1);
+     }
+   }
+
+   void TestRemoveObserver() 
+   {
+     us::ModuleContext *context = us::GetModuleContext();
+     std::string filter = "(Name=PythonService)";
+     auto m_PythonServiceRefs = context->GetServiceReferences<mitk::IPythonService>(filter);
+
+     if (!m_PythonServiceRefs.empty())
+     {
+       mitk::IPythonService *m_PythonService =
+         dynamic_cast<mitk::IPythonService *>(context->GetService<mitk::IPythonService>(m_PythonServiceRefs.front()));
+
+       int numberBeforeAdding = m_PythonService->GetNumberOfObserver();
+       auto observer = new PythonObserverMock;
+       m_PythonService->AddPythonCommandObserver(observer);
+       int numberAfterAdding = m_PythonService->GetNumberOfObserver();
+       CPPUNIT_ASSERT_MESSAGE("Testing if a new command observer can be added",
+                              numberAfterAdding == numberBeforeAdding + 1);
+
+       m_PythonService->RemovePythonCommandObserver(observer);
+       int numberAfterRemoving = m_PythonService->GetNumberOfObserver();
+       CPPUNIT_ASSERT_MESSAGE("Testing if a command observer can be removed",
+                              numberAfterRemoving == numberBeforeAdding);
+     }
+   }
+
+   void TestNotifyObserver() 
+   {
+     us::ModuleContext *context = us::GetModuleContext();
+     std::string filter = "(Name=PythonService)";
+     auto m_PythonServiceRefs = context->GetServiceReferences<mitk::IPythonService>(filter);
+
+     if (!m_PythonServiceRefs.empty())
+     {
+       mitk::IPythonService *m_PythonService =
+         dynamic_cast<mitk::IPythonService *>(context->GetService<mitk::IPythonService>(m_PythonServiceRefs.front()));
+
+       auto observer = new PythonObserverMock;
+       m_PythonService->AddPythonCommandObserver(observer);
+       std::string command = "number = 5";
+       try
+       {
+         m_PythonService->Execute(command);
+       }
+       catch (const mitk::Exception &e)
+       {
+         MITK_ERROR << e.GetDescription();
+         CPPUNIT_FAIL("Error in Python Execution");
+       }
+       m_PythonService->NotifyObserver(command);
+       CPPUNIT_ASSERT_MESSAGE("Testing if a command observer is notified",
+                              observer->m_Updated == true);
      }
    }
 };

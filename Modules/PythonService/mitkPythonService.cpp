@@ -159,9 +159,11 @@ std::string mitk::PythonService::Execute(const std::string &stdpythonCommand, in
       const char *resultChar = PyUnicode_AsUTF8(objectsRepresentation);
       result = std::string(resultChar);
       m_ThreadState = PyEval_SaveThread();
+      m_ErrorOccured = false;
     }
     else
     {
+      m_ErrorOccured = true;
       mitkThrow() << "An error occured while running the Python code";
     }
   }
@@ -294,17 +296,37 @@ bool mitk::PythonService::DoesVariableExist(const std::string& name)
 
 void mitk::PythonService::AddPythonCommandObserver(mitk::PythonCommandObserver *observer)
 {
-  
+  //only add observer if it isn't already in list of observers
+  if (!(std::find(m_Observer.begin(), m_Observer.end(), observer) != m_Observer.end()))
+  {
+    m_Observer.push_back(observer);
+  }
 }
 
 void mitk::PythonService::RemovePythonCommandObserver(mitk::PythonCommandObserver *observer)
 {
- 
+  for (std::vector<mitk::PythonCommandObserver *>::iterator iter = m_Observer.begin(); iter != m_Observer.end(); ++iter)
+  {
+    if (*iter == observer)
+    {
+      m_Observer.erase(iter);
+      break;
+    }
+  }
 }
 
 void mitk::PythonService::NotifyObserver(const std::string &command)
 {
-  
+  for (int i = 0; i < m_Observer.size(); ++i)
+  {
+    m_Observer.at(i)->CommandExecuted(command);
+  }
+}
+
+
+int mitk::PythonService::GetNumberOfObserver() 
+{
+  return m_Observer.size();
 }
 
 bool mitk::PythonService::IsSimpleItkPythonWrappingAvailable()
@@ -366,6 +388,6 @@ bool mitk::PythonService::IsVtkPythonWrappingAvailable()
 
 bool mitk::PythonService::PythonErrorOccured() const
 {
-  return NULL;
+  return m_ErrorOccured;
 }
 
