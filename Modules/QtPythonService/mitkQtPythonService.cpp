@@ -128,7 +128,7 @@ std::string mitk::QtPythonService::Execute(const std::string &stdpythonCommand,
 {
   QString pythonCommand = QString::fromStdString(stdpythonCommand);
   QVariant result;
-
+  PyGILState_STATE gState = PyGILState_Ensure();
   bool commandIssued = true;
   if(commandType == IPythonService::SINGLE_LINE_COMMAND )
     result = m_PythonManager->executeString(pythonCommand, ctkAbstractPythonManager::SingleInput );

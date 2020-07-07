@@ -65,6 +65,7 @@ mitk::PythonService::PythonService()
   {
     Py_Initialize();
   }
+  PyGILState_STATE gState = PyGILState_Ensure();
   std::string programPath = mitk::IOUtil::GetProgramPath();
   std::replace(programPath.begin(), programPath.end(), '\\', '/');
   programPath.append("/");
@@ -75,14 +76,15 @@ mitk::PythonService::PythonService()
   pythonCommand.append("sys.path.append('" + programPath + "')\n");
   pythonCommand.append("sys.path.append('" +std::string(EXTERNAL_DIST_PACKAGES) + "')\n");
   pythonCommand.append("\nsite.addsitedir('"+std::string(EXTERNAL_SITE_PACKAGES)+"')");
+
   if (PyRun_SimpleString(pythonCommand.c_str()) == -1)
   {
     MITK_ERROR << "Something went wrong in setting the path in Python";
   }
-
   PyObject *main = PyImport_AddModule("__main__");
   m_GlobalDictionary = PyModule_GetDict(main);
   m_LocalDictionary = m_GlobalDictionary;
+  m_ThreadState = PyEval_SaveThread();
 }
 
 mitk::PythonService::~PythonService()
@@ -134,8 +136,8 @@ std::string mitk::PythonService::Execute(const std::string &stdpythonCommand, in
     Py_Initialize();
   }
   std::string result = "";
-  PyGILState_STATE gState = PyGILState_Ensure();
 
+  PyGILState_STATE gState = PyGILState_Ensure();
   try
   {
     switch (commandType)
