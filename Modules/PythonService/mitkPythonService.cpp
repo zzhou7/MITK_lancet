@@ -71,6 +71,11 @@ mitk::PythonService::PythonService()
   programPath.append("/");
   MITK_INFO << programPath;
   std::string pythonCommand;
+
+  pythonCommand.append("import SimpleITK as sitk\n");
+  pythonCommand.append("import SimpleITK._SimpleITK as _SimpleITK\n");
+  pythonCommand.append("import numpy\n");
+
   pythonCommand.append("import site, sys\n");
   pythonCommand.append("sys.path.append('')\n");
   pythonCommand.append("sys.path.append('" + programPath + "')\n");
@@ -338,7 +343,219 @@ bool mitk::PythonService::IsSimpleItkPythonWrappingAvailable()
 
 bool mitk::PythonService::CopyToPythonAsSimpleItkImage(mitk::Image *image, const std::string &stdvarName)
 {
-  return NULL;
+  PyGILState_STATE gState = PyGILState_Ensure();
+  //QString varName = QString::fromStdString(stdvarName);
+  std::string varName = stdvarName;
+  std::string command;
+  unsigned int *imgDim = image->GetDimensions();
+  int npy_nd = 1;
+
+  // access python module
+  PyObject *pyMod = PyImport_AddModule("__main__");
+  // global dictionary
+  PyObject *pyDict = PyModule_GetDict(pyMod);
+  const mitk::Vector3D spacing = image->GetGeometry()->GetSpacing();
+  const mitk::Point3D origin = image->GetGeometry()->GetOrigin();
+  mitk::PixelType pixelType = image->GetPixelType();
+  itk::ImageIOBase::IOPixelType ioPixelType = image->GetPixelType().GetPixelType();
+  PyObject *npyArray = nullptr;
+  mitk::ImageReadAccessor racc(image);
+  void *array = const_cast<void *>(racc.GetData());
+
+  mitk::Vector3D xDirection;
+  mitk::Vector3D yDirection;
+  mitk::Vector3D zDirection;
+  const vnl_matrix_fixed<ScalarType, 3, 3> &transform =
+    image->GetGeometry()->GetIndexToWorldTransform()->GetMatrix().GetVnlMatrix();
+
+  mitk::Vector3D s = image->GetGeometry()->GetSpacing();
+
+  // ToDo: Check if this is a collumn or row vector from the matrix.
+  // right now it works but not sure for rotated geometries
+  mitk::FillVector3D(xDirection, transform[0][0] / s[0], transform[0][1] / s[1], transform[0][2] / s[2]);
+  mitk::FillVector3D(yDirection, transform[1][0] / s[0], transform[1][1] / s[1], transform[1][2] / s[2]);
+  mitk::FillVector3D(zDirection, transform[2][0] / s[0], transform[2][1] / s[1], transform[2][2] / s[2]);
+
+  // save the total number of elements here (since the numpy array is one dimensional)
+  npy_intp *npy_dims = new npy_intp[1];
+  npy_dims[0] = imgDim[0];
+
+  /**
+   * Build a string in the format [1024,1028,1]
+   * to describe the dimensionality. This is needed for simple itk
+   * to know the dimensions of the image
+   */
+  std::string dimensionString;
+  dimensionString.append("[");
+  dimensionString.append(std::to_string(imgDim[0]));
+  for (unsigned i = 1; i < 3; ++i)
+  // always three because otherwise the 3d-geometry gets destroyed
+  // (relevant for backtransformation of simple itk image to mitk.
+  {
+    dimensionString.append(",");
+    dimensionString.append(std::to_string(imgDim[i]));
+    npy_dims[0] *= imgDim[i];
+  }
+  dimensionString.append("]");
+
+  // the next line is necessary for vectorimages
+  npy_dims[0] *= pixelType.GetNumberOfComponents();
+
+  // default pixeltype: unsigned short
+  NPY_TYPES npy_type = NPY_USHORT;
+  std::string sitk_type = "sitkUInt8";
+  if (ioPixelType == itk::ImageIOBase::SCALAR)
+  {
+    if (pixelType.GetComponentType() == itk::ImageIOBase::DOUBLE)
+    {
+      npy_type = NPY_DOUBLE;
+      sitk_type = "sitkFloat64";
+    }
+    else if (pixelType.GetComponentType() == itk::ImageIOBase::FLOAT)
+    {
+      npy_type = NPY_FLOAT;
+      sitk_type = "sitkFloat32";
+    }
+    else if (pixelType.GetComponentType() == itk::ImageIOBase::SHORT)
+    {
+      npy_type = NPY_SHORT;
+      sitk_type = "sitkInt16";
+    }
+    else if (pixelType.GetComponentType() == itk::ImageIOBase::CHAR)
+    {
+      npy_type = NPY_BYTE;
+      sitk_type = "sitkInt8";
+    }
+    else if (pixelType.GetComponentType() == itk::ImageIOBase::INT)
+    {
+      npy_type = NPY_INT;
+      sitk_type = "sitkInt32";
+    }
+    else if (pixelType.GetComponentType() == itk::ImageIOBase::LONG)
+    {
+      npy_type = NPY_LONG;
+      sitk_type = "sitkInt64";
+    }
+    else if (pixelType.GetComponentType() == itk::ImageIOBase::UCHAR)
+    {
+      npy_type = NPY_UBYTE;
+      sitk_type = "sitkUInt8";
+    }
+    else if (pixelType.GetComponentType() == itk::ImageIOBase::UINT)
+    {
+      npy_type = NPY_UINT;
+      sitk_type = "sitkUInt32";
+    }
+    else if (pixelType.GetComponentType() == itk::ImageIOBase::ULONG)
+    {
+      npy_type = NPY_LONG;
+      sitk_type = "sitkUInt64";
+    }
+    else if (pixelType.GetComponentType() == itk::ImageIOBase::USHORT)
+    {
+      npy_type = NPY_USHORT;
+      sitk_type = "sitkUInt16";
+    }
+  }
+  else if (ioPixelType == itk::ImageIOBase::VECTOR || ioPixelType == itk::ImageIOBase::RGB ||
+           ioPixelType == itk::ImageIOBase::RGBA)
+  {
+    if (pixelType.GetComponentType() == itk::ImageIOBase::DOUBLE)
+    {
+      npy_type = NPY_DOUBLE;
+      sitk_type = "sitkVectorFloat64";
+    }
+    else if (pixelType.GetComponentType() == itk::ImageIOBase::FLOAT)
+    {
+      npy_type = NPY_FLOAT;
+      sitk_type = "sitkVectorFloat32";
+    }
+    else if (pixelType.GetComponentType() == itk::ImageIOBase::SHORT)
+    {
+      npy_type = NPY_SHORT;
+      sitk_type = "sitkVectorInt16";
+    }
+    else if (pixelType.GetComponentType() == itk::ImageIOBase::CHAR)
+    {
+      npy_type = NPY_BYTE;
+      sitk_type = "sitkVectorInt8";
+    }
+    else if (pixelType.GetComponentType() == itk::ImageIOBase::INT)
+    {
+      npy_type = NPY_INT;
+      sitk_type = "sitkVectorInt32";
+    }
+    else if (pixelType.GetComponentType() == itk::ImageIOBase::LONG)
+    {
+      npy_type = NPY_LONG;
+      sitk_type = "sitkVectorInt64";
+    }
+    else if (pixelType.GetComponentType() == itk::ImageIOBase::UCHAR)
+    {
+      npy_type = NPY_UBYTE;
+      sitk_type = "sitkVectorUInt8";
+    }
+    else if (pixelType.GetComponentType() == itk::ImageIOBase::UINT)
+    {
+      npy_type = NPY_UINT;
+      sitk_type = "sitkVectorUInt32";
+    }
+    else if (pixelType.GetComponentType() == itk::ImageIOBase::ULONG)
+    {
+      npy_type = NPY_LONG;
+      sitk_type = "sitkVectorUInt64";
+    }
+    else if (pixelType.GetComponentType() == itk::ImageIOBase::USHORT)
+    {
+      npy_type = NPY_USHORT;
+      sitk_type = "sitkVectorUInt16";
+    }
+  }
+  else
+  {
+    MITK_WARN << "not a recognized pixeltype";
+    return false;
+  }
+
+  // creating numpy array
+  import_array1(true);
+  npyArray = PyArray_SimpleNewFromData(npy_nd, npy_dims, npy_type, array);
+
+  // add temp array it to the python dictionary to access it in python code
+  std::string statusString = varName + "_numpy_array";
+  const int status =
+    PyDict_SetItemString(pyDict, statusString.c_str(), npyArray);
+
+  // sanity check
+  if (status != 0)
+    return false;
+
+  std::string imageCommand = varName + " = sitk.Image(" + dimensionString + ",sitk." + sitk_type.c_str() + "," +
+                             std::to_string(pixelType.GetNumberOfComponents()) + ")\n";
+  command.append(imageCommand);
+  std::string spacingCommand = varName + ".SetSpacing([" + std::to_string(spacing[0]) + "," +
+                               std::to_string(spacing[1]) + "," + std::to_string(spacing[2]) + "])\n";
+  command.append(spacingCommand);
+  std::string originCommand = varName + ".SetOrigin([" + std::to_string(origin[0]) + "," + std::to_string(origin[1]) +
+                              "," + std::to_string(origin[2]) + "])\n";
+  command.append(originCommand);
+  std::string directionCommand = varName + ".SetDirection([" + std::to_string(xDirection[0]) + "," +
+                                 std::to_string(xDirection[1]) + "," + std::to_string(xDirection[2]) + "," +
+                                 std::to_string(yDirection[0]) + "," + std::to_string(yDirection[1]) + "," +
+                                 std::to_string(yDirection[2]) + "," + std::to_string(zDirection[0]) + "," +
+                                 std::to_string(zDirection[1]) + "," + std::to_string(zDirection[2]) + "])\n";
+  command.append(directionCommand);
+  // directly access the cpp api from the lib
+  std::string imageFromArray = "_SimpleITK._SetImageFromArray(" + varName + "_numpy_array," + varName + ")\n";
+  command.append(imageFromArray);
+  std::string deleteArray = "del " + varName + "_numpy_array";
+  command.append(deleteArray);
+
+  MITK_DEBUG("PythonService") << "Issuing python command " << command;
+  m_ThreadState = PyEval_SaveThread();
+
+  this->Execute(command);
+  return true;
 }
 
 

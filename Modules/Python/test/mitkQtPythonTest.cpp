@@ -18,6 +18,7 @@ found in the LICENSE file.
 #include <mitkTestFixture.h>
 #include <mitkStandardFileLocations.h>
 #include <mitkPythonObserverMock.h>
+#include <mitkIOUtil.h>
 
 //#include <mitkQtPythonService.h>
 
@@ -36,6 +37,7 @@ class mitkQtPythonTestSuite : public mitk::TestFixture
   MITK_TEST(TestAddObserver);
   MITK_TEST(TestRemoveObserver);
   MITK_TEST(TestNotifyObserver);
+  MITK_TEST(CopyImageToPython);
   CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -364,6 +366,21 @@ public:
        CPPUNIT_ASSERT_MESSAGE("Testing if a command observer is notified", observer->m_Updated == true);
      }
    }
+
+    void CopyImageToPython() 
+    {
+      us::ModuleContext *context = us::GetModuleContext();
+      std::string filter = "(Name=QtPythonService)";
+      auto m_PythonServiceRefs = context->GetServiceReferences<mitk::IPythonService>(filter);
+
+      if (!m_PythonServiceRefs.empty())
+      {
+        mitk::IPythonService *m_PythonService =
+          dynamic_cast<mitk::IPythonService *>(context->GetService<mitk::IPythonService>(m_PythonServiceRefs.front()));
+        mitk::Image::Pointer img = mitk::IOUtil::Load<mitk::Image>(GetTestDataFilePath("Pic3D.nrrd"));
+        m_PythonService->CopyToPythonAsSimpleItkImage(img, "input");
+      }
+    }
 };
 
 MITK_TEST_SUITE_REGISTRATION(mitkQtPython)
