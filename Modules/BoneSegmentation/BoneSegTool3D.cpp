@@ -74,3 +74,20 @@ void mitk::BoneSegTool3D::Deactivated()
 {
   Superclass::Deactivated();
 }
+
+void mitk::BoneSegTool3D::DoSegmentation(std::string networkPath) 
+{
+  mitk::DataNode::Pointer referenceData = m_ToolManager->GetReferenceData(0);
+  mitk::Image::Pointer input = dynamic_cast<mitk::Image *>(referenceData->GetData());
+  if (input.IsNull())
+  {
+    MITK_INFO << "Here";
+    return;
+  }
+  unsigned int timestep = mitk::RenderingManager::GetInstance()->GetTimeNavigationController()->GetTime()->GetPos();
+  input = Get3DImage(input, timestep);
+  if (!input.IsNull())
+  {
+    MITK_INFO << networkPath;
+  }
+}

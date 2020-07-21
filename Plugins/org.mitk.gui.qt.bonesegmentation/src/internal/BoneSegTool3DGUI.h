@@ -48,21 +48,23 @@ public:
   itkFactorylessNewMacro(Self) 
 
 signals: 
-    void Operate();
+    void Operate(mitk::BoneSegTool3D::Pointer tool, QString networkPath);
 
   protected slots:
     void OnDoSegmentation();
     void DoLoadTrainedNet();
-
+    void OnNewToolAssociated(mitk::Tool *);
+    void DoSegmentationProcessFinished();
+    void DoSegmentationProcessFailed();
 
 
   private:
     QScopedPointer<Ui::BoneSegTool3DGUI> m_Ui;
-    mitk::BoneSegTool3D::Pointer m_BoneSegTool3D;
 
     QThread *m_SegmentationThread;
     SegmentationWorker *m_Worker;
-    std::string m_TrainedNet;
+    QString m_TrainedNet;
+    mitk::BoneSegTool3D::Pointer m_BoneSegTool;
 };
 
 #endif // BoneSegTool3DGUI_h

@@ -12,8 +12,18 @@ found in the LICENSE file.
 #include"SegmentationWorker.h"
 #include <mitkIOUtil.h>
 
-
-void SegmentationWorker::DoWork()
+SegmentationWorker::SegmentationWorker() {
+}
+void SegmentationWorker::DoWork(mitk::BoneSegTool3D::Pointer boneSegTool, QString networkPath)
 {
-  MITK_INFO << "In worker";
+  try
+  {
+    boneSegTool->DoSegmentation(networkPath.toStdString());
+    emit Finished();
+  }
+  catch (const mitk::Exception &e)
+  {
+    MITK_INFO << e.GetDescription();
+    emit Failed();
+  }
 }

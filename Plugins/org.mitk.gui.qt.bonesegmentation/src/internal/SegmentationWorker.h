@@ -13,16 +13,23 @@ found in the LICENSE file.
 #define SegmentationWorker_h
 
 #include <QObject>
+#include<BoneSegTool3D.h>
+
+Q_DECLARE_METATYPE(mitk::BoneSegTool3D::Pointer)
 
 class SegmentationWorker : public QObject
 {
   Q_OBJECT
+public:
+  SegmentationWorker();
 public slots:
-  void DoWork();
+  void DoWork(mitk::BoneSegTool3D::Pointer boneSegTool, QString networkPath);
 
 signals:
   void Finished();
   void Failed();
+
+
 };
 
 #endif

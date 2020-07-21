@@ -47,6 +47,8 @@ namespace mitk
     void Activated() override;
     void Deactivated() override;
 
+    void DoSegmentation(std::string networkPath);
+
   private:
   };
 } // namespace mitk
