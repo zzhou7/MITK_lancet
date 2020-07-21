@@ -27,6 +27,9 @@ found in the LICENSE file.
 
 #include "BoneSegTool3D.h"
 
+#include <QThread>
+#include"SegmentationWorker.h"
+
 namespace Ui {
 class BoneSegTool3DGUI;
 }
@@ -42,16 +45,24 @@ public:
   BoneSegTool3DGUI();
   ~BoneSegTool3DGUI() override;
   mitkClassMacro(BoneSegTool3DGUI, QmitkToolGUI)
-  itkFactorylessNewMacro(Self)
+  itkFactorylessNewMacro(Self) 
+
+signals: 
+    void Operate();
 
   protected slots:
     void OnDoSegmentation();
+    void DoLoadTrainedNet();
 
 
 
   private:
     QScopedPointer<Ui::BoneSegTool3DGUI> m_Ui;
     mitk::BoneSegTool3D::Pointer m_BoneSegTool3D;
+
+    QThread *m_SegmentationThread;
+    SegmentationWorker *m_Worker;
+    std::string m_TrainedNet;
 };
 
 #endif // BoneSegTool3DGUI_h
