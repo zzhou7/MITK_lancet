@@ -37,7 +37,8 @@ class mitkQtPythonTestSuite : public mitk::TestFixture
   MITK_TEST(TestAddObserver);
   MITK_TEST(TestRemoveObserver);
   MITK_TEST(TestNotifyObserver);
-  MITK_TEST(CopyImageToPython);
+  MITK_TEST(TestCopyImageToPython);
+  MITK_TEST(TestCopyImageFromPython);
   CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -367,7 +368,7 @@ public:
      }
    }
 
-    void CopyImageToPython() 
+    void TestCopyImageToPython() 
     {
       us::ModuleContext *context = us::GetModuleContext();
       std::string filter = "(Name=QtPythonService)";
@@ -379,6 +380,23 @@ public:
           dynamic_cast<mitk::IPythonService *>(context->GetService<mitk::IPythonService>(m_PythonServiceRefs.front()));
         mitk::Image::Pointer img = mitk::IOUtil::Load<mitk::Image>(GetTestDataFilePath("Pic3D.nrrd"));
         m_PythonService->CopyToPythonAsSimpleItkImage(img, "input");
+      }
+    }
+
+       void TestCopyImageFromPython()
+    {
+      us::ModuleContext *context = us::GetModuleContext();
+      std::string filter = "(Name=QtPythonService)";
+      auto m_PythonServiceRefs = context->GetServiceReferences<mitk::IPythonService>(filter);
+
+      if (!m_PythonServiceRefs.empty())
+      {
+        mitk::IPythonService *m_PythonService =
+          dynamic_cast<mitk::IPythonService *>(context->GetService<mitk::IPythonService>(m_PythonServiceRefs.front()));
+        std::string imgPath = GetTestDataFilePath("Pic3D.nrrd");
+        std::string pythonCommand = "image_nrrd = sitk.ReadImage('" + imgPath + "')";
+        m_PythonService->Execute(pythonCommand);
+        mitk::Image::Pointer img = m_PythonService->CopySimpleItkImageFromPython("image_nrrd");
       }
     }
 };
