@@ -81,6 +81,7 @@ set(MITK_MODULES
   REST
   RESTService
   DICOMweb
+  BoneSegmentation
 )
 
 if(MITK_ENABLE_PIC_READER)
