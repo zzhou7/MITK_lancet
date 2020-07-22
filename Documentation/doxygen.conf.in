@@ -767,7 +767,7 @@ WARN_LOGFILE           =
 
 
 INPUT                  = @MITK_SOURCE_DIR@ \
-                         @MITK_SOURCE_DIR@/Documentation/MainPage.md \
+                         @MITK_SOURCE_DIR@/README.md \
                          @MITK_BINARY_DIR@ \
                          @MITK_DOXYGEN_ADDITIONAL_INPUT_DIRS@
 
@@ -847,7 +847,6 @@ EXCLUDE_SYMLINKS       = NO
 # exclude all test directories for example use the pattern */test/*
 
 EXCLUDE_PATTERNS       = README* \
-				   MainPage* \
                          moc_* \
                          ui_* \
                          qrc_* \
@@ -962,7 +961,7 @@ FILTER_SOURCE_PATTERNS =
 # (index.html). This can be useful if you have a project on for instance GitHub
 # and want to reuse the introduction page also for the doxygen output.
 
-USE_MDFILE_AS_MAINPAGE = Documentation/MainPage.md
+USE_MDFILE_AS_MAINPAGE = README.md
 
 #---------------------------------------------------------------------------
 # Configuration options related to source browsing
