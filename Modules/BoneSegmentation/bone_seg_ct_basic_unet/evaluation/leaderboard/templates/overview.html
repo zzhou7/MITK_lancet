@@ -1,0 +1,103 @@
+<html>
+
+<head>
+
+    <title>Leaderboard</title>
+
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"/>
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.16/css/dataTables.bootstrap4.min.css"/>
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/buttons/1.5.1/css/buttons.bootstrap4.min.css"/>
+
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/custom.css') }}"/>
+
+    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/v/bs4-4.0.0/jq-3.2.1/dt-1.10.16/datatables.min.js"></script>
+
+</head>
+
+<body>
+
+    <h1 class="text-center mt-4">Medical Decathlon Leaderboard</h1>
+
+    <div class="container-fluid mt-4 mb-4 ml-0 mr-0 p-0">
+        <table id="overviewTable" class="table" cellspacing="0" width="100%">
+            <thead class="thead-dark">
+            <tr>
+                <th class="th-wide">Task</th>
+                <th class="th-wide">Name</th>
+                <th class="th-wide">Description</th>
+                <th class="th-wide">Time</th>
+                <th class="th-wide">Author</th>
+                {% for l in labels %}
+                {% for m in metrics %}
+                <th><span class="label-id">{{ l }}</span><br>{{ m }}</th>
+                {% endfor %}
+                {% endfor %}
+            </tr>
+            </thead>
+            <tbody>
+            {% for task, name, desc, time, author, results in experiments %}
+            <tr>
+                <td>{{ task }}</td>
+                <td>{{ name }}</td>
+                <td>{{ desc }}</td>
+                <td>{{ time }}</td>
+                <td>{{ author }}</td>
+                {% for r in results %}
+                <td>{{ "%0.4f" % r|float }}</td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+            </tbody>
+            <tfoot>
+            <tr>
+                <th>Task</th>
+                <th>Name</th>
+                <th>Description</th>
+                <th>Time</th>
+                <th>Author</th>
+                {% for l in labels %}
+                {% for m in metrics %}
+                <th></th>
+                {% endfor %}
+                {% endfor %}
+            </tr>
+            </tfoot>
+        </table>
+    </div>
+
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col col-2 pr-1"></div>
+            <div class="col pl-1">
+                {% for m in metrics %}
+                <a role="button" class="btn btn-light toggle-metric" data-metric="{{ m }}">{{ abbreviations[m] }}</a>
+                {% endfor %}
+            </div>
+        </div>
+        {% for l in labels %}
+        {% set outer_loop = loop %}
+        <div class="row mt-1">
+            <div class="col col-2 pr-1 text-right">
+                <a role="button" class="btn btn-light toggle-label" data-label="{{ l }}">{{ l }}</a>
+            </div>
+            <div class="col pl-1">
+                {% for m in metrics %}
+                {% set column = 4 + (outer_loop.index-1) * metrics|length + loop.index %}
+                <a href="" role="button" class="btn btn-outline-dark toggle-button" data-column="{{ column }}" data-label-parent="{{ l }}" data-metric-parent="{{ m }}">{{ abbreviations[m] }}</a>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div id="gif-wrap" class="mx-auto m-5 text-white">&nbsp;#teamwork</div>
+    <blockquote class="blockquote mx-auto text-center" style="width: 500">
+        <p class="mb-0">{{ random_quote }}</p>
+        <footer class="blockquote-footer">{{ random_quote_author }}</footer>
+    </blockquote>
+
+<script type="text/javascript" charset="utf8" src="{{ url_for('static', filename='js/custom.js') }}"></script>
+
+</body>
+
+</html>

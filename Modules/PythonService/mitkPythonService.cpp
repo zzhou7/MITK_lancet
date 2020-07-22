@@ -94,11 +94,11 @@ mitk::PythonService::PythonService()
 
 mitk::PythonService::~PythonService()
 {
-  if (Py_IsInitialized())
-  {
-    PyGILState_Ensure();
-    Py_FinalizeEx();
-  }
+  //if (Py_IsInitialized())
+  //{
+  //  PyGILState_Ensure();
+  //  Py_FinalizeEx();
+  //}
 }
 
 void mitk::PythonService::AddRelativeSearchDirs(std::vector< std::string > dirs)
@@ -176,6 +176,7 @@ std::string mitk::PythonService::Execute(const std::string &stdpythonCommand, in
   }
   catch (const mitk::Exception) 
   {
+    PyErr_Print();
     m_ThreadState = PyEval_SaveThread();
     throw;
   }

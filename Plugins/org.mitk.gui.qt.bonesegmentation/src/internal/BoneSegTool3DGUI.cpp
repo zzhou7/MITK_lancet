@@ -25,12 +25,17 @@ found in the LICENSE file.
 #include <mitkImage.h>
 #include <mitkIOUtil.h>
 
+#include <QmitkDataStorageComboBox.h>
+#include <mitkRenderingManager.h>
+
+
 
 MITK_TOOL_GUI_MACRO(BONESEGMENTATION_EXPORT, BoneSegTool3DGUI, "")
 
 BoneSegTool3DGUI::BoneSegTool3DGUI() : m_Ui(new Ui::BoneSegTool3DGUI)
 {
   qRegisterMetaType<mitk::BoneSegTool3D::Pointer>();
+  qRegisterMetaType<mitk::LabelSetImage::Pointer>();
   m_Ui->setupUi(this);
 
   connect(m_Ui->buttonPerformImageProcessing, &QPushButton::clicked, this, &BoneSegTool3DGUI::OnDoSegmentation);
@@ -77,11 +82,17 @@ void BoneSegTool3DGUI::OnDoSegmentation()
     emit Operate(m_BoneSegTool, m_TrainedNet);
 }
 
-void BoneSegTool3DGUI::DoSegmentationProcessFinished() 
+void BoneSegTool3DGUI::DoSegmentationProcessFinished(mitk::LabelSetImage::Pointer result) 
 {
   QMessageBox::information(nullptr,
                        "Segmentation finished",
                        "Segmentation finished.");
+  mitk::DataNode::Pointer outputNode = mitk::DataNode::New();
+  outputNode->SetName("Bone_seg");
+  outputNode->SetData(result);
+  this->m_BoneSegTool->GetDataStorage()->Add(outputNode, m_BoneSegTool->GetReferenceData());
+  mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+  //QitkAbstractView::GetDataStorage().GetPointer()->Add(outputNode, m_selectedImageNode);
 }
 
 void BoneSegTool3DGUI::DoSegmentationProcessFailed()

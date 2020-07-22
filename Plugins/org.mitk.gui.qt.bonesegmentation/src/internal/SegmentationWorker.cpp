@@ -11,15 +11,17 @@ found in the LICENSE file.
 ============================================================================*/
 #include"SegmentationWorker.h"
 #include <mitkIOUtil.h>
+#include<QVector>
 
 SegmentationWorker::SegmentationWorker() {
+  qRegisterMetaType<QVector<int>>();
 }
 void SegmentationWorker::DoWork(mitk::BoneSegTool3D::Pointer boneSegTool, QString networkPath)
 {
   try
   {
-    boneSegTool->DoSegmentation(networkPath.toStdString());
-    emit Finished();
+    mitk::LabelSetImage::Pointer result = boneSegTool->DoSegmentation(networkPath.toStdString());
+    emit Finished(result);
   }
   catch (const mitk::Exception &e)
   {

@@ -47,7 +47,11 @@ namespace mitk
     void Activated() override;
     void Deactivated() override;
 
-    void DoSegmentation(std::string networkPath);
+    mitk::LabelSetImage::Pointer DoSegmentation(std::string networkPath);
+    mitk::Image::Pointer GetInputImage();
+
+    mitk::DataStorage* GetDataStorage();
+    mitk::DataNode *GetReferenceData();
 
   private:
   };

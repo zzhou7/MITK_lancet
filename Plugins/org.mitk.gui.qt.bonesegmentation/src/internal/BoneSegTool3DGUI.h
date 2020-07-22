@@ -54,7 +54,7 @@ signals:
     void OnDoSegmentation();
     void DoLoadTrainedNet();
     void OnNewToolAssociated(mitk::Tool *);
-    void DoSegmentationProcessFinished();
+    void DoSegmentationProcessFinished(mitk::LabelSetImage::Pointer result);
     void DoSegmentationProcessFailed();
 
 
