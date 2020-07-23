@@ -14,14 +14,14 @@ found in the LICENSE file.
 #ifndef BoneSegTool3DGUI_h
 #define BoneSegTool3DGUI_h
 
-#include <org_mitk_gui_qt_bonesegmentation_Export.h>
+#include <org_mitk_gui_qt_deeplearningsegmentation_Export.h>
 
 
 #include <berryISelectionListener.h>
 
 #include <QmitkAbstractView.h>
 
-#include "ui_BoneSegTool3DGUI.h"
+#include "ui_DeepLearningSegmentationGUI.h"
 
 #include <QmitkToolGUI.h>
 
@@ -35,7 +35,7 @@ namespace Ui {
 class BoneSegTool3DGUI;
 }
 
-class BONESEGMENTATION_EXPORT BoneSegTool3DGUI : public QmitkToolGUI
+class DEEPLEARNINGSEGMENTATION_EXPORT BoneSegTool3DGUI : public QmitkToolGUI
 {
   // this is needed for all Qt objects that should have a Qt meta-object
   // (everything that derives from QObject and wants to have signal/slots)
@@ -60,7 +60,7 @@ signals:
 
 
   private:
-    QScopedPointer<Ui::BoneSegTool3DGUI> m_Ui;
+    QScopedPointer<Ui::DeepLearningSegmentationGUI> m_Ui;
 
     QThread *m_SegmentationThread;
     SegmentationWorker *m_Worker;

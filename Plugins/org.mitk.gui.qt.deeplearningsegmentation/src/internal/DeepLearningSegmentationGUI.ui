@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>BoneSegTool3DGUI</class>
- <widget class="QWidget" name="BoneSegTool3DGUI">
+ <class>DeepLearningSegmentationGUI</class>
+ <widget class="QWidget" name="DeepLearningSegmentationGUI">
   <property name="geometry">
    <rect>
     <x>0</x>

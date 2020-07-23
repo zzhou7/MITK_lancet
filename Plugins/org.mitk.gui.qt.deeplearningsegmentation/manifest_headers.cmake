@@ -1,4 +1,4 @@
-set(Plugin-Name "Bonesegmentation")
+set(Plugin-Name "DeepLearningsegmentation")
 set(Plugin-Version "0.1")
 set(Plugin-Vendor "German Cancer Research Center (DKFZ)")
 set(Plugin-ContactAddress "")

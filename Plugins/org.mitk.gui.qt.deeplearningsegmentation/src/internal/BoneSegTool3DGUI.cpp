@@ -24,9 +24,9 @@ found in the LICENSE file.
 #include <mitkImage.h>
 #include <mitkIOUtil.h>
 
-MITK_TOOL_GUI_MACRO(BONESEGMENTATION_EXPORT, BoneSegTool3DGUI, "")
+MITK_TOOL_GUI_MACRO(DEEPLEARNINGSEGMENTATION_EXPORT, BoneSegTool3DGUI, "")
 
-BoneSegTool3DGUI::BoneSegTool3DGUI() : m_Ui(new Ui::BoneSegTool3DGUI)
+BoneSegTool3DGUI::BoneSegTool3DGUI() : m_Ui(new Ui::DeepLearningSegmentationGUI)
 {
   qRegisterMetaType<mitk::BoneSegTool3D::Pointer>();
   qRegisterMetaType<mitk::LabelSetImage::Pointer>();

@@ -2,9 +2,9 @@
 <plugin>
 
   <extension point="org.blueberry.ui.views">
-    <view id="org.mitk.views.bonesegmentation"
-          name="Bone Segmentation"
-          class="BoneSegTool3DGUI"
+    <view id="org.mitk.views.deeplearningsegmentation"
+          name="Deep Learning Segmentation"
+          class="DeepLearningSegmentationGUI"
           icon="resources/icon.xpm" />
   </extension>
 
