@@ -9,27 +9,24 @@ Use of this source code is governed by a 3-clause BSD license that can be
 found in the LICENSE file.
 
 ============================================================================*/
-#ifndef SegmentationWorker_h
-#define SegmentationWorker_h
+#ifndef SegmentationResultGUI_h
+#define SegmentationResultGUI_h
 
 #include <QObject>
 #include<BoneSegTool3D.h>
-#include"SegmentationResultGUI.h"
 
-Q_DECLARE_METATYPE(mitk::BoneSegTool3D::Pointer)
-Q_DECLARE_METATYPE(mitk::LabelSetImage::Pointer)
-
-class SegmentationWorker : public QObject
+class SegmentationResultGUI : public QObject
 {
   Q_OBJECT
 public:
-  SegmentationWorker();
+  SegmentationResultGUI();
+  ~SegmentationResultGUI();
 public slots:
-  void DoWork(mitk::BoneSegTool3D::Pointer boneSegTool,SegmentationResultGUI* resultSetter, QString networkPath);
+  void SetResult(mitk::LabelSetImage::Pointer resultSegmentation, mitk::BoneSegTool3D::Pointer boneSegTool);
+  void SegmentationProcessFailed();
 
 signals:
-  void Finished(mitk::LabelSetImage::Pointer result, mitk::BoneSegTool3D::Pointer boneSegTool);
-  void Failed();
+
 };
 
 #endif

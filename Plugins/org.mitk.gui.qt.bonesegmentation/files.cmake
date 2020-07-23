@@ -2,6 +2,7 @@ set(INTERNAL_CPP_FILES
   org_mitk_gui_qt_bonesegmentation_Activator.cpp
   BoneSegTool3DGUI.cpp
   SegmentationWorker.cpp
+  SegmentationResultGUI.cpp
 )
 
 set(UI_FILES
@@ -12,6 +13,7 @@ set(MOC_H_FILES
   src/internal/org_mitk_gui_qt_bonesegmentation_Activator.h
   src/internal/BoneSegTool3DGUI.h
   src/internal/SegmentationWorker.h
+  src/internal/SegmentationResultGUI.h
 )
 
 # list of resource files which can be used by the plug-in

@@ -19,23 +19,18 @@ found in the LICENSE file.
 #include "BoneSegTool3DGUI.h"
 
 // Qt
-#include <QMessageBox>
 #include <QFileDialog>
 // mitk image
 #include <mitkImage.h>
 #include <mitkIOUtil.h>
 
-#include <QmitkDataStorageComboBox.h>
-#include <mitkRenderingManager.h>
-
-
-
 MITK_TOOL_GUI_MACRO(BONESEGMENTATION_EXPORT, BoneSegTool3DGUI, "")
 
-BoneSegTool3DGUI::BoneSegTool3DGUI() : m_Ui(new Ui::BoneSegTool3DGUI)
+BoneSegTool3DGUI::BoneSegTool3DGUI() : m_Ui(new Ui::BoneSegTool3DGUI), m_ResultSetter(new SegmentationResultGUI)
 {
   qRegisterMetaType<mitk::BoneSegTool3D::Pointer>();
   qRegisterMetaType<mitk::LabelSetImage::Pointer>();
+  qRegisterMetaType<QVector<int>>();
   m_Ui->setupUi(this);
 
   connect(m_Ui->buttonPerformImageProcessing, &QPushButton::clicked, this, &BoneSegTool3DGUI::OnDoSegmentation);
@@ -47,8 +42,6 @@ BoneSegTool3DGUI::BoneSegTool3DGUI() : m_Ui(new Ui::BoneSegTool3DGUI)
   m_Worker->moveToThread(m_SegmentationThread);
   // Signal/Slot connects
   connect(this, &BoneSegTool3DGUI::Operate, m_Worker, &SegmentationWorker::DoWork);
-  connect(m_Worker, &SegmentationWorker::Finished, this, &BoneSegTool3DGUI::DoSegmentationProcessFinished);
-  connect(m_Worker, &SegmentationWorker::Failed, this, &BoneSegTool3DGUI::DoSegmentationProcessFailed);
   connect(this, SIGNAL(NewToolAssociated(mitk::Tool *)), this, SLOT(OnNewToolAssociated(mitk::Tool *)));
 }
 
@@ -79,25 +72,6 @@ void BoneSegTool3DGUI::OnDoSegmentation()
 {
     MITK_INFO << "[Start] Segmentation";
     m_SegmentationThread->start();
-    emit Operate(m_BoneSegTool, m_TrainedNet);
+    emit Operate(m_BoneSegTool, m_ResultSetter, m_TrainedNet);
 }
 
-void BoneSegTool3DGUI::DoSegmentationProcessFinished(mitk::LabelSetImage::Pointer result) 
-{
-  QMessageBox::information(nullptr,
-                       "Segmentation finished",
-                       "Segmentation finished.");
-  mitk::DataNode::Pointer outputNode = mitk::DataNode::New();
-  outputNode->SetName("Bone_seg");
-  outputNode->SetData(result);
-  this->m_BoneSegTool->GetDataStorage()->Add(outputNode, m_BoneSegTool->GetReferenceData());
-  mitk::RenderingManager::GetInstance()->RequestUpdateAll();
-  //QitkAbstractView::GetDataStorage().GetPointer()->Add(outputNode, m_selectedImageNode);
-}
-
-void BoneSegTool3DGUI::DoSegmentationProcessFailed()
-{
-  QMessageBox::warning(nullptr,
-                       "Error in segmentation",
-                       "There was an error in the segmentation process. No resulting segmentation can be loaded.");
-}
