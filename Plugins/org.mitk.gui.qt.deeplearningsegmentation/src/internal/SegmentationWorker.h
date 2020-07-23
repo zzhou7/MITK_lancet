@@ -13,10 +13,10 @@ found in the LICENSE file.
 #define SegmentationWorker_h
 
 #include <QObject>
-#include<BoneSegTool3D.h>
+#include<DeepLearningSegmentationTool.h>
 #include"SegmentationResultHandler.h"
 
-Q_DECLARE_METATYPE(mitk::BoneSegTool3D::Pointer)
+Q_DECLARE_METATYPE(mitk::DeepLearningSegmentationTool*)
 Q_DECLARE_METATYPE(mitk::LabelSetImage::Pointer)
 
 class SegmentationWorker : public QObject
@@ -25,10 +25,12 @@ class SegmentationWorker : public QObject
 public:
   SegmentationWorker();
 public slots:
-  void DoWork(mitk::BoneSegTool3D::Pointer boneSegTool,SegmentationResultHandler* resultSetter, QString networkPath);
+  void DoWork(mitk::DeepLearningSegmentationTool* segTool,
+              SegmentationResultHandler *resultSetter,
+              QString networkPath);
 
 signals:
-  void Finished(mitk::LabelSetImage::Pointer result, mitk::BoneSegTool3D::Pointer boneSegTool);
+  void Finished(mitk::LabelSetImage::Pointer result, mitk::DeepLearningSegmentationTool* segTool);
   void Failed();
 };
 

@@ -21,14 +21,14 @@ SegmentationResultHandler::~SegmentationResultHandler(){
 }
 
 void SegmentationResultHandler::SetResult(mitk::LabelSetImage::Pointer resultSegmentation,
-                                      mitk::BoneSegTool3D::Pointer boneSegTool)
+                                          mitk::DeepLearningSegmentationTool *segTool)
 {
   try
   {
     mitk::DataNode::Pointer outputNode = mitk::DataNode::New();
-    outputNode->SetName("Bone_seg");
+    outputNode->SetName(segTool->GetName());
     outputNode->SetData(resultSegmentation);
-    boneSegTool->GetDataStorage()->Add(outputNode, boneSegTool->GetReferenceData());
+    segTool->GetDataStorage()->Add(outputNode, segTool->GetReferenceData());
     mitk::RenderingManager::GetInstance()->RequestUpdateAll();
   }
   catch (const mitk::Exception &e)

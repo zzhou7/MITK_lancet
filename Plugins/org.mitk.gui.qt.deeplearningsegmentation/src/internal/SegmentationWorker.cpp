@@ -16,16 +16,18 @@ found in the LICENSE file.
 SegmentationWorker::SegmentationWorker() 
 {
 }
-void SegmentationWorker::DoWork(mitk::BoneSegTool3D::Pointer boneSegTool, SegmentationResultHandler *resultSetter, QString networkPath)
+void SegmentationWorker::DoWork(mitk::DeepLearningSegmentationTool* segTool,
+                                SegmentationResultHandler *resultSetter,
+                                QString networkPath)
 {
   connect(this, &SegmentationWorker::Finished, resultSetter, &SegmentationResultHandler::SetResult);
   connect(this, &SegmentationWorker::Failed, resultSetter, &SegmentationResultHandler::SegmentationProcessFailed);
 
   try
   {
-    mitk::LabelSetImage::Pointer result = boneSegTool->DoSegmentation(networkPath.toStdString());
+    mitk::LabelSetImage::Pointer result = segTool->DoSegmentation(networkPath.toStdString());
     MITK_INFO << "Back in Worker";
-    emit Finished(result, boneSegTool);
+    emit Finished(result, segTool);
   }
   catch (const mitk::Exception &e)
   {

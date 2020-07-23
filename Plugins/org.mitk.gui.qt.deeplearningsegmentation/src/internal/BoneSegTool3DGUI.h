@@ -15,58 +15,23 @@ found in the LICENSE file.
 #define BoneSegTool3DGUI_h
 
 #include <org_mitk_gui_qt_deeplearningsegmentation_Export.h>
-
-
-#include <berryISelectionListener.h>
-
-#include <QmitkAbstractView.h>
-
-#include "ui_DeepLearningSegmentationGUI.h"
-
-#include <QmitkToolGUI.h>
-
-#include "BoneSegTool3D.h"
-
-#include <QThread>
-#include"SegmentationWorker.h"
-#include"SegmentationResultHandler.h"
+#include"DeepLearningSegmentationGUI.h"
+#include"BoneSegTool3D.h"
 
 namespace Ui {
 class BoneSegTool3DGUI;
 }
 
-class DEEPLEARNINGSEGMENTATION_EXPORT BoneSegTool3DGUI : public QmitkToolGUI
+class DEEPLEARNINGSEGMENTATION_EXPORT BoneSegTool3DGUI : public DeepLearningSegmentationGUI
 {
-  // this is needed for all Qt objects that should have a Qt meta-object
-  // (everything that derives from QObject and wants to have signal/slots)
   Q_OBJECT
 
 public:
-  //static const std::string VIEW_ID;
-  BoneSegTool3DGUI();
-  ~BoneSegTool3DGUI() override;
   mitkClassMacro(BoneSegTool3DGUI, QmitkToolGUI)
   itkFactorylessNewMacro(Self) 
 
-signals: 
-    void Operate(mitk::BoneSegTool3D::Pointer tool, SegmentationResultHandler* guiSetter, QString networkPath);
-
   protected slots:
-    void OnDoSegmentation();
-    void DoLoadTrainedNet();
     void OnNewToolAssociated(mitk::Tool *);
-    //void DoSegmentationProcessFinished(mitk::LabelSetImage::Pointer result);
-    //void DoSegmentationProcessFailed();
-
-
-  private:
-    QScopedPointer<Ui::DeepLearningSegmentationGUI> m_Ui;
-
-    QThread *m_SegmentationThread;
-    SegmentationWorker *m_Worker;
-    
-    QString m_TrainedNet;
-    mitk::BoneSegTool3D::Pointer m_BoneSegTool;
 };
 
 #endif // BoneSegTool3DGUI_h

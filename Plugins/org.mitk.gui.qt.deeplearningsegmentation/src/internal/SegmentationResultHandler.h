@@ -13,7 +13,8 @@ found in the LICENSE file.
 #define SegmentationResultHandler_h
 
 #include <QObject>
-#include<BoneSegTool3D.h>
+#include <DeepLearningSegmentationTool.h>
+
 
 class SegmentationResultHandler : public QObject
 {
@@ -22,7 +23,7 @@ public:
   SegmentationResultHandler();
   ~SegmentationResultHandler();
 public slots:
-  void SetResult(mitk::LabelSetImage::Pointer resultSegmentation, mitk::BoneSegTool3D::Pointer boneSegTool);
+  void SetResult(mitk::LabelSetImage::Pointer resultSegmentation, mitk::DeepLearningSegmentationTool *segTool);
   void SegmentationProcessFailed();
 
 signals:

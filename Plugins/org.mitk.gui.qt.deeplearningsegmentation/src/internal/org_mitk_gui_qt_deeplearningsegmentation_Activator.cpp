@@ -12,15 +12,11 @@ found in the LICENSE file.
 
 
 #include "org_mitk_gui_qt_deeplearningsegmentation_Activator.h"
-#include "BoneSegTool3DGUI.h"
-#include<BoneSegTool3D.h>
 
 namespace mitk
 {
   void org_mitk_gui_qt_deeplearningsegmentation_Activator::start(ctkPluginContext *context)
   {
-    BoneSegTool3D *seg = new mitk::BoneSegTool3D;
-    BERRY_REGISTER_EXTENSION_CLASS(BoneSegTool3DGUI, context)
   }
 
   void org_mitk_gui_qt_deeplearningsegmentation_Activator::stop(ctkPluginContext *context) { Q_UNUSED(context) }
