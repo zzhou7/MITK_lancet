@@ -10,7 +10,7 @@ found in the LICENSE file.
 
 ============================================================================*/
 
-#include "BoneSegTool3D.h"
+#include "DeepLearningSegmentationTool.h"
 #include <mitkImageAccessByItk.h>
 #include <mitkImageCast.h>
 #include <mitkProgressBar.h>
@@ -22,27 +22,23 @@ found in the LICENSE file.
 
 #include <mitkIPythonService.h>
 
-namespace mitk
+
+
+mitk::DeepLearningSegmentationTool::DeepLearningSegmentationTool(std::string pythonFolder,
+                                                                 std::string inputImageVarName,
+                                                                 std::string pythonFileName,
+                                                                 std::string outputImageVarName)
 {
-  MITK_TOOL_MACRO(MITKBONESEGMENTATION_EXPORT, BoneSegTool3D, "Bone Segmentation tool");
+  m_PythonProjectPath = "Modules/DeepLearningSegmentation/"+pythonFolder;
+  m_InputImageVarName = inputImageVarName;
+  m_PythonFileName = pythonFileName;
+  m_OutputImageVarName = outputImageVarName;
 }
 
-
-
-mitk::BoneSegTool3D::BoneSegTool3D() {
+mitk::DeepLearningSegmentationTool::~DeepLearningSegmentationTool() {
 }
 
-mitk::BoneSegTool3D::~BoneSegTool3D() {
-}
-
-us::ModuleResource mitk::BoneSegTool3D::GetIconResource() const {
-  auto moduleContext = us::GetModuleContext();
-  auto module = moduleContext->GetModule();
-  auto resource = module->GetResource("icon.svg");
-  return resource;
-}
-
-bool mitk::BoneSegTool3D::CanHandle(mitk::BaseData *referenceData) const
+bool mitk::DeepLearningSegmentationTool::CanHandle(mitk::BaseData *referenceData) const
 {
   if (referenceData == nullptr)
     return false;
@@ -57,28 +53,22 @@ bool mitk::BoneSegTool3D::CanHandle(mitk::BaseData *referenceData) const
   return true;
 }
 
-
-const char *mitk::BoneSegTool3D::GetName() const
-{
-  return "Bone Segmentation";
-}
-
-const char **mitk::BoneSegTool3D::GetXPM() const
+const char **mitk::DeepLearningSegmentationTool::GetXPM() const
 {
   return nullptr;
 }
 
-void mitk::BoneSegTool3D::Activated()
+void mitk::DeepLearningSegmentationTool::Activated()
 {
   Superclass::Activated();
 }
 
-void mitk::BoneSegTool3D::Deactivated()
+void mitk::DeepLearningSegmentationTool::Deactivated()
 {
   Superclass::Deactivated();
 }
 
-mitk::LabelSetImage::Pointer mitk::BoneSegTool3D::DoSegmentation(std::string networkPath) 
+mitk::LabelSetImage::Pointer mitk::DeepLearningSegmentationTool::DoSegmentation(std::string networkPath)
 {
   //get the input Image
   mitk::Image::Pointer input;
@@ -105,9 +95,8 @@ mitk::LabelSetImage::Pointer mitk::BoneSegTool3D::DoSegmentation(std::string net
     // set path to the Python code which should be executed
       try
       {
-        std::string path = "Modules/BoneSegmentation/bone_seg_ct_basic_unet";
         std::vector<std::string> pathVector;
-        pathVector.push_back(path);
+        pathVector.push_back(m_PythonProjectPath);
         m_PythonService->AddRelativeSearchDirs(pathVector);
       }
       catch (const mitk::Exception &e)
@@ -133,7 +122,7 @@ mitk::LabelSetImage::Pointer mitk::BoneSegTool3D::DoSegmentation(std::string net
       //set the input image
       try
       {
-        m_PythonService->CopyToPythonAsSimpleItkImage(input, "sitk_image");
+        m_PythonService->CopyToPythonAsSimpleItkImage(input, m_InputImageVarName);
         //m_PythonService->CopyToPythonAsSimpleItkImage(input, "nrrd_image");
       }
       catch (const mitk::Exception &e)
@@ -146,9 +135,8 @@ mitk::LabelSetImage::Pointer mitk::BoneSegTool3D::DoSegmentation(std::string net
         // execute Segmentation
       try
       {
-        std::string pythonFileName = "segment.py";
         std::string fileName = mitk::StandardFileLocations::GetInstance()->FindFile(
-          pythonFileName.c_str(), "Modules/BoneSegmentation/bone_seg_ct_basic_unet");
+          m_PythonFileName.c_str(), m_PythonProjectPath.c_str());
         m_PythonService->ExecuteScript(fileName);
       }
       catch (const mitk::Exception &e)
@@ -161,7 +149,7 @@ mitk::LabelSetImage::Pointer mitk::BoneSegTool3D::DoSegmentation(std::string net
       // get result
       try
       {
-        mitk::Image::Pointer outputImage= m_PythonService->CopySimpleItkImageFromPython("output_image");
+        mitk::Image::Pointer outputImage= m_PythonService->CopySimpleItkImageFromPython(m_OutputImageVarName);
         mitk::LabelSetImage::Pointer resultImage = mitk::LabelSetImage::New();
         resultImage->InitializeByLabeledImage(outputImage);
         resultImage->SetGeometry(input->GetGeometry());
@@ -181,18 +169,18 @@ mitk::LabelSetImage::Pointer mitk::BoneSegTool3D::DoSegmentation(std::string net
   return nullptr;
 }
 
-mitk::DataStorage *mitk::BoneSegTool3D::GetDataStorage()
+mitk::DataStorage *mitk::DeepLearningSegmentationTool::GetDataStorage()
 {
   return m_ToolManager->GetDataStorage();
   m_ToolManager->GetReferenceData(0);
 }
 
-mitk::DataNode *mitk::BoneSegTool3D::GetReferenceData() 
+mitk::DataNode *mitk::DeepLearningSegmentationTool::GetReferenceData()
 {
   return m_ToolManager->GetReferenceData(0);
 }
   
-mitk::Image::Pointer mitk::BoneSegTool3D::GetInputImage()
+mitk::Image::Pointer mitk::DeepLearningSegmentationTool::GetInputImage()
   {
   mitk::DataNode::Pointer referenceData = m_ToolManager->GetReferenceData(0);
   mitk::Image::Pointer input = dynamic_cast<mitk::Image *>(referenceData->GetData());

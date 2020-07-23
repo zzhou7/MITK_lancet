@@ -13,15 +13,8 @@ found in the LICENSE file.
 #ifndef BoneSegTool3D_h
 #define BoneSegTool3D_h
 
-#include <mitkAutoSegmentationTool.h>
-#include <mitkDataNode.h>
-#include <mitkPointSet.h>
-#include <mitkSinglePointDataInteractor.h>
-
-#include <itkImage.h>
-
-#include <MitkBoneSegmentationExports.h>
-#include <map>
+#include "DeepLearningSegmentationTool.h"
+#include <MitkDeepLearningSegmentationExports.h>
 
 namespace us {
 class ModuleResource;
@@ -29,30 +22,17 @@ class ModuleResource;
 
 namespace mitk
 {
-  class MITKBONESEGMENTATION_EXPORT BoneSegTool3D : public mitk::AutoSegmentationTool
+  class MITKDEEPLEARNINGSEGMENTATION_EXPORT BoneSegTool3D : public mitk::DeepLearningSegmentationTool
   {
   public:
     mitkClassMacro(BoneSegTool3D, AutoSegmentationTool);
     itkFactorylessNewMacro(Self);
 
     us::ModuleResource GetIconResource() const override;
-
-    bool CanHandle(mitk::BaseData *referenceData) const override;
     const char *GetName() const override;
-    const char **GetXPM() const override;
 
     BoneSegTool3D();
     ~BoneSegTool3D() override;
-
-    void Activated() override;
-    void Deactivated() override;
-
-    mitk::LabelSetImage::Pointer DoSegmentation(std::string networkPath);
-    mitk::Image::Pointer GetInputImage();
-
-    mitk::DataStorage* GetDataStorage();
-    mitk::DataNode *GetReferenceData();
-
   private:
   };
 } // namespace mitk
