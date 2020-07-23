@@ -14,7 +14,7 @@ found in the LICENSE file.
 
 #include <QObject>
 #include<BoneSegTool3D.h>
-#include"SegmentationResultGUI.h"
+#include"SegmentationResultHandler.h"
 
 Q_DECLARE_METATYPE(mitk::BoneSegTool3D::Pointer)
 Q_DECLARE_METATYPE(mitk::LabelSetImage::Pointer)
@@ -25,7 +25,7 @@ class SegmentationWorker : public QObject
 public:
   SegmentationWorker();
 public slots:
-  void DoWork(mitk::BoneSegTool3D::Pointer boneSegTool,SegmentationResultGUI* resultSetter, QString networkPath);
+  void DoWork(mitk::BoneSegTool3D::Pointer boneSegTool,SegmentationResultHandler* resultSetter, QString networkPath);
 
 signals:
   void Finished(mitk::LabelSetImage::Pointer result, mitk::BoneSegTool3D::Pointer boneSegTool);

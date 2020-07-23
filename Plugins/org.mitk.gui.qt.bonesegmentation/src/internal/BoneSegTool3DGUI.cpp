@@ -26,7 +26,7 @@ found in the LICENSE file.
 
 MITK_TOOL_GUI_MACRO(BONESEGMENTATION_EXPORT, BoneSegTool3DGUI, "")
 
-BoneSegTool3DGUI::BoneSegTool3DGUI() : m_Ui(new Ui::BoneSegTool3DGUI), m_ResultSetter(new SegmentationResultGUI)
+BoneSegTool3DGUI::BoneSegTool3DGUI() : m_Ui(new Ui::BoneSegTool3DGUI)
 {
   qRegisterMetaType<mitk::BoneSegTool3D::Pointer>();
   qRegisterMetaType<mitk::LabelSetImage::Pointer>();
@@ -71,7 +71,8 @@ void BoneSegTool3DGUI::DoLoadTrainedNet()
 void BoneSegTool3DGUI::OnDoSegmentation()
 {
     MITK_INFO << "[Start] Segmentation";
+    SegmentationResultHandler *resultSetter = new SegmentationResultHandler;
     m_SegmentationThread->start();
-    emit Operate(m_BoneSegTool, m_ResultSetter, m_TrainedNet);
+    emit Operate(m_BoneSegTool, resultSetter, m_TrainedNet);
 }
 

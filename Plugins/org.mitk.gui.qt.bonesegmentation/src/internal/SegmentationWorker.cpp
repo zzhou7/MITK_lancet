@@ -16,10 +16,10 @@ found in the LICENSE file.
 SegmentationWorker::SegmentationWorker() 
 {
 }
-void SegmentationWorker::DoWork(mitk::BoneSegTool3D::Pointer boneSegTool, SegmentationResultGUI *resultSetter, QString networkPath)
+void SegmentationWorker::DoWork(mitk::BoneSegTool3D::Pointer boneSegTool, SegmentationResultHandler *resultSetter, QString networkPath)
 {
-  connect(this, &SegmentationWorker::Finished, resultSetter, &SegmentationResultGUI::SetResult);
-  connect(this, &SegmentationWorker::Failed, resultSetter, &SegmentationResultGUI::SegmentationProcessFailed);
+  connect(this, &SegmentationWorker::Finished, resultSetter, &SegmentationResultHandler::SetResult);
+  connect(this, &SegmentationWorker::Failed, resultSetter, &SegmentationResultHandler::SegmentationProcessFailed);
 
   try
   {

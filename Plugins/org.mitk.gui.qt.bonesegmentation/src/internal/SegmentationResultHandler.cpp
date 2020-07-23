@@ -9,18 +9,18 @@ Use of this source code is governed by a 3-clause BSD license that can be
 found in the LICENSE file.
 
 ============================================================================*/
-#include"SegmentationResultGUI.h"
+#include"SegmentationResultHandler.h"
 #include <mitkIOUtil.h>
 #include<QVector>
 #include <QMessageBox>
 
-SegmentationResultGUI::SegmentationResultGUI() {
+SegmentationResultHandler::SegmentationResultHandler() {
 }
 
-SegmentationResultGUI::~SegmentationResultGUI(){
+SegmentationResultHandler::~SegmentationResultHandler(){
 }
 
-void SegmentationResultGUI::SetResult(mitk::LabelSetImage::Pointer resultSegmentation,
+void SegmentationResultHandler::SetResult(mitk::LabelSetImage::Pointer resultSegmentation,
                                       mitk::BoneSegTool3D::Pointer boneSegTool)
 {
   try
@@ -37,7 +37,7 @@ void SegmentationResultGUI::SetResult(mitk::LabelSetImage::Pointer resultSegment
   }
 }
 
-void SegmentationResultGUI::SegmentationProcessFailed() 
+void SegmentationResultHandler::SegmentationProcessFailed()
 {
     QMessageBox::warning(nullptr,
                          "Error in segmentation",

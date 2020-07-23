@@ -29,7 +29,7 @@ found in the LICENSE file.
 
 #include <QThread>
 #include"SegmentationWorker.h"
-#include"SegmentationResultGUI.h"
+#include"SegmentationResultHandler.h"
 
 namespace Ui {
 class BoneSegTool3DGUI;
@@ -49,7 +49,7 @@ public:
   itkFactorylessNewMacro(Self) 
 
 signals: 
-    void Operate(mitk::BoneSegTool3D::Pointer tool, SegmentationResultGUI* guiSetter, QString networkPath);
+    void Operate(mitk::BoneSegTool3D::Pointer tool, SegmentationResultHandler* guiSetter, QString networkPath);
 
   protected slots:
     void OnDoSegmentation();
@@ -64,7 +64,6 @@ signals:
 
     QThread *m_SegmentationThread;
     SegmentationWorker *m_Worker;
-    SegmentationResultGUI *m_ResultSetter;
     
     QString m_TrainedNet;
     mitk::BoneSegTool3D::Pointer m_BoneSegTool;
