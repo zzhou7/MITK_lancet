@@ -18,14 +18,18 @@ void SegmentationWorker::DoWork(mitk::DeepLearningSegmentationTool* segTool,
                                 SegmentationResultHandler *resultSetter,
                                 QString networkPath)
 {
+  //connect signals/slots with the result setter which sets the result in the main thread afterwards
   connect(this, &SegmentationWorker::Finished, resultSetter, &SegmentationResultHandler::SetResult);
   connect(this, &SegmentationWorker::Failed, resultSetter, &SegmentationResultHandler::SegmentationProcessFailed);
 
   try
   {
+      //execute segmentation with segmentation tool
     mitk::LabelSetImage::Pointer result = segTool->DoSegmentation(networkPath.toStdString());
     MITK_INFO << "Back in Worker";
     emit Finished(result, segTool);
+    //disconnect from result setter. Otherwise, the result is set twice after second execution,
+    //three times after third execution,...
     disconnect(this, &SegmentationWorker::Finished, resultSetter, &SegmentationResultHandler::SetResult);
     disconnect(this, &SegmentationWorker::Failed, resultSetter, &SegmentationResultHandler::SegmentationProcessFailed);
   }
@@ -33,6 +37,8 @@ void SegmentationWorker::DoWork(mitk::DeepLearningSegmentationTool* segTool,
   {
     MITK_INFO << e.GetDescription();
     emit Failed();
+    // disconnect from result setter. Otherwise, the result is set twice after second execution, 
+    // three times after third execution,...
     disconnect(this, &SegmentationWorker::Finished, resultSetter, &SegmentationResultHandler::SetResult);
     disconnect(this, &SegmentationWorker::Failed, resultSetter, &SegmentationResultHandler::SegmentationProcessFailed);
   }

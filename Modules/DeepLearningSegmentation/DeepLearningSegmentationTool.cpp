@@ -105,7 +105,6 @@ mitk::LabelSetImage::Pointer mitk::DeepLearningSegmentationTool::DoSegmentation(
       try
       {
         std::string pathCommand = "network_path = '" + networkPath+"'";
-        //std::string pathCommand = "seg_load_network_path = '" + networkPath + "'";
         m_PythonService->Execute(pathCommand);
       }
       catch (const mitk::Exception &e)
@@ -120,7 +119,6 @@ mitk::LabelSetImage::Pointer mitk::DeepLearningSegmentationTool::DoSegmentation(
       try
       {
         m_PythonService->CopyToPythonAsSimpleItkImage(input, m_InputImageVarName);
-        //m_PythonService->CopyToPythonAsSimpleItkImage(input, "nrrd_image");
       }
       catch (const mitk::Exception &e)
       {

@@ -18,26 +18,33 @@ found in the LICENSE file.
 DeepLearningSegmentationGUI::DeepLearningSegmentationGUI()
   : m_Ui(new Ui::DeepLearningSegmentationGUI)
 {
+  //register Meta types which is necessary for the qt signals/slots with those classes as parameter
   qRegisterMetaType<mitk::DeepLearningSegmentationTool*>();
   qRegisterMetaType<mitk::LabelSetImage::Pointer>();
   qRegisterMetaType<QVector<int>>();
+
+  //set up the ui
   m_Ui->setupUi(this);
 
+  //connect the UI elements in signals/slots
   connect(m_Ui->buttonPerformImageProcessing, &QPushButton::clicked, this, &DeepLearningSegmentationGUI::OnDoSegmentation);
   connect(m_Ui->buttonLoadTrainedNetwork, &QPushButton::clicked, this, &DeepLearningSegmentationGUI::DoLoadTrainedNet);
   m_Ui->buttonPerformImageProcessing->setEnabled(false);
 
+  //create a new worker thread to execute some functions in a seperate thread
   m_SegmentationThread = new QThread;
   m_Worker = new SegmentationWorker;
   m_Worker->moveToThread(m_SegmentationThread);
-  // Signal/Slot connects
+
+  // Signal/Slot connects between worker thread and GUI 
   connect(this, &DeepLearningSegmentationGUI::Operate, m_Worker, &SegmentationWorker::DoWork);
   connect(this, &DeepLearningSegmentationGUI::Wait, m_Worker, &SegmentationWorker::WaitForSegmentationToFinish);
-  connect(this, SIGNAL(NewToolAssociated(mitk::Tool *)), this, SLOT(OnNewToolAssociated(mitk::Tool *)));
-  connect(this, SIGNAL(NewToolAssociated(mitk::Tool *)), this, SLOT(SetUpUI()));
   connect(m_Worker, &SegmentationWorker::Finished, this, &DeepLearningSegmentationGUI::DoSegmentationProcessFinished);
   connect(m_Worker, &SegmentationWorker::Failed, this, &DeepLearningSegmentationGUI::DoSegmentationProcessFinished);
   connect(m_Worker, &SegmentationWorker::PreviousSegmentationFinished, this, &DeepLearningSegmentationGUI::DoSegmentationProcessFinished);
+
+  connect(this, SIGNAL(NewToolAssociated(mitk::Tool *)), this, SLOT(OnNewToolAssociated(mitk::Tool *)));
+  connect(this, SIGNAL(NewToolAssociated(mitk::Tool *)), this, SLOT(SetUpUI()));
 }
 
 DeepLearningSegmentationGUI::~DeepLearningSegmentationGUI() {
@@ -56,12 +63,15 @@ void DeepLearningSegmentationGUI::SetUpUI()
 
 void DeepLearningSegmentationGUI::DoLoadTrainedNet()
 {
+  //Open a file dialog to select a trained network
   QString tempPath = QString::fromStdString(mitk::IOUtil::GetTempPathA());
   QString pretrainedNetResourcesPath =
     QFileDialog::getOpenFileName(nullptr, tr("Open File"), tempPath, tr("Images (*.pth.tar)"));
 
+  //set the trained network
   m_TrainedNet = pretrainedNetResourcesPath;
 
+  //enable segmentation 
   if (m_TrainedNet != "")
   {
     m_Ui->labelWarning->setVisible(false);
@@ -72,12 +82,15 @@ void DeepLearningSegmentationGUI::DoLoadTrainedNet()
 void DeepLearningSegmentationGUI::OnDoSegmentation()
 {
     MITK_INFO << "[Start] Segmentation";
+    //adapt gui to show that segmentation is running
     this->SegmentationRunning();
+
     SegmentationResultHandler *resultSetter = new SegmentationResultHandler;
     if (!m_SegmentationThread->isRunning())
     {
       m_SegmentationThread->start();
     }
+    //start segmentation in worker thread
     emit Operate(m_SegTool, resultSetter, m_TrainedNet);
 }
 

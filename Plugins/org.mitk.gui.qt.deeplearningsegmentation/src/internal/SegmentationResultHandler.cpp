@@ -23,9 +23,11 @@ void SegmentationResultHandler::SetResult(mitk::LabelSetImage::Pointer resultSeg
 {
   try
   {
+    //create new data node with the segmentation output as data
     mitk::DataNode::Pointer outputNode = mitk::DataNode::New();
     outputNode->SetName(segTool->GetName());
     outputNode->SetData(resultSegmentation);
+    //add data node to data storage and update GUI
     segTool->GetDataStorage()->Add(outputNode, segTool->GetReferenceData());
     mitk::RenderingManager::GetInstance()->RequestUpdateAll();
   }
