@@ -10,8 +10,6 @@ found in the LICENSE file.
 
 ============================================================================*/
 #include"SegmentationResultHandler.h"
-#include <mitkIOUtil.h>
-#include<QVector>
 #include <QMessageBox>
 
 SegmentationResultHandler::SegmentationResultHandler() {

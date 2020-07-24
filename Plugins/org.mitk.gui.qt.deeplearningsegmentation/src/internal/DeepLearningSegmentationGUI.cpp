@@ -10,19 +10,10 @@ found in the LICENSE file.
 
 ============================================================================*/
 
-
-// Blueberry
-#include <berryISelectionService.h>
-#include <berryIWorkbenchWindow.h>
-
-// Qmitk
 #include "DeepLearningSegmentationGUI.h"
-
-// Qt
 #include <QFileDialog>
-// mitk image
-#include <mitkImage.h>
 #include <mitkIOUtil.h>
+#include"SegmentationResultHandler.h"
 
 DeepLearningSegmentationGUI::DeepLearningSegmentationGUI()
   : m_Ui(new Ui::DeepLearningSegmentationGUI)

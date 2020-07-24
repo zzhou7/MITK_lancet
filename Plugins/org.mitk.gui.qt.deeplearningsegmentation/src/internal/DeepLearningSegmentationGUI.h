@@ -15,21 +15,11 @@ found in the LICENSE file.
 #define DeepLearningSegmentationGUI_h
 
 #include <org_mitk_gui_qt_deeplearningsegmentation_Export.h>
-
-
-#include <berryISelectionListener.h>
-
-#include <QmitkAbstractView.h>
-
 #include "ui_DeepLearningSegmentationGUI.h"
-
 #include <QmitkToolGUI.h>
-
 #include "DeepLearningSegmentationTool.h"
-
 #include <QThread>
 #include"SegmentationWorker.h"
-#include"SegmentationResultHandler.h"
 
 namespace Ui {
 class DeepLearningSegmentationGUI;

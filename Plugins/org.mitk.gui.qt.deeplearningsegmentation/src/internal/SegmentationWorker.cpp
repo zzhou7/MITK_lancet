@@ -10,8 +10,6 @@ found in the LICENSE file.
 
 ============================================================================*/
 #include"SegmentationWorker.h"
-#include <mitkIOUtil.h>
-#include<QVector>
 
 SegmentationWorker::SegmentationWorker() 
 {
