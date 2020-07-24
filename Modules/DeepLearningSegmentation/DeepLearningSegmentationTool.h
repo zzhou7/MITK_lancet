@@ -14,14 +14,7 @@ found in the LICENSE file.
 #define DeepLearningSegmentationTool_h
 
 #include <mitkAutoSegmentationTool.h>
-#include <mitkDataNode.h>
-#include <mitkPointSet.h>
-#include <mitkSinglePointDataInteractor.h>
-
-#include <itkImage.h>
-
 #include <MitkDeepLearningSegmentationExports.h>
-#include <map>
 
 namespace us {
 class ModuleResource;
@@ -50,6 +43,7 @@ namespace mitk
 
     mitk::LabelSetImage::Pointer DoSegmentation(std::string networkPath);
     mitk::Image::Pointer GetInputImage();
+    bool IsSegmentationRunning();
 
     mitk::DataStorage* GetDataStorage();
     mitk::DataNode *GetReferenceData();
@@ -61,6 +55,7 @@ namespace mitk
     std::string m_OutputImageVarName;
 
   private:
+    bool m_SegmentationRunning;
   };
 } // namespace mitk
 

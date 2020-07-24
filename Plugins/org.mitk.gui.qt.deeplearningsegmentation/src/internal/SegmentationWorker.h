@@ -29,9 +29,12 @@ public slots:
               SegmentationResultHandler *resultSetter,
               QString networkPath);
 
+  void WaitForSegmentationToFinish(mitk::DeepLearningSegmentationTool *segTool);
+
 signals:
   void Finished(mitk::LabelSetImage::Pointer result, mitk::DeepLearningSegmentationTool* segTool);
   void Failed();
+  void PreviousSegmentationFinished();
 };
 
 #endif

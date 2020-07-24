@@ -46,15 +46,18 @@ public:
   DeepLearningSegmentationGUI();
   ~DeepLearningSegmentationGUI() override;
 
+  void SegmentationRunning();
+
 signals: 
     void Operate(mitk::DeepLearningSegmentationTool* tool, SegmentationResultHandler* guiSetter, QString networkPath);
+  void Wait(mitk::DeepLearningSegmentationTool *tool);
 
   protected slots:
+    void SetUpUI();
     void OnDoSegmentation();
     void DoLoadTrainedNet();
     virtual void OnNewToolAssociated(mitk::Tool *) = 0;
-    //void DoSegmentationProcessFinished(mitk::LabelSetImage::Pointer result);
-    //void DoSegmentationProcessFailed();
+    void DoSegmentationProcessFinished();
 
   protected:
     mitk::DeepLearningSegmentationTool* m_SegTool;

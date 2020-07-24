@@ -11,18 +11,10 @@ found in the LICENSE file.
 ============================================================================*/
 
 #include "DeepLearningSegmentationTool.h"
-#include <mitkImageAccessByItk.h>
-#include <mitkImageCast.h>
-#include <mitkProgressBar.h>
 #include <mitkToolManager.h>
-#include <mitkColorSequenceRainbow.h>
 #include <usGetModuleContext.h>
-#include <usModuleResource.h>
 #include <mitkStandardFileLocations.h>
-
 #include <mitkIPythonService.h>
-
-
 
 mitk::DeepLearningSegmentationTool::DeepLearningSegmentationTool(std::string pythonFolder,
                                                                  std::string inputImageVarName,
@@ -33,6 +25,8 @@ mitk::DeepLearningSegmentationTool::DeepLearningSegmentationTool(std::string pyt
   m_InputImageVarName = inputImageVarName;
   m_PythonFileName = pythonFileName;
   m_OutputImageVarName = outputImageVarName;
+
+  m_SegmentationRunning = false;
 }
 
 mitk::DeepLearningSegmentationTool::~DeepLearningSegmentationTool() {
@@ -70,6 +64,7 @@ void mitk::DeepLearningSegmentationTool::Deactivated()
 
 mitk::LabelSetImage::Pointer mitk::DeepLearningSegmentationTool::DoSegmentation(std::string networkPath)
 {
+  m_SegmentationRunning = true;
   //get the input Image
   mitk::Image::Pointer input;
   try
@@ -103,6 +98,7 @@ mitk::LabelSetImage::Pointer mitk::DeepLearningSegmentationTool::DoSegmentation(
       {
         MITK_ERROR << e.GetDescription();
         mitkThrow() << "Error in setting the path to the Python code which should be executed";
+        m_SegmentationRunning = false;
         return nullptr;
       }
    // set the path to the trained network
@@ -116,6 +112,7 @@ mitk::LabelSetImage::Pointer mitk::DeepLearningSegmentationTool::DoSegmentation(
       {
         MITK_ERROR << e.GetDescription();
         mitkThrow() << "Error in setting the network path";
+        m_SegmentationRunning = false;
         return nullptr;
       }
 
@@ -129,6 +126,7 @@ mitk::LabelSetImage::Pointer mitk::DeepLearningSegmentationTool::DoSegmentation(
       {
         MITK_ERROR << e.GetDescription();
         mitkThrow() << "Error setting the input image";
+        m_SegmentationRunning = false;
         return nullptr;
       }
 
@@ -143,6 +141,7 @@ mitk::LabelSetImage::Pointer mitk::DeepLearningSegmentationTool::DoSegmentation(
       {
         MITK_ERROR << e.GetDescription();
         mitkThrow() << "Error in executing python code";
+        m_SegmentationRunning = false;
         return nullptr;
       }
 
@@ -153,12 +152,14 @@ mitk::LabelSetImage::Pointer mitk::DeepLearningSegmentationTool::DoSegmentation(
         mitk::LabelSetImage::Pointer resultImage = mitk::LabelSetImage::New();
         resultImage->InitializeByLabeledImage(outputImage);
         resultImage->SetGeometry(input->GetGeometry());
+        m_SegmentationRunning = false;
         return resultImage;
       }
       catch (const mitk::Exception &e)
       {
         MITK_ERROR << e.GetDescription();
         mitkThrow() << "Error in getting the result";
+        m_SegmentationRunning = false;
         return nullptr;
       }
   }
@@ -166,6 +167,7 @@ mitk::LabelSetImage::Pointer mitk::DeepLearningSegmentationTool::DoSegmentation(
   {
     mitkThrow() << "No service reference found";
   }
+  m_SegmentationRunning = false;
   return nullptr;
 }
 
@@ -195,4 +197,9 @@ mitk::Image::Pointer mitk::DeepLearningSegmentationTool::GetInputImage()
     mitkThrow();
   }
   return input;
+}
+
+bool mitk::DeepLearningSegmentationTool::IsSegmentationRunning() 
+{
+  return m_SegmentationRunning;
 }
