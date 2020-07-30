@@ -249,7 +249,7 @@ int mitk::QtPythonService::GetNumberOfObserver()
   return m_Observer.size();
 }
 
-bool mitk::QtPythonService::CopyToPythonAsSimpleItkImage(mitk::Image *image, const std::string &stdvarName)
+bool mitk::QtPythonService::CopyToPythonAsSimpleItkImage(mitk::Image::Pointer image, const std::string &stdvarName)
 {
   QString varName = QString::fromStdString( stdvarName );
   QString command;

@@ -108,7 +108,7 @@ namespace mitk
         /// copies an mitk image as itk image into the python interpreter process
         /// the image will be available as "varName" in python if everythin worked
         /// \return true if image was copied, else false
-        virtual bool CopyToPythonAsSimpleItkImage( mitk::Image* image, const std::string& varName ) = 0;
+        virtual bool CopyToPythonAsSimpleItkImage( mitk::Image::Pointer image, const std::string& varName ) = 0;
         ///
         /// copies an itk image from the python process that is named "varName"
         /// \return the image or 0 if copying was not possible

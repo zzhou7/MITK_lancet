@@ -514,8 +514,27 @@ public:
      {
        mitk::IPythonService *m_PythonService =
          dynamic_cast<mitk::IPythonService *>(context->GetService<mitk::IPythonService>(m_PythonServiceRefs.front()));
-       mitk::Image::Pointer img = mitk::IOUtil::Load<mitk::Image>(GetTestDataFilePath("Pic3D.nrrd"));
-       m_PythonService->CopyToPythonAsSimpleItkImage(img, "input");
+       mitk::Image::Pointer image_in = mitk::IOUtil::Load<mitk::Image>(GetTestDataFilePath("Pic3D.nrrd"));
+       mitk::Image::Pointer image_out;
+       try
+       {
+         m_PythonService->CopyToPythonAsSimpleItkImage(image_in, "image");
+       }
+       catch (const mitk::Exception &e)
+       {
+         MITK_ERROR << e.GetDescription();
+         CPPUNIT_FAIL("Error in copying Image to Python");
+       }
+       try
+       {
+         image_out = m_PythonService->CopySimpleItkImageFromPython("image");
+       }
+       catch (const mitk::Exception &e)
+       {
+         MITK_ERROR << e.GetDescription();
+         CPPUNIT_FAIL("Error in copying Image to Python");
+       }
+       MITK_INFO << "Equal: " <<mitk::Equal(*image_in, *image_out, mitk::eps, false);
      }
    }
 
@@ -529,11 +548,11 @@ public:
      if (!m_PythonServiceRefs.empty())
      {
        mitk::IPythonService *m_PythonService =
-         dynamic_cast<mitk::IPythonService *>(context->GetService<mitk::IPythonService>(m_PythonServiceRefs.front()));
+       dynamic_cast<mitk::IPythonService *>(context->GetService<mitk::IPythonService>(m_PythonServiceRefs.front()));
        std::string imgPath =  GetTestDataFilePath("Pic3D.nrrd");
-       std::string pythonCommand = "image_nrrd = sitk.ReadImage('" + imgPath + "')";
+       std::string pythonCommand = "image = sitk.ReadImage('" + imgPath + "')";
        m_PythonService->Execute(pythonCommand);
-       mitk::Image::Pointer img = m_PythonService->CopySimpleItkImageFromPython("image_nrrd");
+       mitk::Image::Pointer img = m_PythonService->CopySimpleItkImageFromPython("image");
      }
    }
 };

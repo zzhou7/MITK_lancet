@@ -75,7 +75,7 @@ namespace mitk
       bool IsSimpleItkPythonWrappingAvailable() override;
       ///
       /// \see IPythonService::CopyToPythonAsItkImage()
-      bool CopyToPythonAsSimpleItkImage( mitk::Image* image, const std::string& varName ) override;
+      bool CopyToPythonAsSimpleItkImage( mitk::Image::Pointer image, const std::string& varName ) override;
       ///
       /// \see IPythonService::CopyItkImageFromPython()
       mitk::Image::Pointer CopySimpleItkImageFromPython( const std::string& varName ) override;

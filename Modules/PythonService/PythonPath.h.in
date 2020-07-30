@@ -1,7 +1,9 @@
 #ifdef _DEBUG
 #define PYTHON_PATH_BUILD_TYPE "/Debug"
+#define SWIG_MITK_WRAPPING "@MITK_BINARY_DIR@/lib/Debug"
 #else
 #define PYTHON_PATH_BUILD_TYPE "/Release"
+#define SWIG_MITK_WRAPPING "@MITK_BINARY_DIR@/lib/Release"
 #endif
 
 #define PYTHON_LIBRARY "@PYTHON_LIBRARY@"
