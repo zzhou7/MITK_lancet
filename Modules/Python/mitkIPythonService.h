@@ -113,7 +113,15 @@ namespace mitk
         /// copies an itk image from the python process that is named "varName"
         /// \return the image or 0 if copying was not possible
         virtual mitk::Image::Pointer CopySimpleItkImageFromPython( const std::string& varName ) = 0;
-
+        ///
+        /// copies an mitk image into the python interpreter process
+        /// the image will be available as "varName" in python if everythin worked
+        /// \return true if image was copied, else false
+        virtual bool CopyMITKImageToPython(mitk::Image::Pointer &image, const std::string &varName) = 0;
+        ///
+        /// copies an mitk image from the python process that is named "varName"
+        /// \return the image or 0 if copying was not possible
+        virtual mitk::Image::Pointer CopyMITKImageFromPython(const std::string &varName) = 0;
         ///
         /// \return true, if OpenCv wrapping is available, false otherwise
         virtual bool IsOpenCvPythonWrappingAvailable() = 0;
@@ -149,7 +157,6 @@ namespace mitk
         virtual void AddAbsoluteSearchDirs(std::vector<std::string> dirs) = 0;
 
         protected:
-
     };
 }
 

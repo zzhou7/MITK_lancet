@@ -394,6 +394,7 @@ bool mitk::PythonService::CopyToPythonAsSimpleItkImage(mitk::Image::Pointer imag
   {
     mitkThrow() << "Something went wrong converting the MITK image to a SimpleITK image";
   }
+  m_ThreadState = PyEval_SaveThread();
   return true;
 }
 
@@ -427,6 +428,78 @@ mitk::Image::Pointer mitk::PythonService::CopySimpleItkImageFromPython(const std
   }
 
   mitkImage = *(reinterpret_cast<mitk::Image::Pointer *>(voidImage));
+
+  m_ThreadState = PyEval_SaveThread();
+  return mitkImage;
+}
+
+bool mitk::PythonService::CopyMITKImageToPython(mitk::Image::Pointer &image, const std::string &stdvarName)
+{
+  std::string transferToPython = "import pyMITK\n"
+                                 + stdvarName +" = None\n"
+                                 "\n"
+                                 "def setup(image_from_cxx):\n"
+                                 "    print ('setup called with', image_from_cxx)\n"
+                                 "    global "+stdvarName+"\n"
+                                 "    "+stdvarName+" = image_from_cxx\n";
+
+  this->Execute(transferToPython);
+
+  mitk::Image::Pointer *img = &image;
+  PyGILState_STATE gState = PyGILState_Ensure();
+  PyObject *main = PyImport_ImportModule("__main__");
+  if (main == NULL)
+  {
+    mitkThrow() << "Something went wrong getting the main module";
+  }
+
+  swig_type_info *pTypeInfo = nullptr;
+  pTypeInfo = SWIG_TypeQuery("_p_itk__SmartPointerT_mitk__Image_t");
+  int owned = 0;
+  PyObject *pInstance = SWIG_NewPointerObj(reinterpret_cast<void *>(img), pTypeInfo, owned);
+  if (pInstance == NULL)
+  {
+    mitkThrow() << "Something went wrong creating the Python instance of the image";
+  }
+
+  PyObject *setup = PyObject_GetAttrString(main, "setup");
+  PyObject *result = PyObject_CallFunctionObjArgs(setup, pInstance, NULL);
+  if (result == NULL)
+  {
+    mitkThrow() << "Something went wrong setting the MITK image in Python";
+  }
+
+  m_PythonMITKImages.push_back(image);
+  m_ThreadState = PyEval_SaveThread();
+  return true;
+}
+
+mitk::Image::Pointer mitk::PythonService::CopyMITKImageFromPython(const std::string &stdvarName)
+{
+  mitk::Image::Pointer mitkImage;
+
+  PyGILState_STATE gState = PyGILState_Ensure();
+
+  PyObject *main = PyImport_AddModule("__main__");
+  PyObject *globals = PyModule_GetDict(main);
+  PyObject *pyImage = PyDict_GetItemString(globals, stdvarName.c_str());
+  if (pyImage==NULL)
+  {
+    mitkThrow() << "Could not get image from Python";
+  }
+
+  int res = 0;
+  void *voidImage;
+  swig_type_info *pTypeInfo = nullptr;
+  pTypeInfo = SWIG_TypeQuery("_p_itk__SmartPointerT_mitk__Image_t");
+  res = SWIG_ConvertPtr(pyImage, &voidImage, pTypeInfo, 0);
+  if (!SWIG_IsOK(res))
+  {
+    mitkThrow() << "Could not cast image to C++ type";
+  }
+
+  mitkImage = *(reinterpret_cast<mitk::Image::Pointer *>(voidImage));
+
   m_ThreadState = PyEval_SaveThread();
   return mitkImage;
 }

@@ -80,6 +80,12 @@ namespace mitk
       /// \see IPythonService::CopyItkImageFromPython()
       mitk::Image::Pointer CopySimpleItkImageFromPython( const std::string& varName ) override;
       ///
+      /// \see IPythonService::CopyMITKImageToPython()
+      bool CopyMITKImageToPython(mitk::Image::Pointer &image, const std::string &varName) override;
+      ///
+      /// \see IPythonService::CopyMITKImageFromPython()
+      mitk::Image::Pointer CopyMITKImageFromPython(const std::string &varName) override;
+      ///
       /// \see IPythonService::IsOpenCvPythonWrappingAvailable()
       bool IsOpenCvPythonWrappingAvailable() override;
       ///
@@ -110,6 +116,7 @@ namespace mitk
   private:
       //ctkAbstractPythonManager m_PythonManager;
       std::vector<PythonCommandObserver*> m_Observer;
+      std::vector<mitk::Image::Pointer> m_PythonMITKImages;
       PyThreadState *m_ThreadState;
       PyObject *m_GlobalDictionary;
       PyObject *m_LocalDictionary;

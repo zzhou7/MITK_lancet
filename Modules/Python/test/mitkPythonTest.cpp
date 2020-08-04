@@ -41,8 +41,8 @@ class mitkPythonTestSuite : public mitk::TestFixture
   MITK_TEST(TestAddObserver);
   MITK_TEST(TestRemoveObserver);
   MITK_TEST(TestNotifyObserver);
-  MITK_TEST(TestCopyImageToPython);
-  MITK_TEST(TestCopyImageFromPython);
+  MITK_TEST(TestCopyImageSimpleITK);
+  MITK_TEST(TestCopyImageMITK);
   CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -504,7 +504,7 @@ public:
    }
 
 
-    void TestCopyImageToPython()
+   void TestCopyImageSimpleITK()
    {
      us::ModuleContext *context = us::GetModuleContext();
      std::string filter = "(Name=PythonService)";
@@ -534,12 +534,11 @@ public:
          MITK_ERROR << e.GetDescription();
          CPPUNIT_FAIL("Error in copying Image to Python");
        }
-       MITK_INFO << "Equal: " <<mitk::Equal(*image_in, *image_out, mitk::eps, false);
+       MITK_INFO << "Equal: " <<mitk::Equal(*image_in, *image_out, mitk::eps, true);
      }
    }
 
-
-   void TestCopyImageFromPython()
+   void TestCopyImageMITK() 
    {
      us::ModuleContext *context = us::GetModuleContext();
      std::string filter = "(Name=PythonService)";
@@ -548,11 +547,33 @@ public:
      if (!m_PythonServiceRefs.empty())
      {
        mitk::IPythonService *m_PythonService =
-       dynamic_cast<mitk::IPythonService *>(context->GetService<mitk::IPythonService>(m_PythonServiceRefs.front()));
-       std::string imgPath =  GetTestDataFilePath("Pic3D.nrrd");
-       std::string pythonCommand = "image = sitk.ReadImage('" + imgPath + "')";
-       m_PythonService->Execute(pythonCommand);
-       mitk::Image::Pointer img = m_PythonService->CopySimpleItkImageFromPython("image");
+         dynamic_cast<mitk::IPythonService *>(context->GetService<mitk::IPythonService>(m_PythonServiceRefs.front()));
+       mitk::Image::Pointer image_in = mitk::IOUtil::Load<mitk::Image>(GetTestDataFilePath("Pic3D.nrrd"));
+       mitk::Image::Pointer image_out;
+       try
+       {
+         m_PythonService->CopyMITKImageToPython(image_in, "mitkimage");
+       }
+       catch (const mitk::Exception &e)
+       {
+         MITK_ERROR << e.GetDescription();
+         CPPUNIT_FAIL("Error in copying Image to Python");
+       }
+       try
+       {
+         image_out = m_PythonService->CopyMITKImageFromPython(/*image_in,*/"mitkimage");
+       }
+       catch (const mitk::Exception &e)
+       {
+         MITK_ERROR << e.GetDescription();
+         CPPUNIT_FAIL("Error in copying Image to Python");
+       }
+       if (image_out ==nullptr)
+       {
+         MITK_INFO << "ups";
+       }
+       CPPUNIT_ASSERT_MESSAGE("copy an image to python and back should result in equal image",
+                              mitk::Equal(*image_in, *image_out, mitk::eps, true));
      }
    }
 };

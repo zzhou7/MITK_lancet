@@ -650,6 +650,16 @@ mitk::Image::Pointer mitk::QtPythonService::CopySimpleItkImageFromPython(const s
   return mitkImage;
 }
 
+bool mitk::QtPythonService::CopyMITKImageToPython(mitk::Image::Pointer &image, const std::string &varName) 
+{
+  mitkThrow() << "This function is not implemented";
+}
+
+mitk::Image::Pointer mitk::QtPythonService::CopyMITKImageFromPython(const std::string &varName)
+{
+  mitkThrow() << "This function is not implemented";
+}
+
 bool mitk::QtPythonService::CopyToPythonAsCvImage( mitk::Image* image, const std::string& stdvarName )
 {
   QString varName = QString::fromStdString( stdvarName );
