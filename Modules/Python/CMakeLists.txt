@@ -9,5 +9,10 @@ if(MITK_USE_Python3)
     PACKAGE_DEPENDS PUBLIC Python3|Python
     )
 
-  add_subdirectory(autoload/PythonService)
+  if(BUILD_TESTING)
+    add_subdirectory(test)
+  endif()
 endif()
+
+
+

@@ -1,0 +1,17 @@
+#gif-wrap {
+    width: 300;
+    height: 300;
+    background-color: #000;
+	background-size: contain;
+	background-repeat: no-repeat;
+	background-position: center;
+}
+
+th > span.label-id {
+    color: #999;
+    /* white-space: nowrap; */
+}
+
+.th-wide {
+    min-width: 150;
+}

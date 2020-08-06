@@ -54,6 +54,8 @@ set(MITK_MODULES
   Remeshing
   Python
   QtPython
+  PythonService
+  QtPythonService
   Persistence
   OpenIGTLinkUI
   IGTUI
@@ -78,6 +80,7 @@ set(MITK_MODULES
   REST
   RESTService
   DICOMweb
+  DeepLearningSegmentation
 )
 
 if(MITK_ENABLE_PIC_READER)
