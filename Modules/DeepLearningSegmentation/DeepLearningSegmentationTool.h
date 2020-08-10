@@ -63,7 +63,8 @@ namespace mitk
                                  std::string inputImageVarName,
                                  std::string pythonFileName,
                                  std::string outputImageVarName,
-                                 ImageType imageType);
+                                 ImageType imageType,
+                                 bool multilabel = false);
     ~DeepLearningSegmentationTool() override;
 
     void Activated() override;
@@ -77,6 +78,15 @@ namespace mitk
      * @return the segmentation result as label set image
      */
     mitk::LabelSetImage::Pointer DoSegmentation(std::string networkPath);
+    /**
+     * @brief Executes the multilabel segmentation by running python code
+     *
+     * @throw mitk::Exception if something went wrong during a python call, python service is not found, or no input
+     * image is found
+     * @param networkPath the path to the trained network for segmentation
+     * @return the segmentation result as vector of label set image
+     */
+    std::vector<mitk::LabelSetImage::Pointer> DoMultilabelSegmentation(std::string networkPath);
     /**
      * @brief Get the input image for the semgentation which is currently selected in the Segmentation Plugin
      *
@@ -101,6 +111,8 @@ namespace mitk
      */
     mitk::DataNode *GetReferenceData();
 
+    bool IsMultilabelSegmentation();
+
   protected:
     std::string m_PythonProjectPath;
     std::string m_InputImageVarName;
@@ -110,6 +122,7 @@ namespace mitk
   private:
     bool m_SegmentationRunning;
     ImageType m_ImageType;
+    bool m_MultilabelSegmentation;
   };
 } // namespace mitk
 

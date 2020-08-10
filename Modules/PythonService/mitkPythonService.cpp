@@ -474,6 +474,25 @@ bool mitk::PythonService::CopyMITKImageToPython(mitk::Image::Pointer &image, con
   return true;
 }
 
+mitk::Image::Pointer GetImageFromPyObject(PyObject *pyImage) 
+{
+  mitk::Image::Pointer mitkImage;
+
+  int res = 0;
+  void *voidImage;
+  swig_type_info *pTypeInfo = nullptr;
+  pTypeInfo = SWIG_TypeQuery("_p_itk__SmartPointerT_mitk__Image_t");
+  res = SWIG_ConvertPtr(pyImage, &voidImage, pTypeInfo, 0);
+  if (!SWIG_IsOK(res))
+  {
+    mitkThrow() << "Could not cast image to C++ type";
+  }
+
+  mitkImage = *(reinterpret_cast<mitk::Image::Pointer *>(voidImage));
+
+  return mitkImage;
+}
+
 mitk::Image::Pointer mitk::PythonService::CopyMITKImageFromPython(const std::string &stdvarName)
 {
   mitk::Image::Pointer mitkImage;
@@ -488,20 +507,47 @@ mitk::Image::Pointer mitk::PythonService::CopyMITKImageFromPython(const std::str
     mitkThrow() << "Could not get image from Python";
   }
 
-  int res = 0;
-  void *voidImage;
-  swig_type_info *pTypeInfo = nullptr;
-  pTypeInfo = SWIG_TypeQuery("_p_itk__SmartPointerT_mitk__Image_t");
-  res = SWIG_ConvertPtr(pyImage, &voidImage, pTypeInfo, 0);
-  if (!SWIG_IsOK(res))
-  {
-    mitkThrow() << "Could not cast image to C++ type";
-  }
+  //int res = 0;
+  //void *voidImage;
+  //swig_type_info *pTypeInfo = nullptr;
+  //pTypeInfo = SWIG_TypeQuery("_p_itk__SmartPointerT_mitk__Image_t");
+  //res = SWIG_ConvertPtr(pyImage, &voidImage, pTypeInfo, 0);
+  //if (!SWIG_IsOK(res))
+  //{
+  //  mitkThrow() << "Could not cast image to C++ type";
+  //}
 
-  mitkImage = *(reinterpret_cast<mitk::Image::Pointer *>(voidImage));
+  //mitkImage = *(reinterpret_cast<mitk::Image::Pointer *>(voidImage));
+
+  mitkImage = GetImageFromPyObject(pyImage);
 
   m_ThreadState = PyEval_SaveThread();
   return mitkImage;
+}
+
+std::vector<mitk::Image::Pointer> mitk::PythonService::CopyListOfMITKImagesFromPython(const std::string &listVarName) 
+{
+  std::vector<mitk::Image::Pointer> mitkImages;
+
+  PyGILState_STATE gState = PyGILState_Ensure();
+
+  PyObject *main = PyImport_AddModule("__main__");
+  PyObject *globals = PyModule_GetDict(main);
+  PyObject *pyImageList = PyDict_GetItemString(globals, listVarName.c_str());
+  if (pyImageList == NULL)
+  {
+    mitkThrow() << "Could not get image list from Python";
+  }
+
+  for (int i = 0; i < PyList_GET_SIZE(pyImageList);i++)
+  {
+    PyObject *pyImage = PyList_GetItem(pyImageList, i);
+    mitk::Image::Pointer img = GetImageFromPyObject(pyImage);
+    mitkImages.push_back(img);
+  }
+
+  m_ThreadState = PyEval_SaveThread();
+  return mitkImages;
 }
 
 bool mitk::PythonService::CopyToPythonAsCvImage( mitk::Image* image, const std::string& stdvarName )

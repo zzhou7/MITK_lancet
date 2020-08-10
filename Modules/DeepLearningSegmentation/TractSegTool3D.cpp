@@ -20,7 +20,7 @@ namespace mitk
 }
 
 mitk::TractSegTool3D::TractSegTool3D()
-    : DeepLearningSegmentationTool("tract_seg", "in_image", "tractseg.py","segmentation", DeepLearningSegmentationTool::MITKImage)
+    : DeepLearningSegmentationTool("tract_seg", "in_image", "tractseg.py","segList", DeepLearningSegmentationTool::MITKImage, true)
 {
 }
 

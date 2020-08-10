@@ -20,17 +20,29 @@ void SegmentationWorker::DoWork(mitk::DeepLearningSegmentationTool* segTool,
 {
   //connect signals/slots with the result setter which sets the result in the main thread afterwards
   connect(this, &SegmentationWorker::Finished, resultSetter, &SegmentationResultHandler::SetResult);
+  connect(this, &SegmentationWorker::FinishedMultilabel, resultSetter, &SegmentationResultHandler::SetMultilabelResult);
   connect(this, &SegmentationWorker::Failed, resultSetter, &SegmentationResultHandler::SegmentationProcessFailed);
 
   try
   {
+    bool multilabel = segTool->IsMultilabelSegmentation();
       //execute segmentation with segmentation tool
-    mitk::LabelSetImage::Pointer result = segTool->DoSegmentation(networkPath.toStdString());
-    MITK_INFO << "Back in Worker";
-    emit Finished(result, segTool);
+    if (!multilabel)
+    {
+      mitk::LabelSetImage::Pointer result = segTool->DoSegmentation(networkPath.toStdString());
+      MITK_INFO << "Back in Worker";
+      emit Finished(result, segTool);
+    }
+    else
+    {
+      std::vector<mitk::LabelSetImage::Pointer> result = segTool->DoMultilabelSegmentation(networkPath.toStdString());
+      MITK_INFO << "Back in Worker";
+      emit FinishedMultilabel(result, segTool);
+    }
     //disconnect from result setter. Otherwise, the result is set twice after second execution,
     //three times after third execution,...
     disconnect(this, &SegmentationWorker::Finished, resultSetter, &SegmentationResultHandler::SetResult);
+    disconnect(this, &SegmentationWorker::FinishedMultilabel, resultSetter, &SegmentationResultHandler::SetMultilabelResult);
     disconnect(this, &SegmentationWorker::Failed, resultSetter, &SegmentationResultHandler::SegmentationProcessFailed);
   }
   catch (const mitk::Exception &e)
@@ -40,6 +52,7 @@ void SegmentationWorker::DoWork(mitk::DeepLearningSegmentationTool* segTool,
     // disconnect from result setter. Otherwise, the result is set twice after second execution, 
     // three times after third execution,...
     disconnect(this, &SegmentationWorker::Finished, resultSetter, &SegmentationResultHandler::SetResult);
+    disconnect(this, &SegmentationWorker::FinishedMultilabel, resultSetter, &SegmentationResultHandler::SetMultilabelResult);
     disconnect(this, &SegmentationWorker::Failed, resultSetter, &SegmentationResultHandler::SegmentationProcessFailed);
   }
 }

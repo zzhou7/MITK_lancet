@@ -20,14 +20,15 @@ mitk::DeepLearningSegmentationTool::DeepLearningSegmentationTool(std::string pyt
                                                                  std::string inputImageVarName,
                                                                  std::string pythonFileName,
                                                                  std::string outputImageVarName,
-                                                                 ImageType imageType)
+                                                                 ImageType imageType,
+                                                                 bool multilabel)
 {
   m_PythonProjectPath = "Modules/DeepLearningSegmentation/"+pythonFolder;
   m_InputImageVarName = inputImageVarName;
   m_PythonFileName = pythonFileName;
   m_OutputImageVarName = outputImageVarName;
   m_ImageType = imageType;
-
+  m_MultilabelSegmentation = multilabel;
   m_SegmentationRunning = false;
 }
 
@@ -195,6 +196,145 @@ mitk::LabelSetImage::Pointer mitk::DeepLearningSegmentationTool::DoSegmentation(
   return nullptr;
 }
 
+std::vector<mitk::LabelSetImage::Pointer> mitk::DeepLearningSegmentationTool::DoMultilabelSegmentation(std::string networkPath)
+{
+
+  std::vector<mitk::LabelSetImage::Pointer> result;
+  m_SegmentationRunning = true;
+  // get the input Image
+  mitk::Image::Pointer input;
+  try
+  {
+    input = GetInputImage();
+  }
+  catch (mitk::Exception &e)
+  {
+    MITK_ERROR << e.GetDescription();
+    mitkThrow();
+  }
+
+  // Get the python microservice
+  mitk::IPythonService::ForceLoadModule();
+  us::ModuleContext *context = us::GetModuleContext();
+  std::string filter = "(Name=PythonService)";
+  auto m_PythonServiceRefs = context->GetServiceReferences<mitk::IPythonService>(filter);
+
+  if (!m_PythonServiceRefs.empty())
+  {
+    mitk::IPythonService *m_PythonService =
+      dynamic_cast<mitk::IPythonService *>(context->GetService<mitk::IPythonService>(m_PythonServiceRefs.front()));
+    // set path to the Python code which should be executed
+    try
+    {
+      std::vector<std::string> pathVector;
+      pathVector.push_back(m_PythonProjectPath);
+      m_PythonService->AddRelativeSearchDirs(pathVector);
+    }
+    catch (const mitk::Exception &e)
+    {
+      MITK_ERROR << e.GetDescription();
+      mitkThrow() << "Error in setting the path to the Python code which should be executed";
+      m_SegmentationRunning = false;
+      return result;
+    }
+    // set the path to the trained network
+    try
+    {
+      std::string pathCommand = "network_path = '" + networkPath + "'";
+      m_PythonService->Execute(pathCommand);
+    }
+    catch (const mitk::Exception &e)
+    {
+      MITK_ERROR << e.GetDescription();
+      mitkThrow() << "Error in setting the network path";
+      m_SegmentationRunning = false;
+      return result;
+    }
+
+    // set the input image
+    try
+    {
+      if (m_ImageType == DeepLearningSegmentationTool::SimpleITKImage)
+      {
+        m_PythonService->CopyToPythonAsSimpleItkImage(input, m_InputImageVarName);
+      }
+      else if (m_ImageType == DeepLearningSegmentationTool::MITKImage)
+      {
+        m_PythonService->CopyMITKImageToPython(input, m_InputImageVarName);
+      }
+      else
+      {
+        mitkThrow() << "Unknown image type";
+      }
+    }
+    catch (const mitk::Exception &e)
+    {
+      MITK_ERROR << e.GetDescription();
+      mitkThrow() << "Error setting the input image";
+      m_SegmentationRunning = false;
+      return result;
+    }
+
+    // execute Segmentation
+    try
+    {
+      std::string fileName =
+        mitk::StandardFileLocations::GetInstance()->FindFile(m_PythonFileName.c_str(), m_PythonProjectPath.c_str());
+      m_PythonService->ExecuteScript(fileName);
+    }
+    catch (const mitk::Exception &e)
+    {
+      MITK_ERROR << e.GetDescription();
+      mitkThrow() << "Error in executing python code";
+      m_SegmentationRunning = false;
+      return result;
+    }
+
+    // get result
+    try
+    {
+      std::vector<mitk::Image::Pointer> outputImages;
+      //if (m_ImageType == DeepLearningSegmentationTool::SimpleITKImage)
+      //{
+      //  outputImage = m_PythonService->CopySimpleItkImageFromPython(m_OutputImageVarName);
+      //}
+      if (m_ImageType == DeepLearningSegmentationTool::MITKImage)
+      {
+        outputImages = m_PythonService->CopyListOfMITKImagesFromPython(m_OutputImageVarName);
+      }
+      else
+      {
+        mitkThrow() << "Unknown image type";
+      }
+
+      for (mitk::Image::Pointer image : outputImages)
+      {
+        mitk::LabelSetImage::Pointer resultImage = mitk::LabelSetImage::New();
+        resultImage->InitializeByLabeledImage(image);
+        resultImage->SetGeometry(input->GetGeometry());
+        m_SegmentationRunning = false;
+        resultImage->SetGeometry(input->GetGeometry());
+        result.push_back(resultImage);
+      }
+      return result;
+    }
+    catch (const mitk::Exception &e)
+    {
+      MITK_ERROR << e.GetDescription();
+      mitkThrow() << "Error in getting the result";
+      m_SegmentationRunning = false;
+      return result;
+    }
+  }
+  else
+  {
+    mitkThrow() << "No service reference found";
+  }
+  m_SegmentationRunning = false;
+  return result;
+}
+
+
 mitk::DataStorage *mitk::DeepLearningSegmentationTool::GetDataStorage()
 {
   return m_ToolManager->GetDataStorage();
@@ -227,4 +367,9 @@ mitk::Image::Pointer mitk::DeepLearningSegmentationTool::GetInputImage()
 bool mitk::DeepLearningSegmentationTool::IsSegmentationRunning() 
 {
   return m_SegmentationRunning;
+}
+
+bool mitk::DeepLearningSegmentationTool::IsMultilabelSegmentation() 
+{
+  return m_MultilabelSegmentation;
 }

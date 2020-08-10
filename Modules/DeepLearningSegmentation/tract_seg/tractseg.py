@@ -11,7 +11,7 @@ try:
     data = pyMITK.GetArrayFromImage(in_image)
     data = np.nan_to_num(data)
 
-    print(data.shape)
+    print('In shape: '+str(data.shape))
 
     swapaxes = False
     data = np.swapaxes(data, 0, 3)
@@ -21,29 +21,26 @@ try:
 
     swapaxes = True
 
-    print(data.shape)
+    print('After swap: '+str(data.shape))
     print('Before segmentation')
     seg = run_tractseg(data=data, single_orientation=True, verbose=True, nr_cpus=1)
     print('After segmentation')
-#    bla = nib.Nifti1Image(seg, affine)
-#    nib.save(bla, '/home/neher/test.nii.gz')
-    #seg = np.swapaxes(seg, 0, 2)
 
-    data = np.swapaxes(data, 0, 3)
-    data = np.swapaxes(data, 0, 1)
-    data = np.swapaxes(data, 1, 2)
-    data = np.swapaxes(data, 0, 2)
+    seg = np.swapaxes(seg, 0, 3)
+    seg = np.swapaxes(seg, 0, 1)
+    seg = np.swapaxes(seg, 1, 2)
+    seg = np.swapaxes(seg, 0, 2)
 
-    seg = seg[:,:,:,0]
     print('Output shape: ' + str(seg.shape))
 
     print("max: "+str(np.amax(seg)))
-    segmentation = pyMITK.GetImageFromArray(seg.astype(np.uint8))
-    segmentation.SetGeometry(in_image.GetGeometry())
 
-    #segmentation.SetOrigin(in_image.GetOrigin())
-    #segmentation.SetSpacing(in_image.GetSpacing())
-    #segmentation.SetDirection(in_image.GetDirection())
+    segList = [None]*seg.shape[0]
+    for i in range(seg.shape[0]):
+        tempseg = seg[i,:,:,:]
+        segmentation = pyMITK.GetImageFromArray(tempseg.astype(np.uint8))
+        segmentation.SetGeometry(in_image.GetGeometry())
+        segList[i] = segmentation
 
 except Exception as e:
     error_string = str(e)

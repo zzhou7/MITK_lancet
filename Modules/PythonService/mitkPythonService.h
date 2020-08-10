@@ -86,6 +86,9 @@ namespace mitk
       /// \see IPythonService::CopyMITKImageFromPython()
       mitk::Image::Pointer CopyMITKImageFromPython(const std::string &varName) override;
       ///
+      /// \see IPythonService::CopyListOfMITKImagesFromPython()
+      std::vector<mitk::Image::Pointer> CopyListOfMITKImagesFromPython(const std::string &listVarName) override;
+      ///
       /// \see IPythonService::IsOpenCvPythonWrappingAvailable()
       bool IsOpenCvPythonWrappingAvailable() override;
       ///

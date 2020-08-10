@@ -18,6 +18,7 @@ found in the LICENSE file.
 
 Q_DECLARE_METATYPE(mitk::DeepLearningSegmentationTool*)
 Q_DECLARE_METATYPE(mitk::LabelSetImage::Pointer)
+Q_DECLARE_METATYPE(std::vector<mitk::LabelSetImage::Pointer>)
 
 /**
  * @class SegmentationWorker
@@ -55,6 +56,13 @@ signals:
    * @param segTool the Segmentation Tool for running the segmentation
    */
   void Finished(mitk::LabelSetImage::Pointer result, mitk::DeepLearningSegmentationTool* segTool);
+  /**
+   * @brief the signal emitted when a multilabel segmentation process finished successful
+   *
+   * @param result the resulting segmentation
+   * @param segTool the Segmentation Tool for running the segmentation
+   */
+  void FinishedMultilabel(std::vector<mitk::LabelSetImage::Pointer> result, mitk::DeepLearningSegmentationTool *segTool);
   /**
    * @brief the signal emitted when a segmentation process failed
    */

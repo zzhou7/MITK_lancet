@@ -21,6 +21,8 @@ DeepLearningSegmentationGUI::DeepLearningSegmentationGUI()
   //register Meta types which is necessary for the qt signals/slots with those classes as parameter
   qRegisterMetaType<mitk::DeepLearningSegmentationTool*>();
   qRegisterMetaType<mitk::LabelSetImage::Pointer>();
+  qRegisterMetaType<std::vector<mitk::LabelSetImage::Pointer>>();
+
   qRegisterMetaType<QVector<int>>();
 
   //set up the ui
