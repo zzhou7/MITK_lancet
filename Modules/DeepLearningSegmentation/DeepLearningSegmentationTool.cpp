@@ -19,12 +19,14 @@ found in the LICENSE file.
 mitk::DeepLearningSegmentationTool::DeepLearningSegmentationTool(std::string pythonFolder,
                                                                  std::string inputImageVarName,
                                                                  std::string pythonFileName,
-                                                                 std::string outputImageVarName)
+                                                                 std::string outputImageVarName,
+                                                                 ImageType imageType)
 {
   m_PythonProjectPath = "Modules/DeepLearningSegmentation/"+pythonFolder;
   m_InputImageVarName = inputImageVarName;
   m_PythonFileName = pythonFileName;
   m_OutputImageVarName = outputImageVarName;
+  m_ImageType = imageType;
 
   m_SegmentationRunning = false;
 }
@@ -32,20 +34,20 @@ mitk::DeepLearningSegmentationTool::DeepLearningSegmentationTool(std::string pyt
 mitk::DeepLearningSegmentationTool::~DeepLearningSegmentationTool() {
 }
 
-bool mitk::DeepLearningSegmentationTool::CanHandle(mitk::BaseData *referenceData) const
-{
-  if (referenceData == nullptr)
-    return false;
-
-  auto *image = dynamic_cast<mitk::Image *>(referenceData);
-  if (image == nullptr)
-    return false;
-
-  if (image->GetDimension() != 3)
-    return false;
-
-  return true;
-}
+//bool mitk::DeepLearningSegmentationTool::CanHandle(mitk::BaseData *referenceData) const
+//{
+//  if (referenceData == nullptr)
+//    return false;
+//
+//  auto *image = dynamic_cast<mitk::Image *>(referenceData);
+//  if (image == nullptr)
+//    return false;
+//
+//  if (image->GetDimension() != 3)
+//    return false;
+//
+//  return true;
+//}
 
 const char **mitk::DeepLearningSegmentationTool::GetXPM() const
 {
@@ -118,7 +120,18 @@ mitk::LabelSetImage::Pointer mitk::DeepLearningSegmentationTool::DoSegmentation(
       //set the input image
       try
       {
-        m_PythonService->CopyToPythonAsSimpleItkImage(input, m_InputImageVarName);
+        if (m_ImageType==DeepLearningSegmentationTool::SimpleITKImage)
+        {
+          m_PythonService->CopyToPythonAsSimpleItkImage(input, m_InputImageVarName);
+        }
+        else if (m_ImageType==DeepLearningSegmentationTool::MITKImage)
+        {
+          m_PythonService->CopyMITKImageToPython(input, m_InputImageVarName);
+        }
+        else
+        {
+          mitkThrow() << "Unknown image type";
+        }
       }
       catch (const mitk::Exception &e)
       {
@@ -146,11 +159,24 @@ mitk::LabelSetImage::Pointer mitk::DeepLearningSegmentationTool::DoSegmentation(
       // get result
       try
       {
-        mitk::Image::Pointer outputImage= m_PythonService->CopySimpleItkImageFromPython(m_OutputImageVarName);
+        mitk::Image::Pointer outputImage;
+        if (m_ImageType == DeepLearningSegmentationTool::SimpleITKImage)
+        {
+          outputImage = m_PythonService->CopySimpleItkImageFromPython(m_OutputImageVarName);
+        }
+        else if (m_ImageType == DeepLearningSegmentationTool::MITKImage)
+        {
+          outputImage = m_PythonService->CopyMITKImageFromPython(m_OutputImageVarName);
+        }
+        else
+        {
+          mitkThrow() << "Unknown image type";
+        }
         mitk::LabelSetImage::Pointer resultImage = mitk::LabelSetImage::New();
         resultImage->InitializeByLabeledImage(outputImage);
         resultImage->SetGeometry(input->GetGeometry());
         m_SegmentationRunning = false;
+        outputImage->SetGeometry(input->GetGeometry());
         return resultImage;
       }
       catch (const mitk::Exception &e)
@@ -188,14 +214,15 @@ mitk::Image::Pointer mitk::DeepLearningSegmentationTool::GetInputImage()
   {
     mitkThrow();
   }
-  unsigned int timestep = mitk::RenderingManager::GetInstance()->GetTimeNavigationController()->GetTime()->GetPos();
-  input = Get3DImage(input, timestep);
+  //unsigned int timestep = mitk::RenderingManager::GetInstance()->GetTimeNavigationController()->GetTime()->GetPos();
+  //mitk::Image::ConstPointer input = Get3DImage(input, timestep);
   if (input.IsNull())
   {
     mitkThrow();
   }
+
   return input;
-}
+  }
 
 bool mitk::DeepLearningSegmentationTool::IsSegmentationRunning() 
 {

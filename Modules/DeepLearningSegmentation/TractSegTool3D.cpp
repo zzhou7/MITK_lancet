@@ -10,32 +10,32 @@ found in the LICENSE file.
 
 ============================================================================*/
 
-#include "BoneSegTool3D.h"
+#include "TractSegTool3D.h"
 #include <usGetModuleContext.h>
 #include <usModuleResource.h>
 
 namespace mitk
 {
-  MITK_TOOL_MACRO(MITKDEEPLEARNINGSEGMENTATION_EXPORT, BoneSegTool3D, "Bone Segmentation tool");
+  MITK_TOOL_MACRO(MITKDEEPLEARNINGSEGMENTATION_EXPORT, TractSegTool3D, "TractSeg tool");
 }
 
-mitk::BoneSegTool3D::BoneSegTool3D() 
-    : DeepLearningSegmentationTool("bone_seg_ct_basic_unet", "sitk_image", "segment.py","output_image", DeepLearningSegmentationTool::SimpleITKImage)
+mitk::TractSegTool3D::TractSegTool3D()
+    : DeepLearningSegmentationTool("tract_seg", "in_image", "tractseg.py","segmentation", DeepLearningSegmentationTool::MITKImage)
 {
 }
 
-mitk::BoneSegTool3D::~BoneSegTool3D() {
+mitk::TractSegTool3D::~TractSegTool3D() {
 }
 
-us::ModuleResource mitk::BoneSegTool3D::GetIconResource() const {
+us::ModuleResource mitk::TractSegTool3D::GetIconResource() const {
   auto moduleContext = us::GetModuleContext();
   auto module = moduleContext->GetModule();
-  auto resource = module->GetResource("icon_bone.svg");
+  auto resource = module->GetResource("tract_seg.svg");
   return resource;
 }
 
-const char *mitk::BoneSegTool3D::GetName() const
+const char *mitk::TractSegTool3D::GetName() const
 {
-  return "Bone Segmentation";
+  return "Tract Segmentation";
 }
 

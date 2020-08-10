@@ -29,6 +29,11 @@ namespace mitk
   class MITKDEEPLEARNINGSEGMENTATION_EXPORT DeepLearningSegmentationTool : public mitk::AutoSegmentationTool
   {
   public:
+    enum ImageType
+    {
+      SimpleITKImage,
+      MITKImage
+    };
     /**
      * @brief Getter for the icon of the module which is displayed in the Segmentation Plugin. 
      *        This method has to be overwritten by every individual segmentation method to set the path to the correct icon resource.
@@ -36,7 +41,7 @@ namespace mitk
      */
     us::ModuleResource GetIconResource() const override = 0;
 
-    bool CanHandle(mitk::BaseData *referenceData) const override;
+    //bool CanHandle(mitk::BaseData *referenceData) const override;
 
      /**
      * @brief Getter for the name of the module which is displayed in the Segmentation Plugin.
@@ -57,7 +62,8 @@ namespace mitk
     DeepLearningSegmentationTool(std::string pythonFolder,
                                  std::string inputImageVarName,
                                  std::string pythonFileName,
-                                 std::string outputImageVarName);
+                                 std::string outputImageVarName,
+                                 ImageType imageType);
     ~DeepLearningSegmentationTool() override;
 
     void Activated() override;
@@ -103,6 +109,7 @@ namespace mitk
 
   private:
     bool m_SegmentationRunning;
+    ImageType m_ImageType;
   };
 } // namespace mitk
 

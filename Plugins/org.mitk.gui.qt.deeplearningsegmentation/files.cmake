@@ -2,6 +2,7 @@ set(INTERNAL_CPP_FILES
   org_mitk_gui_qt_deeplearningsegmentation_Activator.cpp
   DeepLearningSegmentationGUI.cpp
   BoneSegTool3DGUI.cpp
+  TractSegTool3DGUI.cpp
   SegmentationWorker.cpp
   SegmentationResultHandler.cpp
 )
@@ -14,6 +15,7 @@ set(MOC_H_FILES
   src/internal/org_mitk_gui_qt_deeplearningsegmentation_Activator.h
   src/internal/DeepLearningSegmentationGUI.h
   src/internal/BoneSegTool3DGUI.h
+  src/internal/TractSegTool3DGUI.h
   src/internal/SegmentationWorker.h
   src/internal/SegmentationResultHandler.h
 )
