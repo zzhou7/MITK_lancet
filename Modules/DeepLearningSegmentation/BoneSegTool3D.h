@@ -28,9 +28,6 @@ namespace mitk
     mitkClassMacro(BoneSegTool3D, AutoSegmentationTool);
     itkFactorylessNewMacro(Self);
 
-    us::ModuleResource GetIconResource() const override;
-    const char *GetName() const override;
-
     BoneSegTool3D();
     ~BoneSegTool3D() override;
   private:

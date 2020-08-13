@@ -15,14 +15,20 @@ found in the LICENSE file.
 #include <usGetModuleContext.h>
 #include <mitkStandardFileLocations.h>
 #include <mitkIPythonService.h>
+#include <usGetModuleContext.h>
+#include <usModuleResource.h>
 
-mitk::DeepLearningSegmentationTool::DeepLearningSegmentationTool(std::string pythonFolder,
+mitk::DeepLearningSegmentationTool::DeepLearningSegmentationTool(std::string toolName, 
+                                                                 std::string iconName,
+                                                                 std::string pythonFolder,
                                                                  std::string inputImageVarName,
                                                                  std::string pythonFileName,
                                                                  std::string outputImageVarName,
                                                                  ImageType imageType,
                                                                  bool multilabel)
 {
+  m_ToolName = toolName;
+  m_IconName = iconName;
   m_PythonProjectPath = "Modules/DeepLearningSegmentation/"+pythonFolder;
   m_InputImageVarName = inputImageVarName;
   m_PythonFileName = pythonFileName;
@@ -33,6 +39,19 @@ mitk::DeepLearningSegmentationTool::DeepLearningSegmentationTool(std::string pyt
 }
 
 mitk::DeepLearningSegmentationTool::~DeepLearningSegmentationTool() {
+}
+
+us::ModuleResource mitk::DeepLearningSegmentationTool::GetIconResource() const
+{
+  auto moduleContext = us::GetModuleContext();
+  auto module = moduleContext->GetModule();
+  auto resource = module->GetResource(m_IconName);
+  return resource;
+}
+
+const char *mitk::DeepLearningSegmentationTool::GetName() const
+{
+  return m_ToolName.c_str();
 }
 
 //bool mitk::DeepLearningSegmentationTool::CanHandle(mitk::BaseData *referenceData) const

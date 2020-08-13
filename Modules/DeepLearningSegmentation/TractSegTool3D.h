@@ -28,9 +28,6 @@ namespace mitk
     mitkClassMacro(TractSegTool3D, AutoSegmentationTool);
     itkFactorylessNewMacro(Self);
 
-    us::ModuleResource GetIconResource() const override;
-    const char *GetName() const override;
-
     TractSegTool3D();
     ~TractSegTool3D() override;
   private:

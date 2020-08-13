@@ -42,6 +42,7 @@ DeepLearningSegmentationGUI::DeepLearningSegmentationGUI()
   connect(this, &DeepLearningSegmentationGUI::Operate, m_Worker, &SegmentationWorker::DoWork);
   connect(this, &DeepLearningSegmentationGUI::Wait, m_Worker, &SegmentationWorker::WaitForSegmentationToFinish);
   connect(m_Worker, &SegmentationWorker::Finished, this, &DeepLearningSegmentationGUI::DoSegmentationProcessFinished);
+  connect(m_Worker, &SegmentationWorker::FinishedMultilabel, this, &DeepLearningSegmentationGUI::DoSegmentationProcessFinished);
   connect(m_Worker, &SegmentationWorker::Failed, this, &DeepLearningSegmentationGUI::DoSegmentationProcessFinished);
   connect(m_Worker, &SegmentationWorker::PreviousSegmentationFinished, this, &DeepLearningSegmentationGUI::DoSegmentationProcessFinished);
 

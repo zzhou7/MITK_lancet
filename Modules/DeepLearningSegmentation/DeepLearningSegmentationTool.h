@@ -36,19 +36,17 @@ namespace mitk
     };
     /**
      * @brief Getter for the icon of the module which is displayed in the Segmentation Plugin. 
-     *        This method has to be overwritten by every individual segmentation method to set the path to the correct icon resource.
      * @return icon of the segmentation method
      */
-    us::ModuleResource GetIconResource() const override = 0;
+    us::ModuleResource GetIconResource() const override;
 
     //bool CanHandle(mitk::BaseData *referenceData) const override;
 
      /**
      * @brief Getter for the name of the module which is displayed in the Segmentation Plugin.
-     *        This method has to be overwritten by every individual segmentation method to set the correct name of the method.
      * @return name of the segmentation method
      */
-    const char *GetName() const override = 0;
+    const char *GetName() const override;
     const char **GetXPM() const override;
 
      /**
@@ -59,7 +57,9 @@ namespace mitk
      * @param pythonFileName the file name of the python script to execute. This is the entry point for the segmentation
      * @param outputImageVarName the python variable name of the output image (segmentation)
      */
-    DeepLearningSegmentationTool(std::string pythonFolder,
+    DeepLearningSegmentationTool(std::string toolName,
+                                 std::string iconName,
+                                 std::string pythonFolder,
                                  std::string inputImageVarName,
                                  std::string pythonFileName,
                                  std::string outputImageVarName,
@@ -120,6 +120,8 @@ namespace mitk
     std::string m_OutputImageVarName;
 
   private:
+    std::string m_IconName;
+    std::string m_ToolName;
     bool m_SegmentationRunning;
     ImageType m_ImageType;
     bool m_MultilabelSegmentation;
