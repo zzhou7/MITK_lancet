@@ -47,7 +47,7 @@ void SegmentationWorker::DoWork(mitk::DeepLearningSegmentationTool* segTool,
   }
   catch (const mitk::Exception &e)
   {
-    MITK_INFO << e.GetDescription();
+    MITK_ERROR << e.GetDescription();
     emit Failed();
     // disconnect from result setter. Otherwise, the result is set twice after second execution, 
     // three times after third execution,...

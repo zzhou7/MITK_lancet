@@ -17,6 +17,7 @@ found in the LICENSE file.
 #include <org_mitk_gui_qt_deeplearningsegmentation_Export.h>
 #include"DeepLearningSegmentationGUI.h"
 #include"TractSegTool3D.h"
+#include <QDoubleSpinBox>
 
 namespace Ui {
 class TractSegTool3DGUI;
@@ -33,6 +34,10 @@ public:
   protected slots:
     void OnNewToolAssociated(mitk::Tool *);
     void SetUpUI() override;
+  void OnDoSegmentation() override;
+
+  private:
+  QDoubleSpinBox *m_ThresholdSpinBox;
 };
 
 #endif // TractSegTool3DGUI_h

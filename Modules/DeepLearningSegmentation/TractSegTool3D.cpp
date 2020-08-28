@@ -11,6 +11,8 @@ found in the LICENSE file.
 ============================================================================*/
 
 #include "TractSegTool3D.h"
+#include <mitkIPythonService.h>
+#include <usGetModuleContext.h>
 
 namespace mitk
 {
@@ -23,5 +25,21 @@ mitk::TractSegTool3D::TractSegTool3D()
 }
 
 mitk::TractSegTool3D::~TractSegTool3D() {
+}
+
+void mitk::TractSegTool3D::SetThreshold(double threshold)
+{
+  mitk::IPythonService::ForceLoadModule();
+  us::ModuleContext *context = us::GetModuleContext();
+  std::string filter = "(Name=PythonService)";
+  auto pythonServiceRefs = context->GetServiceReferences<mitk::IPythonService>(filter);
+
+  if (!pythonServiceRefs.empty())
+  {
+    mitk::IPythonService *pythonService =
+      dynamic_cast<mitk::IPythonService *>(context->GetService<mitk::IPythonService>(pythonServiceRefs.front()));
+
+    pythonService->Execute("threshold = " + std::to_string(threshold));
+  }
 }
 

@@ -72,7 +72,7 @@ signals:
      * @brief start the segmentation by emitting a operate signal which is caught by a worker thread.
      *        Called when the "Run Segmentation" button is pressed.
      */
-    void OnDoSegmentation();
+    virtual void OnDoSegmentation();
     /**
      * @brief set m_TrainedNetwork after a File Dialog is appearing to select a trained network.
      *        Called when the "Load trained network" button is pressed.

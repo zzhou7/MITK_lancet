@@ -30,6 +30,8 @@ namespace mitk
 
     TractSegTool3D();
     ~TractSegTool3D() override;
+
+    void SetThreshold(double threshold);
   private:
   };
 } // namespace mitk

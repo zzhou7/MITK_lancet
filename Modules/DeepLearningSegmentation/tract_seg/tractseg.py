@@ -10,7 +10,7 @@ try:
 
     data = pyMITK.GetArrayFromImage(in_image)
     data = np.nan_to_num(data)
-
+    print('Threshold: '+str(threshold))
     print('In shape: '+str(data.shape))
 
     swapaxes = False
@@ -23,7 +23,7 @@ try:
 
     print('After swap: '+str(data.shape))
     print('Before segmentation')
-    seg = run_tractseg(data=data, single_orientation=True, verbose=True, nr_cpus=1)
+    seg = run_tractseg(data=data, single_orientation=True, verbose=True, threshold=threshold, nr_cpus=1)
     print('After segmentation')
 
     seg = np.swapaxes(seg, 0, 3)
