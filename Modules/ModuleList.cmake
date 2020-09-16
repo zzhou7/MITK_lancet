@@ -78,7 +78,6 @@ set(MITK_MODULES
   REST
   RESTService
   DICOMweb
-  RESTDataStorage
 )
 
 if(MITK_ENABLE_PIC_READER)

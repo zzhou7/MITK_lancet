@@ -109,6 +109,9 @@ web::http::http_response DicomWebRequestHandler::HandlePut(const web::uri &uri, 
 {
 
   MITK_INFO << "not implemented yet";
+  auto query = web::uri(uri).query();
+  if (!data.is_null()) // avoid unused warning
+    MITK_INFO << "data was not null";
   auto errorResponse = web::http::http_response(web::http::status_codes::BadRequest);
   return errorResponse;
 }
@@ -196,10 +199,12 @@ web::http::http_response DicomWebRequestHandler::HandlePost(const web::uri &uri,
   if (!data.is_null()) // avoid unused warning
     MITK_INFO << "data was not null";
 
+  auto query = web::uri(uri).query();
+
   auto contentType = headers.find(U("Content-Type"));
   if ((contentType->second.find(U("multipart/form-data")) != std::string::npos) ||
-        contentType->second.find(U("multipart/related")) != std::string::npos &&
-        contentType->second.find(U("application/dicom")) != std::string::npos)
+        ((contentType->second.find(U("multipart/related")) != std::string::npos) &&
+        (contentType->second.find(U("application/dicom")) != std::string::npos)))
   {
   }
 
