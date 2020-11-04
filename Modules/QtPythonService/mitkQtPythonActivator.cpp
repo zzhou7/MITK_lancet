@@ -9,13 +9,13 @@ Use of this source code is governed by a 3-clause BSD license that can be
 found in the LICENSE file.
 
 ============================================================================*/
-#ifndef mitkPythonActivator_h
-#define mitkPythonActivator_h
+#ifndef mitkQtPythonActivator_h
+#define mitkQtPythonActivator_h
 
 // Microservices
 #include <usModuleActivator.h>
 #include "usModuleContext.h"
-#include "mitkPythonService.h"
+#include "mitkQtPythonService.h"
 #include <usServiceRegistration.h>
 
 namespace mitk
@@ -24,40 +24,41 @@ namespace mitk
     /// installs the PythonService
     /// runs all initial commands (setting env paths etc)
     ///
-    class PythonActivator : public us::ModuleActivator
+    class QtPythonActivator : public us::ModuleActivator
     {
     public:
 
         void Load(us::ModuleContext* context) override
         {
-          MITK_DEBUG << "PythonActivator::Load";
-          // Registering PythonService as MicroService
-          m_PythonService = itk::SmartPointer<mitk::PythonService>(new PythonService());
+          MITK_DEBUG << "QtPythonActivator::Load";
+           //Registering QtPythonService as MicroService
+          m_PythonService = itk::SmartPointer<mitk::QtPythonService>(new QtPythonService());
 
           us::ServiceProperties _PythonServiceProps;
-          _PythonServiceProps["Name"] = std::string("PythonService");
+          _PythonServiceProps["Name"] = std::string("QtPythonService");
+          _PythonServiceProps["service.ranking"] = int(1);
 
           m_PythonServiceRegistration = context->RegisterService<mitk::IPythonService>(m_PythonService.GetPointer(), _PythonServiceProps);
         }
 
         void Unload(us::ModuleContext*) override
         {
-          MITK_DEBUG("PythonActivator") << "PythonActivator::Unload";
-          MITK_DEBUG("PythonActivator") << "m_PythonService GetReferenceCount " << m_PythonService->GetReferenceCount();
+          MITK_DEBUG("QtPythonActivator") << "QtPythonActivator::Unload";
+          MITK_DEBUG("QtPythonActivator") << "m_PythonService GetReferenceCount " << m_PythonService->GetReferenceCount();
           m_PythonServiceRegistration.Unregister();
           m_PythonService->Delete();
-          MITK_DEBUG("PythonActivator") << "m_PythonService GetReferenceCount " << m_PythonService->GetReferenceCount();
+          MITK_DEBUG("QtPythonActivator") << "m_PythonService GetReferenceCount " << m_PythonService->GetReferenceCount();
         }
 
-        ~PythonActivator() override
+        ~QtPythonActivator() override
         {
         }
 
     private:
-        itk::SmartPointer<mitk::PythonService> m_PythonService;
-        us::ServiceRegistration<PythonService> m_PythonServiceRegistration;
+        itk::SmartPointer<mitk::QtPythonService> m_PythonService;
+        us::ServiceRegistration<QtPythonService> m_PythonServiceRegistration;
     };
 }
 
-US_EXPORT_MODULE_ACTIVATOR(mitk::PythonActivator)
+US_EXPORT_MODULE_ACTIVATOR(mitk::QtPythonActivator)
 #endif

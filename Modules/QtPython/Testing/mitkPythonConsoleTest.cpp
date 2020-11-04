@@ -20,9 +20,9 @@ found in the LICENSE file.
 #include <QmitkPythonSnippets.h>
 #include <mitkIPythonService.h>
 
-class mitkPythonTestSuite : public mitk::TestFixture
+class mitkPythonConsoleTestSuite : public mitk::TestFixture
 {
-  CPPUNIT_TEST_SUITE(mitkPythonTestSuite);
+  CPPUNIT_TEST_SUITE(mitkPythonConsoleTestSuite);
   MITK_TEST(TestPython);
   CPPUNIT_TEST_SUITE_END();
 
@@ -40,4 +40,4 @@ public:
   }
 };
 
-MITK_TEST_SUITE_REGISTRATION(mitkPython)
+MITK_TEST_SUITE_REGISTRATION(mitkPythonConsole)

@@ -9,8 +9,8 @@ Use of this source code is governed by a 3-clause BSD license that can be
 found in the LICENSE file.
 
 ============================================================================*/
-#ifndef mitkPythonService_h
-#define mitkPythonService_h
+#ifndef mitkQtPythonService_h
+#define mitkQtPythonService_h
 
 #include <ctkAbstractPythonManager.h>
 #include "mitkIPythonService.h"
@@ -22,18 +22,17 @@ namespace mitk
   ///
   /// implementation of the IPythonService using ctkabstractpythonmanager
   /// \see IPythonService
-  class PythonService: public itk::LightObject, public mitk::IPythonService
+  class QtPythonService: public itk::LightObject, public mitk::IPythonService
   {
   public:
-      ///
       /// instantiate python manager here
-      PythonService();
+      QtPythonService();
       ///
       /// empty implementation...
-      ~PythonService() override;
+      ~QtPythonService() override;
       ///
       /// \see IPythonService::Execute()
-      std::string Execute( const std::string& pythonCommand, int commandType = SINGLE_LINE_COMMAND ) override;
+      std::string Execute( const std::string& pythonCommand, int commandType = SINGLE_LINE_COMMAND) override;
       ///
       /// \see IPythonService::ExecuteScript()
       void ExecuteScript(const std::string &pathToPythonScript) override;
@@ -42,13 +41,13 @@ namespace mitk
       bool PythonErrorOccured() const override;
       ///
       /// \see IPythonService::GetVariableStack()
-      std::vector<PythonVariable> GetVariableStack() const override;
+      std::vector<PythonVariable> GetVariableStack() override;
       ///
       /// \see IPythonService::DoesVariableExist()
-      bool DoesVariableExist(const std::string& name) const override;
+      bool DoesVariableExist(const std::string& name) override;
       ///
       /// \see IPythonService::GetVariable()
-      std::string GetVariable(const std::string& name) const override;
+      std::string GetVariable(const std::string& name) override;
       ///
       /// \see IPythonService::AddPythonCommandObserver()
       void AddPythonCommandObserver( PythonCommandObserver* observer ) override;
@@ -59,14 +58,29 @@ namespace mitk
       /// \see IPythonService::NotifyObserver()
       void NotifyObserver( const std::string& command ) override;
       ///
+      /// \see IPythonService::GetNumberOfObserver()
+      int GetNumberOfObserver() override;
+      ///
       /// \see IPythonService::IsItkPythonWrappingAvailable()
       bool IsSimpleItkPythonWrappingAvailable() override;
       ///
       /// \see IPythonService::CopyToPythonAsItkImage()
-      bool CopyToPythonAsSimpleItkImage( mitk::Image* image, const std::string& varName ) override;
+      bool CopyToPythonAsSimpleItkImage( mitk::Image::Pointer image, const std::string& varName ) override;
       ///
       /// \see IPythonService::CopyItkImageFromPython()
       mitk::Image::Pointer CopySimpleItkImageFromPython( const std::string& varName ) override;
+      ///
+      /// \see IPythonService::CopyMITKImageToPython()
+      /// \throws MITK exception since this function is not implemented (only implementation in mitkPythonService)
+      bool CopyMITKImageToPython(mitk::Image::Pointer &image, const std::string &varName) override;
+      ///
+      /// \see IPythonService::CopyMITKImageFromPython()
+      /// \throws MITK exception since this function is not implemented (only implementation in mitkPythonService)
+      mitk::Image::Pointer CopyMITKImageFromPython(const std::string &varName) override;
+      ///
+      /// \see IPythonService::CopyListOfMITKImagesFromPython()
+      /// \throws MITK exception since this function is not implemented (only implementation in mitkPythonService)
+      std::vector<mitk::Image::Pointer> CopyListOfMITKImagesFromPython(const std::string &listVarName) override;
       ///
       /// \see IPythonService::IsOpenCvPythonWrappingAvailable()
       bool IsOpenCvPythonWrappingAvailable() override;
@@ -87,17 +101,18 @@ namespace mitk
       mitk::Surface::Pointer CopyVtkPolyDataFromPython( const std::string& varName ) override;
       ///
       /// \return the ctk abstract python manager instance
-      ctkAbstractPythonManager* GetPythonManager() override;
+      ctkAbstractPythonManager* GetPythonManager() /*override*/;
 
       void AddRelativeSearchDirs(std::vector< std::string > dirs) override;
 
       void AddAbsoluteSearchDirs(std::vector< std::string > dirs) override;
+     
 
   protected:
 
   private:
       QList<PythonCommandObserver*> m_Observer;
-      ctkAbstractPythonManager m_PythonManager;
+      ctkAbstractPythonManager* m_PythonManager;
       bool m_ItkWrappingAvailable;
       bool m_OpenCVWrappingAvailable;
       bool m_VtkWrappingAvailable;

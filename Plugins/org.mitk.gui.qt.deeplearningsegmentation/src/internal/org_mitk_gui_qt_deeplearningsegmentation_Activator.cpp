@@ -10,16 +10,14 @@ found in the LICENSE file.
 
 ============================================================================*/
 
-#include "mitkIPythonService.h"
 
-mitk::IPythonService::~IPythonService()
+#include "org_mitk_gui_qt_deeplearningsegmentation_Activator.h"
+
+namespace mitk
 {
-}
+  void org_mitk_gui_qt_deeplearningsegmentation_Activator::start(ctkPluginContext *context)
+  {
+  }
 
-std::string mitk::IPythonService::ForceLoadModule()
-{
-  std::string ret = "Load python module";
-  MITK_DEBUG << ret;
-  return ret;
+  void org_mitk_gui_qt_deeplearningsegmentation_Activator::stop(ctkPluginContext *context) { Q_UNUSED(context) }
 }
-
