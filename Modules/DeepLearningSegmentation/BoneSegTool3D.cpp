@@ -11,8 +11,6 @@ found in the LICENSE file.
 ============================================================================*/
 
 #include "BoneSegTool3D.h"
-#include <usGetModuleContext.h>
-#include <usModuleResource.h>
 
 namespace mitk
 {
@@ -20,22 +18,10 @@ namespace mitk
 }
 
 mitk::BoneSegTool3D::BoneSegTool3D() 
-    : DeepLearningSegmentationTool("bone_seg_ct_basic_unet", "sitk_image", "segment.py","output_image")
+    : DeepLearningSegmentationTool("Bone Segmentation", "icon_bone.svg", "bone_seg_ct_basic_unet", "sitk_image", "segment.py", "output_image", DeepLearningSegmentationTool::SimpleITKImage)
 {
 }
 
 mitk::BoneSegTool3D::~BoneSegTool3D() {
-}
-
-us::ModuleResource mitk::BoneSegTool3D::GetIconResource() const {
-  auto moduleContext = us::GetModuleContext();
-  auto module = moduleContext->GetModule();
-  auto resource = module->GetResource("icon_bone.svg");
-  return resource;
-}
-
-const char *mitk::BoneSegTool3D::GetName() const
-{
-  return "Bone Segmentation";
 }
 

@@ -78,6 +78,10 @@ namespace mitk
       /// \throws MITK exception since this function is not implemented (only implementation in mitkPythonService)
       mitk::Image::Pointer CopyMITKImageFromPython(const std::string &varName) override;
       ///
+      /// \see IPythonService::CopyListOfMITKImagesFromPython()
+      /// \throws MITK exception since this function is not implemented (only implementation in mitkPythonService)
+      std::vector<mitk::Image::Pointer> CopyListOfMITKImagesFromPython(const std::string &listVarName) override;
+      ///
       /// \see IPythonService::IsOpenCvPythonWrappingAvailable()
       bool IsOpenCvPythonWrappingAvailable() override;
       ///

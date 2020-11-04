@@ -29,21 +29,24 @@ namespace mitk
   class MITKDEEPLEARNINGSEGMENTATION_EXPORT DeepLearningSegmentationTool : public mitk::AutoSegmentationTool
   {
   public:
+    enum ImageType
+    {
+      SimpleITKImage,
+      MITKImage
+    };
     /**
      * @brief Getter for the icon of the module which is displayed in the Segmentation Plugin. 
-     *        This method has to be overwritten by every individual segmentation method to set the path to the correct icon resource.
      * @return icon of the segmentation method
      */
-    us::ModuleResource GetIconResource() const override = 0;
+    us::ModuleResource GetIconResource() const override;
 
-    bool CanHandle(mitk::BaseData *referenceData) const override;
+    //bool CanHandle(mitk::BaseData *referenceData) const override;
 
      /**
      * @brief Getter for the name of the module which is displayed in the Segmentation Plugin.
-     *        This method has to be overwritten by every individual segmentation method to set the correct name of the method.
      * @return name of the segmentation method
      */
-    const char *GetName() const override = 0;
+    const char *GetName() const override;
     const char **GetXPM() const override;
 
      /**
@@ -54,10 +57,14 @@ namespace mitk
      * @param pythonFileName the file name of the python script to execute. This is the entry point for the segmentation
      * @param outputImageVarName the python variable name of the output image (segmentation)
      */
-    DeepLearningSegmentationTool(std::string pythonFolder,
+    DeepLearningSegmentationTool(std::string toolName,
+                                 std::string iconName,
+                                 std::string pythonFolder,
                                  std::string inputImageVarName,
                                  std::string pythonFileName,
-                                 std::string outputImageVarName);
+                                 std::string outputImageVarName,
+                                 ImageType imageType,
+                                 bool multilabel = false);
     ~DeepLearningSegmentationTool() override;
 
     void Activated() override;
@@ -71,6 +78,15 @@ namespace mitk
      * @return the segmentation result as label set image
      */
     mitk::LabelSetImage::Pointer DoSegmentation(std::string networkPath);
+    /**
+     * @brief Executes the multilabel segmentation by running python code
+     *
+     * @throw mitk::Exception if something went wrong during a python call, python service is not found, or no input
+     * image is found
+     * @param networkPath the path to the trained network for segmentation
+     * @return the segmentation result as vector of label set image
+     */
+    std::vector<mitk::LabelSetImage::Pointer> DoMultilabelSegmentation(std::string networkPath);
     /**
      * @brief Get the input image for the semgentation which is currently selected in the Segmentation Plugin
      *
@@ -95,6 +111,8 @@ namespace mitk
      */
     mitk::DataNode *GetReferenceData();
 
+    bool IsMultilabelSegmentation();
+
   protected:
     std::string m_PythonProjectPath;
     std::string m_InputImageVarName;
@@ -102,7 +120,11 @@ namespace mitk
     std::string m_OutputImageVarName;
 
   private:
+    std::string m_IconName;
+    std::string m_ToolName;
     bool m_SegmentationRunning;
+    ImageType m_ImageType;
+    bool m_MultilabelSegmentation;
   };
 } // namespace mitk
 

@@ -67,12 +67,12 @@ signals:
     /** 
     * @brief set up the UI depending on whether a segmentation is running
     */
-    void SetUpUI();
+    virtual void SetUpUI();
     /**
      * @brief start the segmentation by emitting a operate signal which is caught by a worker thread.
      *        Called when the "Run Segmentation" button is pressed.
      */
-    void OnDoSegmentation();
+    virtual void OnDoSegmentation();
     /**
      * @brief set m_TrainedNetwork after a File Dialog is appearing to select a trained network.
      *        Called when the "Load trained network" button is pressed.
@@ -90,14 +90,14 @@ signals:
 
   protected:
     mitk::DeepLearningSegmentationTool* m_SegTool;
+    QScopedPointer<Ui::DeepLearningSegmentationGUI> m_Ui;
+    QString m_TrainedNet;
 
   private:
-    QScopedPointer<Ui::DeepLearningSegmentationGUI> m_Ui;
 
     QThread *m_SegmentationThread;
     SegmentationWorker *m_Worker;
     
-    QString m_TrainedNet;
 };
 
 #endif // DeepLearningSegmentationGUI_h

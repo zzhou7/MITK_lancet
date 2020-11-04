@@ -123,6 +123,10 @@ namespace mitk
         /// \return the image or 0 if copying was not possible
         virtual mitk::Image::Pointer CopyMITKImageFromPython(const std::string &varName) = 0;
         ///
+        /// copies an list of mitk images from the python process that is named "listVarName"
+        /// \return the image or 0 if copying was not possible
+        virtual std::vector<mitk::Image::Pointer> CopyListOfMITKImagesFromPython(const std::string &listVarName) = 0;
+        ///
         /// \return true, if OpenCv wrapping is available, false otherwise
         virtual bool IsOpenCvPythonWrappingAvailable() = 0;
         ///

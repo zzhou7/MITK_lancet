@@ -37,6 +37,29 @@ void SegmentationResultHandler::SetResult(mitk::LabelSetImage::Pointer resultSeg
   }
 }
 
+void SegmentationResultHandler::SetMultilabelResult(std::vector<mitk::LabelSetImage::Pointer> resultSegmentation,
+                                                    mitk::DeepLearningSegmentationTool *segTool)
+{
+  try
+  {
+    for (int i = 0; i<resultSegmentation.size();i++)
+    {
+      // create new data node with the segmentation output as data
+      mitk::DataNode::Pointer outputNode = mitk::DataNode::New();
+      std::string name = segTool->GetName()+std::to_string(i);
+      outputNode->SetName(name);
+      outputNode->SetData(resultSegmentation[i]);
+      // add data node to data storage and update GUI
+      segTool->GetDataStorage()->Add(outputNode, segTool->GetReferenceData());
+      mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+    }
+  }
+  catch (const mitk::Exception &e)
+  {
+    MITK_INFO << e.GetDescription();
+  }
+}
+
 void SegmentationResultHandler::SegmentationProcessFailed()
 {
     QMessageBox::warning(nullptr,

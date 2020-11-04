@@ -28,8 +28,11 @@ const char *mitk::AutoSegmentationTool::GetGroup() const
   return "autoSegmentation";
 }
 
-mitk::Image::Pointer mitk::AutoSegmentationTool::Get3DImage(mitk::Image::Pointer image, unsigned int timestep)
+mitk::Image::ConstPointer mitk::AutoSegmentationTool::Get3DImage(const mitk::Image* image, unsigned int timestep) const
 {
+  if (nullptr == image)
+    return image;
+
   if (image->GetDimension() != 4)
     return image;
 
@@ -41,6 +44,17 @@ mitk::Image::Pointer mitk::AutoSegmentationTool::Get3DImage(mitk::Image::Pointer
   imageTimeSelector->UpdateLargestPossibleRegion();
 
   return imageTimeSelector->GetOutput();
+}
+
+mitk::Image::ConstPointer mitk::AutoSegmentationTool::Get3DImageByTimePoint(const mitk::Image* image, TimePointType timePoint) const
+{
+  if (nullptr == image)
+    return image;
+
+  if (!image->GetTimeGeometry()->IsValidTimePoint(timePoint))
+    return nullptr;
+
+  return this->Get3DImage(image, image->GetTimeGeometry()->TimePointToTimeStep(timePoint));
 }
 
 void mitk::AutoSegmentationTool::SetOverwriteExistingSegmentation(bool overwrite)
@@ -58,12 +72,8 @@ std::string mitk::AutoSegmentationTool::GetCurrentSegmentationName()
 
 mitk::DataNode *mitk::AutoSegmentationTool::GetTargetSegmentationNode()
 {
-  mitk::DataNode::Pointer emptySegmentation;
-  if (m_OverwriteExistingSegmentation)
-  {
-    emptySegmentation = m_ToolManager->GetWorkingData(0);
-  }
-  else
+  mitk::DataNode::Pointer segmentationNode = m_ToolManager->GetWorkingData(0);
+  if (!m_OverwriteExistingSegmentation)
   {
     mitk::DataNode::Pointer refNode = m_ToolManager->GetReferenceData(0);
     if (refNode.IsNull())
@@ -72,13 +82,16 @@ mitk::DataNode *mitk::AutoSegmentationTool::GetTargetSegmentationNode()
       MITK_ERROR << "No valid reference data!";
       return nullptr;
     }
-    std::string nodename = m_ToolManager->GetReferenceData(0)->GetName() + "_" + this->GetName();
+
+    std::string nodename = refNode->GetName() + "_" + this->GetName();
     mitk::Color color;
     color.SetRed(1);
     color.SetBlue(0);
     color.SetGreen(0);
-    emptySegmentation = CreateEmptySegmentationNode(dynamic_cast<mitk::Image *>(refNode->GetData()), nodename, color);
-    m_ToolManager->GetDataStorage()->Add(emptySegmentation, refNode);
+    //create a new segmentation node based on the current segmentation as template
+    segmentationNode = CreateEmptySegmentationNode(dynamic_cast<mitk::Image *>(segmentationNode->GetData()), nodename, color);
+
+    m_ToolManager->GetDataStorage()->Add(segmentationNode, refNode);
   }
-  return emptySegmentation;
+  return segmentationNode;
 }

@@ -34,6 +34,13 @@ public slots:
    */
   void SetResult(mitk::LabelSetImage::Pointer resultSegmentation, mitk::DeepLearningSegmentationTool *segTool);
   /**
+   * @brief display the result of the segmentation if the segmentation process was successful
+   *
+   * @param resultSegmentation the resulting segmentation from the segmentation process to display
+   * @param segTool the Segmentation Tool for running the segmentation
+   */
+  void SetMultilabelResult(std::vector<mitk::LabelSetImage::Pointer> resultSegmentation, mitk::DeepLearningSegmentationTool *segTool);
+  /**
    * @brief display a warning for the user if segmentation process failed
    */
   void SegmentationProcessFailed();

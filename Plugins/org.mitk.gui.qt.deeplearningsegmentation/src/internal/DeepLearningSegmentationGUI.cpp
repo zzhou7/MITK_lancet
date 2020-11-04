@@ -21,6 +21,8 @@ DeepLearningSegmentationGUI::DeepLearningSegmentationGUI()
   //register Meta types which is necessary for the qt signals/slots with those classes as parameter
   qRegisterMetaType<mitk::DeepLearningSegmentationTool*>();
   qRegisterMetaType<mitk::LabelSetImage::Pointer>();
+  qRegisterMetaType<std::vector<mitk::LabelSetImage::Pointer>>();
+
   qRegisterMetaType<QVector<int>>();
 
   //set up the ui
@@ -40,6 +42,7 @@ DeepLearningSegmentationGUI::DeepLearningSegmentationGUI()
   connect(this, &DeepLearningSegmentationGUI::Operate, m_Worker, &SegmentationWorker::DoWork);
   connect(this, &DeepLearningSegmentationGUI::Wait, m_Worker, &SegmentationWorker::WaitForSegmentationToFinish);
   connect(m_Worker, &SegmentationWorker::Finished, this, &DeepLearningSegmentationGUI::DoSegmentationProcessFinished);
+  connect(m_Worker, &SegmentationWorker::FinishedMultilabel, this, &DeepLearningSegmentationGUI::DoSegmentationProcessFinished);
   connect(m_Worker, &SegmentationWorker::Failed, this, &DeepLearningSegmentationGUI::DoSegmentationProcessFinished);
   connect(m_Worker, &SegmentationWorker::PreviousSegmentationFinished, this, &DeepLearningSegmentationGUI::DoSegmentationProcessFinished);
 
