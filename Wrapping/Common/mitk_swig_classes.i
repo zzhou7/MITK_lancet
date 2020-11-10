@@ -1,4 +1,3 @@
-
 //
 // Defining some Macros that make problems with SWIG as the
 // corresponding definitions are not included by default.
@@ -16,6 +15,9 @@
 #define MAPAlgorithms_EXPORT
 #define MITKSEGMENTATION_EXPORT
 #define MITKMULTILABEL_EXPORT
+#define MITKBASICIMAGEPROCESSING_EXPORT
+
+#define VCL_TEMPLATE_EXPORT
 
 #define ITKCommon_EXPORT
 #define ITK_FORWARD_EXPORT
@@ -30,10 +32,12 @@
 %include <mitkChannelDescriptor.h>
 %include <mitkIOUtil.h>
 
-
 #define DEPRECATED(func) func
 #undef ITK_DISALLOW_COPY_AND_ASSIGN
 #define ITK_DISALLOW_COPY_AND_ASSIGN(TypeName)
+
+typedef double ScalarType;
+typedef Vector3D mitk::Vector3D;
 
 %pythoncode %{
  convertion_list = {}
@@ -52,7 +56,16 @@ SWIG_ADD_MITK_CLASS(Geometry3D, mitkGeometry3D.h, mitk)
 SWIG_ADD_MITK_CLASS(SlicedGeometry3D, mitkSlicedGeometry3D.h, mitk)
 SWIG_ADD_MITK_CLASS(PlaneGeometry , mitkPlaneGeometry.h, mitk)
 
-SWIG_ADD_NONOBJECT_NOVECTOR_CLASS(BoundingBox, mitkBaseGeometry.h, mitk)
+%rename(itk_BoundingBox) itk::BoundingBox;
+%include <mitkBaseGeometry.h>
+%{
+#include < mitkBaseGeometry.h >
+typedef mitk::BoundingBox BoundingBox;
+%}
+%template(VectorBoundingBoxPointer) std::vector< mitk::BoundingBox * >;
+
+
+//SWIG_ADD_NONOBJECT_NOVECTOR_CLASS(BoundingBox, mitkBaseGeometry.h, mitk)
 SWIG_ADD_NONOBJECT_CLASS(TimeBounds, mitkBaseGeometry.h, mitk)
 SWIG_ADD_NONOBJECT_CLASS(FixedArrayType, mitkBaseGeometry.h, mitk)
 
@@ -63,9 +76,43 @@ SWIG_ADD_NONOBJECT_CLASS(Point2I, mitkPoint.h, mitk)
 SWIG_ADD_NONOBJECT_CLASS(Point3I, mitkPoint.h, mitk)
 SWIG_ADD_NONOBJECT_CLASS(Point4I, mitkPoint.h, mitk)
 SWIG_ADD_NONOBJECT_CLASS(VnlVector, mitkVector.h, mitk)
-SWIG_ADD_NONOBJECT_CLASS(Vector2D, mitkVector.h, mitk)
-SWIG_ADD_NONOBJECT_CLASS(Vector3D, mitkVector.h, mitk)
-SWIG_ADD_NONOBJECT_CLASS(Vector4D, mitkVector.h, mitk)
+%ignore rBegin() const;
+%ignore rEnd() const;
+%ignore rBegin();
+%ignore rEnd();
+%ignore itk::Vector::GetVnlVector;
+%ignore itk::Vector::Get_vnl_vector;
+%ignore itk::Vector::Get_vnl_vector const;
+
+%{
+  #include <itkFixedArray.h>
+  #include <itkVector.h>
+  #include <vnl/vnl_vector_ref.h>
+  typedef vnl_vector_ref<ScalarType> VnlVectorRef;
+%}
+//%include <vnl/vnl_vector_ref.h>
+//MITKSWIG_ADD_CLASS(VnlVectorRef, mitkVector.h,)
+//typedef ::VnlVectorRef VnlVectorRef;
+class VnlVectorRef;
+%template(VectorVnlVectorRefPointer) std::vector<::VnlVectorRef * >;
+//SWIG_ADD_NONOBJECT_NOVECTOR_CLASS(VnlVectorRef, mitkVector.h, )
+
+%include <itkFixedArray.h>
+%include <itkVector.h>
+class itk::FixedArray<ScalarType, 3>::ReverseIterator;
+//%template(VnlVectorRef) vnl_vector_ref<ScalarType>;
+%template(itkFixedArray3D) itk::FixedArray<ScalarType, 3>;
+%template(itkVector2D) itk::Vector<ScalarType, 2>;
+%template(itkVector3D) itk::Vector<ScalarType, 3>;
+%template(itkVector4D) itk::Vector<ScalarType, 4>;
+
+
+SWIG_ADD_NONOBJECT_TEMPLATE_CLASS(Vector2D, mitkVector.h, mitk)
+%template(Vector2D) mitk::Vector<ScalarType, 2>;
+SWIG_ADD_NONOBJECT_TEMPLATE_CLASS(Vector3D, mitkVector.h, mitk)
+%template(Vector3D) mitk::Vector<ScalarType, 3>;
+SWIG_ADD_NONOBJECT_TEMPLATE_CLASS(Vector4D, mitkVector.h, mitk)
+%template(Vector4D) mitk::Vector<ScalarType, 4>;
 
 SWIG_ADD_MITK_CLASS(BaseData, mitkBaseData.h, mitk)
 SWIG_ADD_MITK_CLASS(SlicedData, mitkSlicedData.h, mitk)
@@ -83,6 +130,7 @@ SWIG_ADD_MITK_CLASS(AbstractGlobalImageFeature, mitkAbstractGlobalImageFeature.h
 SWIG_ADD_MITK_CLASS(GIFImageDescriptionFeatures, mitkGIFImageDescriptionFeatures.h, mitk)
 SWIG_ADD_MITK_CLASS(GIFFirstOrderStatistics, mitkGIFFirstOrderStatistics.h, mitk)
 SWIG_ADD_MITK_CLASS(GIFFirstOrderHistogramStatistics, mitkGIFFirstOrderHistogramStatistics.h, mitk)
+SWIG_ADD_MITK_CLASS(GIFFirstOrderNumericStatistics, mitkGIFFirstOrderNumericStatistics.h, mitk)
 SWIG_ADD_MITK_CLASS(GIFVolumetricStatistics, mitkGIFVolumetricStatistics.h, mitk)
 SWIG_ADD_MITK_CLASS(GIFVolumetricDensityStatistics, mitkGIFVolumetricDensityStatistics.h, mitk)
 SWIG_ADD_MITK_CLASS(GIFCooccurenceMatrix2, mitkGIFCooccurenceMatrix2.h, mitk)
@@ -101,6 +149,9 @@ SWIG_ADD_MITK_CLASS(GIFCurvatureStatistic, mitkGIFCurvatureStatistic.h, mitk)
 SWIG_ADD_MITK_CLASS(ContourModelSetToImageFilter, mitkContourModelSetToImageFilter.h, mitk)
 SWIG_ADD_NONOBJECT_NOVECTOR_CLASS(BooleanOperation, mitkBooleanOperation.h, mitk)
 SWIG_ADD_NONOBJECT_NOVECTOR_CLASS(MorphologicalOperations, mitkMorphologicalOperations.h, mitk)
+//SWIG_ADD_NONOBJECT_NOVECTOR_CLASS(MaskCleaningOperation, mitkMaskCleaningOperation.h, mitk)
+//SWIG_ADD_NONOBJECT_NOVECTOR_CLASS(TransformationOperation, mitkTransformationOperation.h, mitk)
+//SWIG_ADD_NONOBJECT_NOVECTOR_CLASS(ArithmeticOperation, mitkArithmeticOperation.h, mitk)
 %{
   #include <itkProcessObject.h>
   typedef itk::DataObject::DataObjectIdentifierType DataObjectIdentifierType;

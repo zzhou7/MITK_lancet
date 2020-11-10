@@ -46,10 +46,10 @@ set(CMAKE_SWIG_FLAGS ${CMAKE_SWIG_GLOBAL_FLAGS} -features autodoc=1 -keyword )
 if( MITK_PYTHON_THREADS )
   set(CMAKE_SWIG_FLAGS ${CMAKE_SWIG_FLAGS} -threads)
 endif()
-set(CMAKE_SWIG_OUTDIR ${CMAKE_CURRENT_BINARY_DIR})
+set(CMAKE_SWIG_OUTDIR ${MITK_BINARY_DIR}/lib/Release)
 
 # Create the actual SWIG project
-swig_add_module(pyMITK python MITK.i )
+swig_add_library(pyMITK LANGUAGE python SOURCES MITK.i )
 
 mitkSwigAddLibraryDependencies(pyMITK "MitkCore;MitkCLCore;MitkCLUtilities;ITKCommon;MitkMatchPointRegistration;MitkSegmentation;MitkMultilabel;MitkDICOM;MitkDICOMImageIO;MitkRT")
 mitk_target_link_libraries_with_dynamic_lookup(${SWIG_MODULE_pyMITK_REAL_NAME} ${PYTHON_LIBRARIES})
