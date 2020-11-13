@@ -497,7 +497,6 @@ public:
          MITK_ERROR << e.GetDescription();
          CPPUNIT_FAIL("Error in Python Execution");
        }
-       m_PythonService->NotifyObserver(command);
        CPPUNIT_ASSERT_MESSAGE("Testing if a command observer is notified",
                               observer->m_Updated == true);
      }

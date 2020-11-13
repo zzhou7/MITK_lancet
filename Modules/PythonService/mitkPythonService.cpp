@@ -163,6 +163,7 @@ std::string mitk::PythonService::Execute(const std::string &stdpythonCommand, in
         commandType = Py_file_input;
     }
     PyObject* executionResult = PyRun_String(stdpythonCommand.c_str(), commandType, m_GlobalDictionary, m_LocalDictionary);
+    this->NotifyObserver(stdpythonCommand);
     if (executionResult)
     {
       PyObject *objectsRepresentation = PyObject_Repr(executionResult);
