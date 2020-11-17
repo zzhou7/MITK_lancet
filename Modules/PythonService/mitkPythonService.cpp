@@ -59,8 +59,8 @@ typedef itksys::SystemTools ist;
 
 mitk::PythonService::PythonService()
   : m_ItkWrappingAvailable(true),
-    m_OpenCVWrappingAvailable(true),
-    m_VtkWrappingAvailable(true),
+    m_OpenCVWrappingAvailable(false),
+    m_VtkWrappingAvailable(false),
     m_ErrorOccured(false)
 {
   if (!Py_IsInitialized())
@@ -343,7 +343,7 @@ int mitk::PythonService::GetNumberOfObserver()
 
 bool mitk::PythonService::IsSimpleItkPythonWrappingAvailable()
 {
-  return NULL;
+  return m_ItkWrappingAvailable;
 }
 
 bool mitk::PythonService::CopyToPythonAsSimpleItkImage(mitk::Image::Pointer image, const std::string &stdvarName)
@@ -553,13 +553,13 @@ std::vector<mitk::Image::Pointer> mitk::PythonService::CopyListOfMITKImagesFromP
 
 bool mitk::PythonService::CopyToPythonAsCvImage( mitk::Image* image, const std::string& stdvarName )
 {
-  return NULL;
+  mitkThrow() << "This function is not implemented";
 }
 
 
 mitk::Image::Pointer mitk::PythonService::CopyCvImageFromPython( const std::string& stdvarName )
 {
-  return NULL;
+  mitkThrow() << "This function is not implemented";
 }
 
 //ctkAbstractPythonManager *mitk::PythonService::GetPythonManager()
@@ -569,22 +569,22 @@ mitk::Image::Pointer mitk::PythonService::CopyCvImageFromPython( const std::stri
 
 mitk::Surface::Pointer mitk::PythonService::CopyVtkPolyDataFromPython( const std::string& stdvarName )
 {
-  return NULL;
+  mitkThrow() << "This function is not implemented";
 }
 
 bool mitk::PythonService::CopyToPythonAsVtkPolyData( mitk::Surface* surface, const std::string& stdvarName )
 {
-  return NULL;
+  mitkThrow() << "This function is not implemented";
 }
 
 bool mitk::PythonService::IsOpenCvPythonWrappingAvailable()
 {
-  return NULL;
+  return m_OpenCVWrappingAvailable;
 }
 
 bool mitk::PythonService::IsVtkPythonWrappingAvailable()
 {
-  return NULL;
+  return m_VtkWrappingAvailable;
 }
 
 bool mitk::PythonService::PythonErrorOccured() const
