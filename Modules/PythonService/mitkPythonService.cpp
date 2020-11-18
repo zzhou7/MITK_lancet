@@ -97,11 +97,6 @@ mitk::PythonService::PythonService()
 
 mitk::PythonService::~PythonService()
 {
-  //if (Py_IsInitialized())
-  //{
-  //  PyGILState_Ensure();
-  //  Py_FinalizeEx();
-  //}
 }
 
 void mitk::PythonService::AddRelativeSearchDirs(std::vector< std::string > dirs)
@@ -359,15 +354,21 @@ bool mitk::PythonService::CopyToPythonAsSimpleItkImage(mitk::Image::Pointer imag
                                  "    global mitk_image\n"
                                  "    mitk_image = image_from_cxx\n"
                                  "\n"
-                                 "def convert_to_sitk():\n"
+                                 "def convert_to_sitk(spacing, origin):\n"
                                  "    np = pyMITK.GetArrayViewFromImage(mitk_image)\n"
                                  "    global "+stdvarName+"\n"
-                                 "    "+stdvarName+" = sitk.GetImageFromArray(np)\n";
+                                 "    "+stdvarName+" = sitk.GetImageFromArray(np)\n"
+                                 "    npSpacingArray = numpy.array(spacing , dtype=float)\n"
+                                 "    "+stdvarName+".SetSpacing(npSpacingArray)\n"
+                                 "    npOriginArray = numpy.array(origin , dtype=float)\n"
+                                 "    " +stdvarName +".SetOrigin(npOriginArray)\n";
 
   this->Execute(transferToPython);
 
   mitk::Image::Pointer *img = &image;
   PyGILState_STATE gState = PyGILState_Ensure();
+  //necessary for transfer array from C++ to Python
+  import_array();
   PyObject *main = PyImport_ImportModule("__main__");
   if (main == NULL)
   {
@@ -382,6 +383,17 @@ bool mitk::PythonService::CopyToPythonAsSimpleItkImage(mitk::Image::Pointer imag
   {
     mitkThrow() << "Something went wrong creating the Python instance of the image";
   }
+  //transfer correct image spacing to Python
+  int spacing[3];
+  image->GetGeometry()->GetSpacing().ToArray(spacing);
+  int nd = 1;
+  npy_intp dims[] = {3};
+  PyObject *spacingArray = PyArray_SimpleNewFromData(1, dims, NPY_INT, (void *)spacing);
+
+  //transfer correct image origin to Python
+  int origin[3];
+  image->GetGeometry()->GetOrigin().ToArray(origin);
+  PyObject *originArray = PyArray_SimpleNewFromData(1, dims, NPY_INT, (void *)origin);
 
   PyObject *setup = PyObject_GetAttrString(main, "setup");
   PyObject *result = PyObject_CallFunctionObjArgs(setup, pInstance, NULL);
@@ -390,7 +402,7 @@ bool mitk::PythonService::CopyToPythonAsSimpleItkImage(mitk::Image::Pointer imag
     mitkThrow() << "Something went wrong setting the MITK image in Python";
   }
   PyObject *convert = PyObject_GetAttrString(main, "convert_to_sitk");
-  result = PyObject_CallFunctionObjArgs(convert, NULL);
+  result = PyObject_CallFunctionObjArgs(convert,spacingArray, originArray, NULL);
   if (result == NULL)
   {
     mitkThrow() << "Something went wrong converting the MITK image to a SimpleITK image";
@@ -405,7 +417,9 @@ mitk::Image::Pointer mitk::PythonService::CopySimpleItkImageFromPython(const std
   std::string convertToMITKImage = "import SimpleITK as sitk\n"
                                    "import pyMITK\n"
                                    "numpy_array = sitk.GetArrayViewFromImage("+stdvarName+")\n"
-                                   "mitk_image = pyMITK.GetImageFromArray(numpy_array)\n";
+                                   "mitk_image = pyMITK.GetImageFromArray(numpy_array)\n"
+                                   "spacing = "+stdvarName+".GetSpacing()\n"
+                                   "origin = "+stdvarName +".GetOrigin()\n";
   this->Execute(convertToMITKImage);
 
   PyGILState_STATE gState = PyGILState_Ensure();
@@ -430,7 +444,27 @@ mitk::Image::Pointer mitk::PythonService::CopySimpleItkImageFromPython(const std
 
   mitkImage = *(reinterpret_cast<mitk::Image::Pointer *>(voidImage));
 
+  PyObject *spacing = PyDict_GetItemString(globals, "spacing");
+  mitk::Vector3D spacingMITK;
+  for (int i = 0; i < PyTuple_GET_SIZE(spacing); i++)
+  {
+    PyObject *spacingPy = PyTuple_GetItem(spacing, i);
+    double elem = PyFloat_AsDouble(spacingPy);
+    spacingMITK[i] = elem;
+  }
+
+  PyObject *origin = PyDict_GetItemString(globals, "origin");
+  mitk::Point3D originMITK;
+  for (int i = 0; i < PyTuple_GET_SIZE(origin); i++)
+  {
+    PyObject *originPy = PyTuple_GetItem(origin, i);
+    double elem = PyFloat_AsDouble(originPy);
+    originMITK[i] = elem;
+  }
+
   m_ThreadState = PyEval_SaveThread();
+  mitkImage->GetGeometry()->SetSpacing(spacingMITK);
+  mitkImage->GetGeometry()->SetOrigin(originMITK);
   return mitkImage;
 }
 
@@ -507,18 +541,6 @@ mitk::Image::Pointer mitk::PythonService::CopyMITKImageFromPython(const std::str
   {
     mitkThrow() << "Could not get image from Python";
   }
-
-  //int res = 0;
-  //void *voidImage;
-  //swig_type_info *pTypeInfo = nullptr;
-  //pTypeInfo = SWIG_TypeQuery("_p_itk__SmartPointerT_mitk__Image_t");
-  //res = SWIG_ConvertPtr(pyImage, &voidImage, pTypeInfo, 0);
-  //if (!SWIG_IsOK(res))
-  //{
-  //  mitkThrow() << "Could not cast image to C++ type";
-  //}
-
-  //mitkImage = *(reinterpret_cast<mitk::Image::Pointer *>(voidImage));
 
   mitkImage = GetImageFromPyObject(pyImage);
 

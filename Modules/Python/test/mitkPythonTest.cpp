@@ -533,7 +533,8 @@ public:
          MITK_ERROR << e.GetDescription();
          CPPUNIT_FAIL("Error in copying Image to Python");
        }
-       MITK_INFO << "Equal: " <<mitk::Equal(*image_in, *image_out, mitk::eps, true);
+       CPPUNIT_ASSERT_MESSAGE("copy an image to python and back should result in equal image",
+                              mitk::Equal(*image_in, *image_out, mitk::eps, true));
      }
    }
 

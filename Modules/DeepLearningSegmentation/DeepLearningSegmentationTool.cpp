@@ -54,21 +54,6 @@ const char *mitk::DeepLearningSegmentationTool::GetName() const
   return m_ToolName.c_str();
 }
 
-//bool mitk::DeepLearningSegmentationTool::CanHandle(mitk::BaseData *referenceData) const
-//{
-//  if (referenceData == nullptr)
-//    return false;
-//
-//  auto *image = dynamic_cast<mitk::Image *>(referenceData);
-//  if (image == nullptr)
-//    return false;
-//
-//  if (image->GetDimension() != 3)
-//    return false;
-//
-//  return true;
-//}
-
 const char **mitk::DeepLearningSegmentationTool::GetXPM() const
 {
   return nullptr;
