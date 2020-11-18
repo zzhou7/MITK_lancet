@@ -384,16 +384,17 @@ bool mitk::PythonService::CopyToPythonAsSimpleItkImage(mitk::Image::Pointer imag
     mitkThrow() << "Something went wrong creating the Python instance of the image";
   }
   //transfer correct image spacing to Python
-  int spacing[3];
-  image->GetGeometry()->GetSpacing().ToArray(spacing);
+  int numberOfImageDimension = image->GetDimension();
+  auto spacing = image->GetGeometry()->GetSpacing();
+  auto *spacingptr = &spacing;
   int nd = 1;
-  npy_intp dims[] = {3};
-  PyObject *spacingArray = PyArray_SimpleNewFromData(1, dims, NPY_INT, (void *)spacing);
+  npy_intp dims[] = {numberOfImageDimension};
+  PyObject *spacingArray = PyArray_SimpleNewFromData(1, dims, NPY_DOUBLE, (void *)spacingptr);
 
   //transfer correct image origin to Python
-  int origin[3];
-  image->GetGeometry()->GetOrigin().ToArray(origin);
-  PyObject *originArray = PyArray_SimpleNewFromData(1, dims, NPY_INT, (void *)origin);
+  auto origin = image->GetGeometry()->GetOrigin();
+  auto *originptr = &origin;
+  PyObject *originArray = PyArray_SimpleNewFromData(1, dims, NPY_DOUBLE, (void *)originptr);
 
   PyObject *setup = PyObject_GetAttrString(main, "setup");
   PyObject *result = PyObject_CallFunctionObjArgs(setup, pInstance, NULL);
