@@ -88,27 +88,6 @@ namespace mitk
       ///
       /// \see IPythonService::CopyListOfMITKImagesFromPython()
       std::vector<mitk::Image::Pointer> CopyListOfMITKImagesFromPython(const std::string &listVarName) override;
-      ///
-      /// \see IPythonService::IsOpenCvPythonWrappingAvailable()
-      bool IsOpenCvPythonWrappingAvailable() override;
-      ///
-      /// \see IPythonService::CopyToPythonAsCvImage()
-      bool CopyToPythonAsCvImage( mitk::Image* image, const std::string& varName ) override;
-      ///
-      /// \see IPythonService::CopyCvImageFromPython()
-      mitk::Image::Pointer CopyCvImageFromPython( const std::string& varName ) override;
-      ///
-      /// \see IPythonService::IsVtkPythonWrappingAvailable()
-      bool IsVtkPythonWrappingAvailable() override;
-      ///
-      /// \see IPythonService::CopyToPythonAsVtkPolyData()
-      bool CopyToPythonAsVtkPolyData( mitk::Surface* surface, const std::string& varName ) override;
-      ///
-      /// \see IPythonService::CopyVtkPolyDataFromPython()
-      mitk::Surface::Pointer CopyVtkPolyDataFromPython( const std::string& varName ) override;
-      ///
-      /// \return the ctk abstract python manager instance
-      //ctkAbstractPythonManager* GetPythonManager() override;
 
       void AddRelativeSearchDirs(std::vector< std::string > dirs) override;
 
@@ -124,8 +103,6 @@ namespace mitk
       PyObject *m_GlobalDictionary;
       PyObject *m_LocalDictionary;
       bool m_ItkWrappingAvailable;
-      bool m_OpenCVWrappingAvailable;
-      bool m_VtkWrappingAvailable;
       bool m_ErrorOccured;
   };
 }

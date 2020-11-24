@@ -59,8 +59,6 @@ typedef itksys::SystemTools ist;
 
 mitk::PythonService::PythonService()
   : m_ItkWrappingAvailable(true),
-    m_OpenCVWrappingAvailable(false),
-    m_VtkWrappingAvailable(false),
     m_ErrorOccured(false)
 {
   if (!Py_IsInitialized())
@@ -572,42 +570,6 @@ std::vector<mitk::Image::Pointer> mitk::PythonService::CopyListOfMITKImagesFromP
 
   m_ThreadState = PyEval_SaveThread();
   return mitkImages;
-}
-
-bool mitk::PythonService::CopyToPythonAsCvImage( mitk::Image* image, const std::string& stdvarName )
-{
-  mitkThrow() << "This function is not implemented";
-}
-
-
-mitk::Image::Pointer mitk::PythonService::CopyCvImageFromPython( const std::string& stdvarName )
-{
-  mitkThrow() << "This function is not implemented";
-}
-
-//ctkAbstractPythonManager *mitk::PythonService::GetPythonManager()
-//{
-//  return NULL;
-//}
-
-mitk::Surface::Pointer mitk::PythonService::CopyVtkPolyDataFromPython( const std::string& stdvarName )
-{
-  mitkThrow() << "This function is not implemented";
-}
-
-bool mitk::PythonService::CopyToPythonAsVtkPolyData( mitk::Surface* surface, const std::string& stdvarName )
-{
-  mitkThrow() << "This function is not implemented";
-}
-
-bool mitk::PythonService::IsOpenCvPythonWrappingAvailable()
-{
-  return m_OpenCVWrappingAvailable;
-}
-
-bool mitk::PythonService::IsVtkPythonWrappingAvailable()
-{
-  return m_VtkWrappingAvailable;
 }
 
 bool mitk::PythonService::PythonErrorOccured() const

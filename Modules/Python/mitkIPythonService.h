@@ -127,29 +127,6 @@ namespace mitk
         /// \return the image or 0 if copying was not possible
         virtual std::vector<mitk::Image::Pointer> CopyListOfMITKImagesFromPython(const std::string &listVarName) = 0;
         ///
-        /// \return true, if OpenCv wrapping is available, false otherwise
-        virtual bool IsOpenCvPythonWrappingAvailable() = 0;
-        ///
-        /// \see CopyToPythonAsItkImage()
-        virtual bool CopyToPythonAsCvImage( mitk::Image* image, const std::string& varName ) = 0;
-        ///
-        /// \see CopyCvImageFromPython()
-        virtual mitk::Image::Pointer CopyCvImageFromPython( const std::string& varName ) = 0;
-
-        ///
-        /// \return true, if vtk wrapping is available, false otherwise
-        virtual bool IsVtkPythonWrappingAvailable() = 0;
-        ///
-        /// \see CopyToPythonAsItkImage()
-        virtual bool CopyToPythonAsVtkPolyData( mitk::Surface* surface, const std::string& varName ) = 0;
-        ///
-        /// \see CopyCvImageFromPython()
-        virtual mitk::Surface::Pointer CopyVtkPolyDataFromPython( const std::string& varName ) = 0;
-
-        /// \return the ctk abstract python manager instance
-        //virtual ctkAbstractPythonManager* GetPythonManager() = 0;
-
-        ///
         /// nothing to do here
         virtual ~IPythonService(); // leer in mitkIPythonService.cpp implementieren
 
