@@ -53,9 +53,7 @@ set(MITK_MODULES
   DICOMUI
   Remeshing
   Python
-  QtPython
   PythonService
-  QtPythonService
   Persistence
   OpenIGTLinkUI
   IGTUI
