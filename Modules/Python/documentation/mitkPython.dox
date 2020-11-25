@@ -3,59 +3,24 @@
 \page mitkPython_Overview Python Module
 
 \section python_sec1 Description
-The MITK Python Module provides a service class to interactively run python code and evaluate the results. Furthermore, you can transfer some data structures such as MITK images to your python environment for processing.
-Currently, there are two different implementations of the MITK Python Module: The <code>PythonService</code> and the <code>QtPythonService</code>.
-The two implementations will be described in the following sections.
+The MITK Python Module provides a service class to run python code and evaluate the results. Furthermore, you can transfer data structures such as MITK images to your python environment for processing.
+The service implementation of the Python Module is the <code>PythonService</code> that uses the Python/C API to execute Python Code. Additionally, SWIG is used to wrap some MITK datatypes in python.
 
-\section python_sec2 The QtPythonService
-The <code>QtPythonService</code> is a service implementation which is based on CTK and PythonQt. 
+\section python_build Build instructions
 
-\warning The <code>QtPythonService</code> is the legacy implementation of the Python Module. There might be issues especially regarding multithreading.
-The implementation might be deprecated in nearer future. It is therefore recommended to use the \ref python_sec3 unless you need Data Types, that are not yet supported by the <code>PythonService</code>.
-
-\subsection qtpython_build Build instructions
-
-To build MITK with the <code>QtPythonService</code>, the following CMake build options have to be enabled:
-<ul>
-	<li> <code>MITK_USE_Python3</code>
-</ul>
-MITK_USE_Python3 enables the python wrapping in MITK. When the option is activated the build of the additional dependency SimpleITK is also enabled. The default behaviour is to use the python runtime from the system is used. Only Python 3.x is supported.
-
-\subsection qt_data_types Supported Data Types
-The following data types in MITK are supported in the <code>QtPythonService</code> wrapping:
-<ul>
-	<li> Image 
-	<li> Surface
-</ul>
-
-\subsubsection qtpython_image Image
-Mitk Images can be transferred to python. The images are copied in-memory and
-transferred as a numpy array to Python and vice versa. The MITK python wrapping creates a SimpleITK image
-using the numpy array with the  properties of the MITK Image. Two dimensional images
-can also be transferred as an OpenCV image to python.
-
-\subsubsection qtpython_surface Surface
-Surfaces within mitk can be transferred as a vtkPolyData Object to Python.
-The surfaces are fully memory mapped. When changing a python wrapped surface
-the original object is also modified on the C++ side of MITK.
-
-
-\section python_sec3 The PythonService
-The <code>PythonService</code> is a service implementation that uses the Python/C API to execute Python Code. Additionally, SWIG is used to wrap some MITK datatypes in python.
-
-\subsection python_build Build instructions
-
-To build MITK with the <code>QtPythonService</code>, the following CMake build options have to be enabled:
+To build MITK with the <code>PythonService</code>, the following CMake build options have to be enabled:
 <ul>
 	<li> <code>MITK_USE_Python3</code>
 	<li> <code>MITK_USE_SWIG</code>
+	<li> <code>MITK_USE_Matchpoint</code>
 	<li> <code>WRAP_DEFAULT</code>
 	<li> <code>WRAP_PYTHON</code>
 </ul>
 
-The use of Python is already explained in \ref qtpython_build. The other options are all for wrapping MITK classes in Python classes.
+MITK_USE_Python3 enables the use of python in MITK. When the option is activated the build of the additional dependency SimpleITK is also enabled. The default behaviour is to use the python runtime from the system. Only Python 3.x is supported.
+The other options are all for wrapping MITK classes in Python classes.
 
-\subsection python_setup Setup
+\section python_setup Setup
 To get an instance of the <code>PythonService</code>, the following code is necessary:
 
 \code{.cpp}
@@ -65,10 +30,10 @@ auto m_PythonServiceRefs = context->GetServiceReferences<mitk::IPythonService>(f
 auto *m_PythonService = dynamic_cast<mitk::IPythonService*> (context->GetService<mitk::IPythonService> (m_PythonServiceRefs.front()));
 \endcode 
 
-\subsection python_usage Usage
+\section python_usage Usage
 In the following sections, some of the key features of the <code>PythonService</code> are described. 
 
-\subsubsection python_executing_code Executing python code
+\subsection python_executing_code Executing python code
 Python code can be executed in two ways: 
 <ul>
 	<li> With the method <code>Execute(const std::string &pythonCommand, int commandType)</code>, code can be executed in form of a C++ string. The variable <code>commandType</code> can have the following values:
@@ -87,7 +52,7 @@ Python code can be executed in two ways:
 		\endcode	
 </ul>
 
-\subsubsection python_access_variables Accessing variables
+\subsection python_access_variables Accessing variables
 The following methods are available for accessing varaibles:
 <ul>
 	<li><code>GetVariableStack()</code> returns all variables from the python context. The variables are returned as a list of the type <code>PythonVariable</code>. This contains for all variables the name, type and value as string format.
@@ -95,10 +60,10 @@ The following methods are available for accessing varaibles:
 	<li><code>GetVariable (const std::string& name)</code> returns the value of a python variable with the given <code>name</code> as a string.
 </ul>
 
-\subsubsection python_transfer_images Transfer Images
+\subsection python_transfer_images Transfer Images
 
-With the <code>PythonService</code>, images can be transferred from C++ to the python context.
-\note Currently, MITK images can be transferred and can be used in the python context either as MITK image as well or as SimpleITK image. If you want to use the MITK image data structure in the python context, you need to <code>import pyMITK</code> in your script.
+With the <code>PythonService</code>, images can be transferred from C++ to the python context and vice versa.
+\note Currently, MITK images can be transferred and can be used in the python context either as MITK image or as SimpleITK image. If you want to use the MITK image data structure in the python context, you need to <code>import pyMITK</code> in your script.
 
 \subsubsection python_images_mitk_python Transfer images from C++ to python
 To transfer images from C++ to python, the following methods are provided:
