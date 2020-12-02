@@ -1,8 +1,8 @@
-set(MITK_CMAKE_MINIMUM_REQUIRED_VERSION 3.14.5)
+set(MITK_CMAKE_MINIMUM_REQUIRED_VERSION 3.18)
 cmake_minimum_required(VERSION ${MITK_CMAKE_MINIMUM_REQUIRED_VERSION})
 
 #-----------------------------------------------------------------------------
-# See https://cmake.org/cmake/help/v3.14/manual/cmake-policies.7.html for details
+# See https://cmake.org/cmake/help/v3.18/manual/cmake-policies.7.html for details
 #-----------------------------------------------------------------------------
 
 set(project_policies )
@@ -282,7 +282,11 @@ mitkFunctionFindWhitelists(MITK)
 option(MITK_USE_Qt5 "Use Qt 5 library" ON)
 
 if(MITK_USE_Qt5)
-  set(MITK_QT5_MINIMUM_VERSION 5.12)
+  if(WIN32)
+    set(MITK_QT5_MINIMUM_VERSION 5.12.9)
+  else()
+    set(MITK_QT5_MINIMUM_VERSION 5.12)
+  endif()
   set(MITK_QT5_COMPONENTS Concurrent OpenGL PrintSupport Script Sql Svg Widgets Xml XmlPatterns WebEngineWidgets UiTools Help LinguistTools)
   if(APPLE)
     list(APPEND MITK_QT5_COMPONENTS DBus)
@@ -340,10 +344,6 @@ if(MITK_USE_Qt5)
   endif()
 
   find_package(Qt5 ${MITK_QT5_MINIMUM_VERSION} COMPONENTS ${MITK_QT5_COMPONENTS} REQUIRED HINTS ${MITK_QT5_HINTS})
-
-  if(${Qt5_VERSION} VERSION_GREATER_EQUAL 5.13)
-    message(WARNING "Qt version ${Qt5_VERSION_MAJOR}.${Qt5_VERSION_MINOR} is not yet supported. We recommend using version 5.12.x.")
-  endif()
 endif()
 
 # -----------------------------------------
@@ -354,6 +354,13 @@ option(MITK_USE_SYSTEM_Boost "Use the system Boost" OFF)
 set(MITK_USE_Boost_LIBRARIES "" CACHE STRING "A semi-colon separated list of required Boost libraries")
 
 if(MITK_USE_cpprestsdk)
+  if(WIN32 AND Qt5_DIR)
+    set(_dir_candidate "${Qt5_DIR}/../../../../../Tools/OpenSSL/Win_x64")
+    get_filename_component(_dir_candidate ${_dir_candidate} ABSOLUTE)
+    if(EXISTS "${_dir_candidate}")
+      set(OPENSSL_ROOT_DIR "${_dir_candidate}")
+    endif()
+  endif()
   find_package(OpenSSL QUIET)
   if(NOT OpenSSL_FOUND)
     set(openssl_message "Could not find OpenSSL (dependency of C++ REST SDK).\n")
@@ -365,8 +372,10 @@ if(MITK_USE_cpprestsdk)
         set(openssl_message "${openssl_message}Please install the dev package of OpenSSL (i.e. libssl-dev).\n")
       endif()
     else()
-      set(openssl_message "${openssl_message}Please install Win32 OpenSSL:\n"
-                          "  https://slproweb.com/products/Win32OpenSSL.html\n")
+      set(openssl_message "${openssl_message}Please either install Win32 OpenSSL:\n"
+                          "  https://slproweb.com/products/Win32OpenSSL.html\n"
+                          "Or use the Qt Maintenance tool to install:\n"
+                          "  Developer and Designer Tools > OpenSSL Toolkit > OpenSSL 64-bit binaries\n")
     endif()
     set(openssl_message "${openssl_message}If it still cannot be found, you can hint CMake to find OpenSSL by "
                         "adding/setting the OPENSSL_ROOT_DIR variable to the root directory of an "
@@ -629,10 +638,6 @@ mark_as_advanced(BLUEBERRY_DEBUG_SMARTPOINTER)
 option(MITK_SHOW_CONSOLE_WINDOW "Use this to enable or disable the console window when starting MITK GUI Applications" ON)
 mark_as_advanced(MITK_SHOW_CONSOLE_WINDOW)
 
-# TODO: check if necessary
-option(USE_ITKZLIB "Use the ITK zlib for pic compression." ON)
-mark_as_advanced(USE_ITKZLIB)
-
 if(NOT MITK_FAST_TESTING)
   if(MITK_CTEST_SCRIPT_MODE STREQUAL "Continuous" OR MITK_CTEST_SCRIPT_MODE STREQUAL "Experimental")
     set(MITK_FAST_TESTING ON)
@@ -800,7 +805,7 @@ endif()
 set(Boost_USE_MULTITHREADED 1)
 set(Boost_USE_STATIC_LIBS 0)
 set(Boost_USE_STATIC_RUNTIME 0)
-set(Boost_ADDITIONAL_VERSIONS 1.68 1.68.0)
+set(Boost_ADDITIONAL_VERSIONS 1.74 1.74.0)
 
 # We need this later for a DCMTK workaround
 set(_dcmtk_dir_orig ${DCMTK_DIR})
@@ -866,8 +871,6 @@ if(MITK_USE_DCMQI)
   set(DCMQI_DIR ${MITK_EXTERNAL_PROJECT_PREFIX})
   find_package(DCMQI REQUIRED)
 endif()
-
-link_directories(${Boost_LIBRARY_DIRS})
 
 if(MITK_USE_OpenIGTLink)
   link_directories(${OpenIGTLink_LIBRARY_DIRS})
