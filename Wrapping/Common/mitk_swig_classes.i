@@ -24,13 +24,13 @@
 #define ITK_OVERRIDE
 #define ITK_NOEXCEPT
 
-
 %include <itkMacro.h>
 %include <mitkCommon.h>
 %include <itkSmartPointer.h>
 %include <mitkPixelType.h>
 %include <mitkChannelDescriptor.h>
 %include <mitkIOUtil.h>
+%include <mitkBaseGeometry.h>
 
 #define DEPRECATED(func) func
 #undef ITK_DISALLOW_COPY_AND_ASSIGN
@@ -42,6 +42,7 @@ typedef Vector3D mitk::Vector3D;
 %pythoncode %{
  convertion_list = {}
 %}
+
 
 SWIG_ADD_NONOBJECT_CLASS(Indent, itkIndent.h, itk)
 SWIG_ADD_MITK_CLASS(LightObject, itkLightObject.h, itk)
@@ -101,16 +102,19 @@ class VnlVectorRef;
 %include <itkVector.h>
 class itk::FixedArray<ScalarType, 3>::ReverseIterator;
 //%template(VnlVectorRef) vnl_vector_ref<ScalarType>;
-%template(itkFixedArray3D) itk::FixedArray<ScalarType, 3>;
-%template(itkVector2D) itk::Vector<ScalarType, 2>;
-%template(itkVector3D) itk::Vector<ScalarType, 3>;
-%template(itkVector4D) itk::Vector<ScalarType, 4>;
-
+%template(itkFixedArray2D) itk::FixedArray<double, 2>;
+%template(itkFixedArray3D) itk::FixedArray<double, 3>;
+%template(itkFixedArray3UD) itk::FixedArray<double, 3U>;
+%template(itkFixedArray4D) itk::FixedArray<double, 4>;
+%template(itkVector2D) itk::Vector<double, 2>;
+%template(itkVector3D) itk::Vector<double, 3>;
+%template(itkVector3UD) itk::Vector<double, 3U>;
+%template(itkVector4D) itk::Vector<double, 4>;
 
 SWIG_ADD_NONOBJECT_TEMPLATE_CLASS(Vector2D, mitkVector.h, mitk)
-%template(Vector2D) mitk::Vector<ScalarType, 2>;
+%template(Vector2D) mitk::Vector<double, 2>;
 SWIG_ADD_NONOBJECT_TEMPLATE_CLASS(Vector3D, mitkVector.h, mitk)
-%template(Vector3D) mitk::Vector<ScalarType, 3>;
+%template(Vector3D) mitk::Vector<double, 3>;
 SWIG_ADD_NONOBJECT_TEMPLATE_CLASS(Vector4D, mitkVector.h, mitk)
 %template(Vector4D) mitk::Vector<ScalarType, 4>;
 
