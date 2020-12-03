@@ -1,71 +1,28 @@
-find_package(SWIG QUIET)
+if(MITK_USE_SWIG AND MITK_USE_Python3 AND Python3_FOUND)
+  find_package(SWIG 4.0.2 COMPONENTS python)
 
-if(SWIG_FOUND)
-  include(mitkLanguageOptions)
-  include(UseSWIG)
+  if(SWIG_FOUND)
+    option(MITK_WRAP_PYTHON "" ON)
 
-  include(mitkSwigAddLibraryDependencies)
-  include(mitkSwigPrepareFiles)
+    if(MITK_WRAP_PYTHON)
+      include(UseSWIG)
 
-  # Path to common files
-  set(MITK_WRAPPING_COMMON_DIR ${MITK_SOURCE_DIR}/Wrapping/Common)
-  # make a manual list of dependencies for the Swig.i files
-  list( APPEND SWIG_EXTRA_DEPS
-    "${MITK_WRAPPING_COMMON_DIR}/MITK_Common.i"
-    )
+      include(mitkSwigPrepareFiles)
 
-  # A general packaging target, not built by default, to build packages for each
-  # language.  This should depend on all language specific targets.
+      # Path to common files
+      set(MITK_WRAPPING_COMMON_DIR "${MITK_SOURCE_DIR}/Wrapping/Common")
 
-  add_custom_target( dist ${CMAKE_COMMAND} -E echo "Finished generating wrapped packages for distribution..." )
-  set_property(TARGET dist PROPERTY FOLDER "${MITK_ROOT_FOLDER}/Wrapping")
+      # Make a manual list of dependencies for the Swig.i files
+      list(APPEND SWIG_EXTRA_DEPS
+        "${MITK_WRAPPING_COMMON_DIR}/MITK_Common.i"
+      )
 
-  #
-  # lua SWIG configuration
-  #
-  #if ( WRAP_LUA )
-  #  add_subdirectory ( Lua )
-  #endif()
+      # A general packaging target, not built by default, to build packages for each
+      # language. This should depend on all language specific targets.
+      add_custom_target(dist ${CMAKE_COMMAND} -E echo "Finished generating wrapped packages for distribution...")
+      set_property(TARGET dist PROPERTY FOLDER "${MITK_ROOT_FOLDER}/Wrapping")
 
-  #
-  # python SWIG configuration
-  #
-  if ( WRAP_PYTHON )
-    add_subdirectory ( Python )
+      add_subdirectory(Python)
+    endif()
   endif()
-
-  #
-  # ruby SWIG configuration
-  #
-  #if ( WRAP_RUBY )
-  #  add_subdirectory ( Ruby )
-  #endif()
-
-  #
-  # JAVA SWIG configuration
-  #
-  #if ( WRAP_JAVA )
-  #  add_subdirectory( Java )
-  #endif()
-
-  #
-  # C# SWIG configuration
-  #
-  #if ( WRAP_CSHARP )
-  #  add_subdirectory ( CSharp )
-  #endif()
-
-  #
-  # TCL SWIG configuration
-  #
-  #if ( WRAP_TCL )
-  #  add_subdirectory ( Tcl )
-  #endif()
-
-  #
-  # R SWIG configuration
-  #
-  #if ( WRAP_R )
-  #  add_subdirectory( R )
-  #endif()
 endif()
