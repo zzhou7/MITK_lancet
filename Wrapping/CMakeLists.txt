@@ -1,4 +1,4 @@
-if(MITK_USE_SWIG AND MITK_USE_Python3 AND Python3_FOUND)
+if(MITK_USE_SWIG AND MITK_USE_MatchPoint AND MITK_USE_Python3)
   find_package(SWIG 4.0.2 COMPONENTS python)
 
   if(SWIG_FOUND)
@@ -24,5 +24,7 @@ if(MITK_USE_SWIG AND MITK_USE_Python3 AND Python3_FOUND)
 
       add_subdirectory(Python)
     endif()
+  else()
+    message(SEND_ERROR "SWIG not found!")
   endif()
 endif()

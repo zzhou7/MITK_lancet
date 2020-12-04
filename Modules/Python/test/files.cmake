@@ -1,10 +1,11 @@
 set(MODULE_TESTS
-    mitkPythonTest.cpp
+  mitkPythonTest.cpp
 )
 
-SET(CPP_FILES
+set(CPP_FILES
   mitkPythonObserverMock.cpp
 )
-SET(H_FILES
+
+set(H_FILES
   mitkPythonObserverMock.h
 )
