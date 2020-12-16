@@ -6,6 +6,8 @@
 #define SWIG_MITK_WRAPPING "@MITK_BINARY_DIR@/lib/Release"
 #endif
 
+#define SWIG_PYTHON_BUILD_OUTPUT "@MITK_BINARY_DIR@/Wrapping/Python/build"
+
 #define PYTHON_LIBRARY "@PYTHON_LIBRARY@"
 
 #ifdef WIN32

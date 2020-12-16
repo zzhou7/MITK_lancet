@@ -77,12 +77,20 @@ mitk::PythonService::PythonService()
   pythonCommand.append("import numpy\n");
 
   pythonCommand.append("import site, sys\n");
+  pythonCommand.append("import os\n");
   pythonCommand.append("sys.path.append('')\n");
   pythonCommand.append("sys.path.append('" + programPath + "')\n");
   pythonCommand.append("sys.path.append('" + std::string(SWIG_MITK_WRAPPING) + "')\n");
   pythonCommand.append("sys.path.append('" +std::string(EXTERNAL_DIST_PACKAGES) + "')\n");
-  pythonCommand.append("\nsite.addsitedir('"+std::string(EXTERNAL_SITE_PACKAGES)+"')");
-
+  pythonCommand.append("\nsite.addsitedir('"+std::string(EXTERNAL_SITE_PACKAGES)+"')\n");
+  std::string searchForDll = "if sys.version_info[1] > 7:\n"
+                             "  for root, dirs, files in os.walk('" + std::string(SWIG_PYTHON_BUILD_OUTPUT) +"'):\n"
+                             "      for file in files:\n"
+                             "          if file.endswith('.dll'):\n"
+                             "              os.add_dll_directory(root)\n"
+                             "              break\n";
+  pythonCommand.append(searchForDll);
+  
   if (PyRun_SimpleString(pythonCommand.c_str()) == -1)
   {
     MITK_ERROR << "Something went wrong in setting the path in Python";
