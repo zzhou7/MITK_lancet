@@ -1,4 +1,4 @@
-project(org_mitk_gui_qt_deeplearningsegmentation)
+project(org_mitk_deeplearningsegmentation)
 
 mitk_create_plugin(
   EXPORT_DIRECTIVE DEEPLEARNINGSEGMENTATION_EXPORT

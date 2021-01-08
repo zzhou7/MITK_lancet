@@ -14,7 +14,7 @@ found in the LICENSE file.
 #ifndef DeepLearningSegmentationGUI_h
 #define DeepLearningSegmentationGUI_h
 
-#include <org_mitk_gui_qt_deeplearningsegmentation_Export.h>
+#include <org_mitk_deeplearningsegmentation_Export.h>
 #include "ui_DeepLearningSegmentationGUI.h"
 #include <QmitkToolGUI.h>
 #include "DeepLearningSegmentationTool.h"

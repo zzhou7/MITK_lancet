@@ -25,7 +25,7 @@ This guide assumes a certain workflow for the segmentation. This includes:
 \note segmentations with slightly different workflow could also be intergrated. For this, some methods have to be overwritten. A procedure for segmentations with additional parameters (point 5 above not fulfilled) is described later on.
 
 In the following sections, a tool called "My Segmentation" is integrated. The names in the code examples have to be adopted to the method you want to integrate.
-The deep learning interface consists of two parts: The module <code>MITKDeepLearningSegmentation</code>, where the algorithm itself is implemented and the plugin <code>org.mitk.gui.qt.deeplearningsegmentation</code>, where the GUI interaction is implemented.
+The deep learning interface consists of two parts: The module <code>MITKDeepLearningSegmentation</code>, where the algorithm itself is implemented and the plugin <code>org.mitk.deeplearningsegmentation</code>, where the GUI interaction is implemented.
 
 \section DLSeg_Module Implementation in the module
 
@@ -50,7 +50,7 @@ The header file of the tool class typically has the following structure:
 \code{.h}
 #ifndef MySegTool3DGUI_h
 #define MySegTool3DGUI_h
-#include <org_mitk_gui_qt_deeplearningsegmentation_Export.h>
+#include <org_mitk_deeplearningsegmentation_Export.h>
 #include"DeepLearningSegmentationGUI.h"
 #include"MySegTool3D.h"
 namespace Ui {
@@ -100,7 +100,7 @@ This arguments are:
 
 \section DLSeg_Plugin Implementation in the plugin
 
-In the second step, the necesarry parts in the plugin folder <code>org.mitk.gui.qt.deeplearningsegmentation</code> are implemented. Therefore, you should execute the following steps:
+In the second step, the necesarry parts in the plugin folder <code>org.mitk.deeplearningsegmentation</code> are implemented. Therefore, you should execute the following steps:
 
 <ol>
   <li> Create a tool GUI class. For this, you need to create a header file (MySegTool3DGUI.h) and a cpp file (MySegTool3DGUI.cpp). A typical structure for this files is shown in the following section. The files should be named with the syntax <method>SegTool3DGUI.
@@ -118,7 +118,7 @@ The header file of the tool GUI class typically has the following structure:
 \code{.h}
 #ifndef MySegTool3DGUI_h
 #define MySegTool3DGUI_h
-#include <org_mitk_gui_qt_deeplearningsegmentation_Export.h>
+#include <org_mitk_deeplearningsegmentation_Export.h>
 #include"DeepLearningSegmentationGUI.h"
 #include"MySegTool3D.h"
 namespace Ui {

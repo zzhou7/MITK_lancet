@@ -1,5 +1,5 @@
 set(INTERNAL_CPP_FILES
-  org_mitk_gui_qt_deeplearningsegmentation_Activator.cpp
+  org_mitk_deeplearningsegmentation_Activator.cpp
   DeepLearningSegmentationGUI.cpp
   SegmentationWorker.cpp
   SegmentationResultHandler.cpp
@@ -10,7 +10,7 @@ set(UI_FILES
 )
 
 set(MOC_H_FILES
-  src/internal/org_mitk_gui_qt_deeplearningsegmentation_Activator.h
+  src/internal/org_mitk_deeplearningsegmentation_Activator.h
   src/internal/DeepLearningSegmentationGUI.h
   src/internal/SegmentationWorker.h
   src/internal/SegmentationResultHandler.h
