@@ -22,18 +22,34 @@ mark_as_advanced(
   MITK_PYTHON_WHEEL
 )
 
-set(libraries
-  MitkCore
-  MitkCLCore
-  MitkCLUtilities
-  ITKCommon
-  MitkMatchPointRegistration
-  MitkSegmentation
-  MitkMultilabel
-  MitkDICOM
-  MitkDICOMImageIO
-  MitkRT
-)
+if(MITK_USE_MatchPoint)
+	set(libraries
+	  MitkCore
+	  MitkCLCore
+	  MitkCLUtilities
+	  ITKCommon
+	  MitkMatchPointRegistration
+	  MitkSegmentation
+	  MitkMultilabel
+	  MitkDICOM
+	  MitkDICOMImageIO
+	  MitkRT
+	)
+else()
+	set(libraries
+	  MitkCore
+	  MitkCLCore
+	  MitkCLUtilities
+	  ITKCommon
+	  MitkSegmentation
+	  MitkMultilabel
+	  MitkDICOM
+	  MitkDICOMImageIO
+	  MitkRT
+	)
+endif()
+
+	
 
 mitkSwigPrepareFiles(pyMITK MITK.i ${libraries})
 

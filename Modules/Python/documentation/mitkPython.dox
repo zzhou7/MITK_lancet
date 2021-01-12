@@ -12,7 +12,6 @@ To build MITK with the <code>PythonService</code>, the following CMake build opt
 <ul>
 	<li> <code>MITK_USE_Python3</code>
 	<li> <code>MITK_USE_SWIG</code>
-	<li> <code>MITK_USE_Matchpoint</code>
 	<li> <code>WRAP_DEFAULT</code>
 	<li> <code>WRAP_PYTHON</code>
 </ul>
