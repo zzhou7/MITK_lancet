@@ -1065,6 +1065,21 @@ set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} ${MITK_MODULE_LINKER
 
 add_subdirectory(Utilities)
 
+set(MITK_WRAP_PYTHON_ENABLED OFF)
+if(MITK_USE_SWIG AND MITK_USE_Python3)
+  find_package(SWIG 4.0.2 COMPONENTS python)
+
+  if(SWIG_FOUND)
+    option(MITK_WRAP_PYTHON "" ON)
+
+    if(MITK_WRAP_PYTHON)
+      set(MITK_WRAP_PYTHON_ENABLED ON)
+    endif()
+  else()
+   message(SEND_ERROR "SWIG not found!")
+  endif()
+endif()
+
 add_subdirectory(Modules)
 
 include("${CMAKE_CURRENT_SOURCE_DIR}/Modules/ModuleList.cmake")

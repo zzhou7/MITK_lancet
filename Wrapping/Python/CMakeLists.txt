@@ -61,10 +61,11 @@ endif()
 
 set(CMAKE_SWIG_OUTDIR ${MITK_BINARY_DIR}/lib/Release)
 
+set(UseSWIG_TARGET_NAME_PREFERENCE STANDARD)
 swig_add_library(pyMITK LANGUAGE python SOURCES MITK.i)
 set_property(TARGET pyMITK PROPERTY FOLDER "${MITK_ROOT_FOLDER}/Wrapping")
 
-swig_link_libraries(pyMITK ${libraries})
+target_link_libraries(pyMITK ${libraries})
 
 mitk_target_link_libraries_with_dynamic_lookup(${SWIG_MODULE_pyMITK_REAL_NAME} ${Python3_LIBRARIES})
 

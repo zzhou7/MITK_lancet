@@ -1,30 +1,21 @@
-if(MITK_USE_SWIG AND MITK_USE_Python3)
-  find_package(SWIG 4.0.2 COMPONENTS python)
+if(MITK_WRAP_PYTHON_ENABLED)
+  message("MITK Python wrapping was successfully enabled")
+  include(UseSWIG)
 
-  if(SWIG_FOUND)
-    option(MITK_WRAP_PYTHON "" ON)
+  include(mitkSwigPrepareFiles)
 
-    if(MITK_WRAP_PYTHON)
-      include(UseSWIG)
+  # Path to common files
+  set(MITK_WRAPPING_COMMON_DIR "${MITK_SOURCE_DIR}/Wrapping/Common")
 
-      include(mitkSwigPrepareFiles)
+  # Make a manual list of dependencies for the Swig.i files
+  list(APPEND SWIG_EXTRA_DEPS
+    "${MITK_WRAPPING_COMMON_DIR}/MITK_Common.i"
+  )
 
-      # Path to common files
-      set(MITK_WRAPPING_COMMON_DIR "${MITK_SOURCE_DIR}/Wrapping/Common")
+  # A general packaging target, not built by default, to build packages for each
+  # language. This should depend on all language specific targets.
+  add_custom_target(dist ${CMAKE_COMMAND} -E echo "Finished generating wrapped packages for distribution...")
+  set_property(TARGET dist PROPERTY FOLDER "${MITK_ROOT_FOLDER}/Wrapping")
 
-      # Make a manual list of dependencies for the Swig.i files
-      list(APPEND SWIG_EXTRA_DEPS
-        "${MITK_WRAPPING_COMMON_DIR}/MITK_Common.i"
-      )
-
-      # A general packaging target, not built by default, to build packages for each
-      # language. This should depend on all language specific targets.
-      add_custom_target(dist ${CMAKE_COMMAND} -E echo "Finished generating wrapped packages for distribution...")
-      set_property(TARGET dist PROPERTY FOLDER "${MITK_ROOT_FOLDER}/Wrapping")
-
-      add_subdirectory(Python)
-    endif()
-  else()
-    message(SEND_ERROR "SWIG not found!")
-  endif()
+  add_subdirectory(Python)
 endif()
