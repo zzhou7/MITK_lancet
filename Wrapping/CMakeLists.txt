@@ -1,5 +1,4 @@
 if(MITK_WRAP_PYTHON_ENABLED)
-  message("MITK Python wrapping was successfully enabled")
   include(UseSWIG)
 
   include(mitkSwigPrepareFiles)
