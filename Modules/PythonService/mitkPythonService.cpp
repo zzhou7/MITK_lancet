@@ -45,17 +45,20 @@ mitk::PythonService::PythonService()
   : m_ItkWrappingAvailable(true),
     m_ErrorOccured(false)
 {
+  // Initialize Python interpreter and ensure global interpreter lock in order to execute python code safely
   if (!Py_IsInitialized())
   {
     Py_Initialize();
   }
   PyGILState_STATE gState = PyGILState_Ensure();
+
   std::string programPath = mitk::IOUtil::GetProgramPath();
   std::replace(programPath.begin(), programPath.end(), '\\', '/');
   programPath.append("/");
   MITK_INFO << programPath;
   std::string pythonCommand;
 
+  // execute a string which imports packages that are needed and sets paths to directories
   pythonCommand.append("import SimpleITK as sitk\n");
   pythonCommand.append("import SimpleITK._SimpleITK as _SimpleITK\n");
   pythonCommand.append("import numpy\n");
@@ -67,6 +70,8 @@ mitk::PythonService::PythonService()
   pythonCommand.append("sys.path.append('" + std::string(SWIG_MITK_WRAPPING) + "')\n");
   pythonCommand.append("sys.path.append('" +std::string(EXTERNAL_DIST_PACKAGES) + "')\n");
   pythonCommand.append("\nsite.addsitedir('"+std::string(EXTERNAL_SITE_PACKAGES)+"')\n");
+  // in python 3.8 onwards, the path system variable is not longer used to find dlls
+  // that's why the dlls that are needed for swig wrapping need to be searched manually
   std::string searchForDll = "if sys.version_info[1] > 7:\n"
                              "  for root, dirs, files in os.walk('" + std::string(SWIG_PYTHON_BUILD_OUTPUT) +"'):\n"
                              "      for file in files:\n"
@@ -96,6 +101,7 @@ void mitk::PythonService::AddRelativeSearchDirs(std::vector< std::string > dirs)
     try
     {
       std::string path = std::string(MITK_ROOT) + dir;
+      // sys.path.append enables to call scripts which are located in the given path
       std::string pythonCommand = "import sys\nsys.path.append('" + path + "')\n";
       this->Execute(pythonCommand.c_str());
     }
@@ -112,6 +118,7 @@ void mitk::PythonService::AddAbsoluteSearchDirs(std::vector< std::string > dirs)
   {
     try
     {
+      // sys.path.append enables to call scripts which are located in the given path
       std::string pythonCommand = "import sys\nsys.path.append('" + dir + "')\n";
       this->Execute(pythonCommand.c_str());
     }
@@ -133,6 +140,7 @@ std::string mitk::PythonService::Execute(const std::string &stdpythonCommand, in
   PyGILState_STATE gState = PyGILState_Ensure();
   try
   {
+    // command type is start symbol for python interpreter
     switch (commandType)
     {
       case IPythonService::SINGLE_LINE_COMMAND:
@@ -147,8 +155,13 @@ std::string mitk::PythonService::Execute(const std::string &stdpythonCommand, in
       default:
         commandType = Py_file_input;
     }
+    // executes python code given as string
+    // if result is NULL, an error occured
     PyObject* executionResult = PyRun_String(stdpythonCommand.c_str(), commandType, m_GlobalDictionary, m_LocalDictionary);
+    // notifies registered observers that command has been executed
     this->NotifyObserver(stdpythonCommand);
+
+    // if no error occured, the result is represented as string which is returned
     if (executionResult)
     {
       PyObject *objectsRepresentation = PyObject_Repr(executionResult);
@@ -175,9 +188,11 @@ std::string mitk::PythonService::Execute(const std::string &stdpythonCommand, in
 
 void mitk::PythonService::ExecuteScript(const std::string &pythonScript)
 {
+  // read given file as string
   std::ifstream t(pythonScript.c_str());
   std::string str((std::istreambuf_iterator<char>(t)), std::istreambuf_iterator<char>());
   t.close();
+  // pass the file as string to the Execute() function
   try
   {
     this->Execute(str.c_str(), MULTI_LINE_COMMAND);
@@ -190,10 +205,13 @@ void mitk::PythonService::ExecuteScript(const std::string &pythonScript)
 
 std::vector<mitk::PythonVariable> mitk::PythonService::GetVariableStack()
 {
+  // variables are returned as a list of type mitk::PythonVariable
   std::vector<mitk::PythonVariable> list;
   PyGILState_STATE gState = PyGILState_Ensure();
   try
   {
+    // vaiables are taken from the main module
+    // get dictionary where these variables are stored
     PyObject *dict = PyImport_GetModuleDict();
     PyObject *object = PyDict_GetItemString(dict, "__main__");
     if (!object)
@@ -207,17 +225,21 @@ std::vector<mitk::PythonVariable> mitk::PythonService::GetVariableStack()
     {
       std::string name, attrValue, attrType;
 
+      //iterate over python list of variables to get desired representation and store in returned variable list
       for (int i = 0; i < PyList_Size(dirMain); i++)
       {
+        // get variable at current index
         tempObject = PyList_GetItem(dirMain, i);
         if (!tempObject)
         {
           mitkThrow() << "An error occured getting an item from the dictionary";
         }
+        // get variable name as string
         PyObject *objectsRepresentation = PyObject_Repr(tempObject);
         const char *objectChar = PyUnicode_AsUTF8(objectsRepresentation);
         std::string name = std::string(objectChar);
         name = name.substr(1, name.size() - 2);
+        // get variable type as string
         tempObject = PyObject_GetAttrString(object, name.c_str());
         if (!tempObject)
         {
@@ -225,10 +247,12 @@ std::vector<mitk::PythonVariable> mitk::PythonService::GetVariableStack()
         }
         attrType = tempObject->ob_type->tp_name;
 
+        // get variable value as string
         PyObject *valueStringRepresentation = PyObject_Repr(tempObject);
         const char *valueChar = PyUnicode_AsUTF8(valueStringRepresentation);
         std::string attrValue = std::string(valueChar);
 
+        // build variable type to store
         mitk::PythonVariable var;
         var.m_Name = name;
         var.m_Value = attrValue;
@@ -248,6 +272,7 @@ std::vector<mitk::PythonVariable> mitk::PythonService::GetVariableStack()
 
 std::string mitk::PythonService::GetVariable(const std::string& name)
 {
+  // get all variables from python context
   std::vector<mitk::PythonVariable> allVars;
   try
   {
@@ -257,6 +282,7 @@ std::string mitk::PythonService::GetVariable(const std::string& name)
   {
     mitkThrow() << "Error getting the variable stack";
   }
+  // search for variable with given name
   for (unsigned int i = 0; i < allVars.size(); i++)
   {
     if (allVars.at(i).m_Name == name)
@@ -269,6 +295,7 @@ std::string mitk::PythonService::GetVariable(const std::string& name)
 bool mitk::PythonService::DoesVariableExist(const std::string& name)
 {
   bool varExists = false;
+  // get all variables from python context
   std::vector<mitk::PythonVariable> allVars;
   try
   {
@@ -278,7 +305,7 @@ bool mitk::PythonService::DoesVariableExist(const std::string& name)
   {
     mitkThrow() << "Error getting the variable stack";
   }
- 
+  // check if variable with given name exists in context
   for (unsigned int i = 0; i < allVars.size(); i++)
   {
     if (allVars.at(i).m_Name == name)
@@ -302,6 +329,7 @@ void mitk::PythonService::AddPythonCommandObserver(mitk::PythonCommandObserver *
 
 void mitk::PythonService::RemovePythonCommandObserver(mitk::PythonCommandObserver *observer)
 {
+  // iterate over all registered observers and remove the passed observer
   for (std::vector<mitk::PythonCommandObserver *>::iterator iter = m_Observer.begin(); iter != m_Observer.end(); ++iter)
   {
     if (*iter == observer)
@@ -314,6 +342,7 @@ void mitk::PythonService::RemovePythonCommandObserver(mitk::PythonCommandObserve
 
 void mitk::PythonService::NotifyObserver(const std::string &command)
 {
+  // call CommandExecuted() from observer interface in order to inform observers that command has been executed
   for (int i = 0; i < m_Observer.size(); ++i)
   {
     m_Observer.at(i)->CommandExecuted(command);
@@ -333,6 +362,10 @@ bool mitk::PythonService::IsSimpleItkPythonWrappingAvailable()
 
 bool mitk::PythonService::CopyToPythonAsSimpleItkImage(mitk::Image::Pointer image, const std::string &stdvarName)
 {
+  // this string is a python command which consists of two functions
+  // setup() is called in order to create an image variable on python side. At this point this is a MITK image
+  // convert_to_sitk() converts the MITK image from the previous step into a SimpleITK image. Spacing and Origin need to be set manually
+  // as these informations get lost when converting the image to an numpy array and back (only contains pixel information)
   std::string transferToPython = "import pyMITK\n"
                                  "import SimpleITK as sitk\n"
                                  "mitk_image = None\n"
@@ -352,7 +385,7 @@ bool mitk::PythonService::CopyToPythonAsSimpleItkImage(mitk::Image::Pointer imag
                                  "    "+stdvarName+".SetSpacing(npSpacingArray)\n"
                                  "    npOriginArray = numpy.array(origin , dtype=float)\n"
                                  "    " +stdvarName +".SetOrigin(npOriginArray)\n";
-
+  // execute code to make the implemented functions available in the Python context (function is not executed, only definition loaded in Python)
   this->Execute(transferToPython);
 
   mitk::Image::Pointer *img = &image;
@@ -365,6 +398,7 @@ bool mitk::PythonService::CopyToPythonAsSimpleItkImage(mitk::Image::Pointer imag
     mitkThrow() << "Something went wrong getting the main module";
   }
 
+  // create new pyobject from given image using SWIG
   swig_type_info *pTypeInfo = nullptr;
   pTypeInfo = SWIG_TypeQuery("_p_itk__SmartPointerT_mitk__Image_t");
   int owned = 0;
@@ -373,7 +407,7 @@ bool mitk::PythonService::CopyToPythonAsSimpleItkImage(mitk::Image::Pointer imag
   {
     mitkThrow() << "Something went wrong creating the Python instance of the image";
   }
-  //transfer correct image spacing to Python
+  // get image spacing and convert it to Python array
   int numberOfImageDimension = image->GetDimension();
   auto spacing = image->GetGeometry()->GetSpacing();
   auto *spacingptr = &spacing;
@@ -381,17 +415,19 @@ bool mitk::PythonService::CopyToPythonAsSimpleItkImage(mitk::Image::Pointer imag
   npy_intp dims[] = {numberOfImageDimension};
   PyObject *spacingArray = PyArray_SimpleNewFromData(1, dims, NPY_DOUBLE, (void *)spacingptr);
 
-  //transfer correct image origin to Python
+  // get image origin and convert it to Python array
   auto origin = image->GetGeometry()->GetOrigin();
   auto *originptr = &origin;
   PyObject *originArray = PyArray_SimpleNewFromData(1, dims, NPY_DOUBLE, (void *)originptr);
 
+  // transfer image to python context by calling setup() function which was defined in Python string above
   PyObject *setup = PyObject_GetAttrString(main, "setup");
   PyObject *result = PyObject_CallFunctionObjArgs(setup, pInstance, NULL);
   if (result == NULL)
   {
     mitkThrow() << "Something went wrong setting the MITK image in Python";
   }
+  // convert MITK image in Python context to SimpleITK image and tranfer correct origin and spacing calling convert_to_sitk() from above
   PyObject *convert = PyObject_GetAttrString(main, "convert_to_sitk");
   result = PyObject_CallFunctionObjArgs(convert,spacingArray, originArray, NULL);
   if (result == NULL)
@@ -405,38 +441,46 @@ bool mitk::PythonService::CopyToPythonAsSimpleItkImage(mitk::Image::Pointer imag
 mitk::Image::Pointer mitk::PythonService::CopySimpleItkImageFromPython(const std::string &stdvarName)
 {
   mitk::Image::Pointer mitkImage;
+  // Python code to convert SimpleITK image to MITK image
   std::string convertToMITKImage = "import SimpleITK as sitk\n"
                                    "import pyMITK\n"
                                    "numpy_array = sitk.GetArrayViewFromImage("+stdvarName+")\n"
                                    "mitk_image = pyMITK.GetImageFromArray(numpy_array)\n"
                                    "spacing = "+stdvarName+".GetSpacing()\n"
                                    "origin = "+stdvarName +".GetOrigin()\n";
+  // after executing this, the desired mitk image is available in the Python context with the variable name mitk_image
   this->Execute(convertToMITKImage);
 
   PyGILState_STATE gState = PyGILState_Ensure();
-
+  // get dictionary with variables from main context
   PyObject *main = PyImport_AddModule("__main__");
   PyObject *globals = PyModule_GetDict(main);
+  // get mitk_image from Python context
   PyObject *pyImage = PyDict_GetItemString(globals, "mitk_image");
   if (pyImage==NULL)
   {
     mitkThrow() << "Could not get image from Python";
   }
 
+  // res is status variable to check if result when getting the image from Python context is OK
   int res = 0;
   void *voidImage;
   swig_type_info *pTypeInfo = nullptr;
   pTypeInfo = SWIG_TypeQuery("_p_itk__SmartPointerT_mitk__Image_t");
+  // get image from Python context as C++ void pointer
   res = SWIG_ConvertPtr(pyImage, &voidImage, pTypeInfo, 0);
   if (!SWIG_IsOK(res))
   {
     mitkThrow() << "Could not cast image to C++ type";
   }
-
+  // cast C++ void pointer to mitk::Image::Pointer
   mitkImage = *(reinterpret_cast<mitk::Image::Pointer *>(voidImage));
 
+  // as spacing and origin again got lost when transferring between SimpleITK and MITK (see CopyToPythonAsSimpleItkImage()) we need to set them manually
+  // get spacing from Python context
   PyObject *spacing = PyDict_GetItemString(globals, "spacing");
   mitk::Vector3D spacingMITK;
+  // convert Python Array to C++ vector
   for (int i = 0; i < PyTuple_GET_SIZE(spacing); i++)
   {
     PyObject *spacingPy = PyTuple_GetItem(spacing, i);
@@ -444,8 +488,10 @@ mitk::Image::Pointer mitk::PythonService::CopySimpleItkImageFromPython(const std
     spacingMITK[i] = elem;
   }
 
+  // get origin from Python context
   PyObject *origin = PyDict_GetItemString(globals, "origin");
   mitk::Point3D originMITK;
+  // convert Python Array to Point3D
   for (int i = 0; i < PyTuple_GET_SIZE(origin); i++)
   {
     PyObject *originPy = PyTuple_GetItem(origin, i);
@@ -454,6 +500,7 @@ mitk::Image::Pointer mitk::PythonService::CopySimpleItkImageFromPython(const std
   }
 
   m_ThreadState = PyEval_SaveThread();
+  // set origin and spacing correctly
   mitkImage->GetGeometry()->SetSpacing(spacingMITK);
   mitkImage->GetGeometry()->SetOrigin(originMITK);
   return mitkImage;
@@ -461,6 +508,8 @@ mitk::Image::Pointer mitk::PythonService::CopySimpleItkImageFromPython(const std
 
 bool mitk::PythonService::CopyMITKImageToPython(mitk::Image::Pointer &image, const std::string &stdvarName)
 {
+  // this string is a python command which consists one functions
+  // setup() is called in order to create an image variable on python side. This is the MITK image which is passed
   std::string transferToPython = "import pyMITK\n"
                                  + stdvarName +" = None\n"
                                  "\n"
@@ -469,9 +518,12 @@ bool mitk::PythonService::CopyMITKImageToPython(mitk::Image::Pointer &image, con
                                  "    global "+stdvarName+"\n"
                                  "    "+stdvarName+" = image_from_cxx\n";
 
+  // execute code to make the implemented functions available in the Python context (function is not executed, only
+  // definition loaded in Python)
   this->Execute(transferToPython);
 
   mitk::Image::Pointer *img = &image;
+  // load main context to have access to defined function from above
   PyGILState_STATE gState = PyGILState_Ensure();
   PyObject *main = PyImport_ImportModule("__main__");
   if (main == NULL)
@@ -479,6 +531,7 @@ bool mitk::PythonService::CopyMITKImageToPython(mitk::Image::Pointer &image, con
     mitkThrow() << "Something went wrong getting the main module";
   }
 
+  // create new pyobject from given image using SWIG
   swig_type_info *pTypeInfo = nullptr;
   pTypeInfo = SWIG_TypeQuery("_p_itk__SmartPointerT_mitk__Image_t");
   int owned = 0;
@@ -488,6 +541,7 @@ bool mitk::PythonService::CopyMITKImageToPython(mitk::Image::Pointer &image, con
     mitkThrow() << "Something went wrong creating the Python instance of the image";
   }
 
+  // call setup() function in Python with created PyObject of image
   PyObject *setup = PyObject_GetAttrString(main, "setup");
   PyObject *result = PyObject_CallFunctionObjArgs(setup, pInstance, NULL);
   if (result == NULL)
@@ -502,18 +556,20 @@ bool mitk::PythonService::CopyMITKImageToPython(mitk::Image::Pointer &image, con
 
 mitk::Image::Pointer GetImageFromPyObject(PyObject *pyImage) 
 {
+  // helper function to get a MITK image from a PyObject
   mitk::Image::Pointer mitkImage;
-
+  // res is status variable to check if result when getting the image from Python context is OK
   int res = 0;
   void *voidImage;
   swig_type_info *pTypeInfo = nullptr;
   pTypeInfo = SWIG_TypeQuery("_p_itk__SmartPointerT_mitk__Image_t");
+  // get image from Python context as C++ void pointer
   res = SWIG_ConvertPtr(pyImage, &voidImage, pTypeInfo, 0);
   if (!SWIG_IsOK(res))
   {
     mitkThrow() << "Could not cast image to C++ type";
   }
-
+  // cast C++ void pointer to mitk::Image::Pointer
   mitkImage = *(reinterpret_cast<mitk::Image::Pointer *>(voidImage));
 
   return mitkImage;
@@ -524,7 +580,7 @@ mitk::Image::Pointer mitk::PythonService::CopyMITKImageFromPython(const std::str
   mitk::Image::Pointer mitkImage;
 
   PyGILState_STATE gState = PyGILState_Ensure();
-
+  // get image from Python context as PyObject
   PyObject *main = PyImport_AddModule("__main__");
   PyObject *globals = PyModule_GetDict(main);
   PyObject *pyImage = PyDict_GetItemString(globals, stdvarName.c_str());
@@ -532,7 +588,7 @@ mitk::Image::Pointer mitk::PythonService::CopyMITKImageFromPython(const std::str
   {
     mitkThrow() << "Could not get image from Python";
   }
-
+  // convert PyObject to mitk::Image
   mitkImage = GetImageFromPyObject(pyImage);
 
   m_ThreadState = PyEval_SaveThread();
@@ -544,7 +600,7 @@ std::vector<mitk::Image::Pointer> mitk::PythonService::CopyListOfMITKImagesFromP
   std::vector<mitk::Image::Pointer> mitkImages;
 
   PyGILState_STATE gState = PyGILState_Ensure();
-
+  // get the list of the variable name as python list
   PyObject *main = PyImport_AddModule("__main__");
   PyObject *globals = PyModule_GetDict(main);
   PyObject *pyImageList = PyDict_GetItemString(globals, listVarName.c_str());
@@ -552,7 +608,7 @@ std::vector<mitk::Image::Pointer> mitk::PythonService::CopyListOfMITKImagesFromP
   {
     mitkThrow() << "Could not get image list from Python";
   }
-
+  // iterate over python list of images and convert them to C++ mitk::Image
   for (int i = 0; i < PyList_GET_SIZE(pyImageList);i++)
   {
     PyObject *pyImage = PyList_GetItem(pyImageList, i);

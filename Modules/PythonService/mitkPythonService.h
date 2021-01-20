@@ -88,8 +88,11 @@ namespace mitk
       /// \see IPythonService::CopyListOfMITKImagesFromPython()
       std::vector<mitk::Image::Pointer> CopyListOfMITKImagesFromPython(const std::string &listVarName) override;
 
+      ///
+      /// \see IPythonService::AddRelativeSearchDirs()
       void AddRelativeSearchDirs(std::vector< std::string > dirs) override;
-
+      ///
+      /// \see IPythonService::AddAbsoluteSearchDirs()
       void AddAbsoluteSearchDirs(std::vector< std::string > dirs) override;
 
   protected:

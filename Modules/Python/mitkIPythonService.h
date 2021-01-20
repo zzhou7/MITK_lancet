@@ -132,8 +132,11 @@ namespace mitk
         // force us module loading by linking
         static std::string ForceLoadModule();
 
+        // adding search directories enables to call python code located in the given directory
+        // relative paths to the mitk root directory
         virtual void AddRelativeSearchDirs(std::vector< std::string > dirs) = 0;
 
+        // absolute paths for directories to be added
         virtual void AddAbsoluteSearchDirs(std::vector<std::string> dirs) = 0;
 
         protected:
