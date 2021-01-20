@@ -11,10 +11,7 @@ found in the LICENSE file.
 ============================================================================*/
 
 #include "mitkPythonService.h"
-//#include <Python.h>
 #include <mitkIOUtil.h>
-//#include <QFile>
-//#include <QDir>
 
 #ifdef _DEBUG
   #undef _DEBUG
@@ -24,24 +21,11 @@ found in the LICENSE file.
   #include <python.h>
 #endif
 
-//#ifdef _MSC_VER
-//#  pragma warning(push)
-//#  pragma warning(disable: 5208)
-//#endif
-
-//#include <PythonQt.h>
-
-//#ifdef _MSC_VER
-//#  pragma warning(pop)
-//#endif
-
 #include "PythonPath.h"
 #include <vtkPolyData.h>
 #include <mitkRenderingManager.h>
 #include <mitkImageReadAccessor.h>
 #include <mitkImageWriteAccessor.h>
-//#include <QFileInfo>
-//#include <QCoreApplication>
 #include <itksys/SystemTools.hxx>
 
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION

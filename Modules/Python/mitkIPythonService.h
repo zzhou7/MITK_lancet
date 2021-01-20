@@ -21,7 +21,6 @@ found in the LICENSE file.
 #include <vector>
 
 
-//class ctkAbstractPythonManager;
 
 namespace mitk
 {

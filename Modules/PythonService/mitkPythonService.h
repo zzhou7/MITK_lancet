@@ -12,7 +12,6 @@ found in the LICENSE file.
 #ifndef mitkPythonService_h
 #define mitkPythonService_h
 
-//#include <ctkAbstractPythonManager.h>
 #include "mitkIPythonService.h"
 #include <itkLightObject.h>
 #include "mitkSurface.h"
@@ -96,7 +95,6 @@ namespace mitk
   protected:
 
   private:
-      //ctkAbstractPythonManager m_PythonManager;
       std::vector<PythonCommandObserver*> m_Observer;
       std::vector<mitk::Image::Pointer> m_PythonMITKImages;
       PyThreadState *m_ThreadState;
