@@ -549,7 +549,6 @@ bool mitk::PythonService::CopyMITKImageToPython(mitk::Image::Pointer &image, con
     mitkThrow() << "Something went wrong setting the MITK image in Python";
   }
 
-  m_PythonMITKImages.push_back(image);
   m_ThreadState = PyEval_SaveThread();
   return true;
 }

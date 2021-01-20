@@ -99,7 +99,6 @@ namespace mitk
 
   private:
       std::vector<PythonCommandObserver*> m_Observer;
-      std::vector<mitk::Image::Pointer> m_PythonMITKImages;
       PyThreadState *m_ThreadState;
       PyObject *m_GlobalDictionary;
       PyObject *m_LocalDictionary;
