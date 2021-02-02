@@ -208,6 +208,7 @@ std::vector<mitk::PythonVariable> mitk::PythonService::GetVariableStack()
   // variables are returned as a list of type mitk::PythonVariable
   std::vector<mitk::PythonVariable> list;
   PyGILState_Ensure();
+  try
   {
     // vaiables are taken from the main module
     // get dictionary where these variables are stored
@@ -342,7 +343,7 @@ void mitk::PythonService::RemovePythonCommandObserver(mitk::PythonCommandObserve
 void mitk::PythonService::NotifyObserver(const std::string &command)
 {
   // call CommandExecuted() from observer interface in order to inform observers that command has been executed
-  int observerSize = static_cast<int> m_Observer.size();
+  int observerSize = static_cast<int>(m_Observer.size());
   for (int i = 0; i < observerSize; ++i)
   {
     m_Observer.at(i)->CommandExecuted(command);

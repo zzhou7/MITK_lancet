@@ -41,7 +41,7 @@ void SegmentationResultHandler::SetMultilabelResult(std::vector<mitk::LabelSetIm
                                                     mitk::DeepLearningSegmentationTool *segTool)
 {
   try
-  { int resultSegmentationSize= static_cast<int>resultSegmentation.size();
+  { int resultSegmentationSize= static_cast<int>(resultSegmentation.size());
     for (int i = 0; i<resultSegmentationSize; i++)
     {
       // create new data node with the segmentation output as data
