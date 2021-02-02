@@ -8,7 +8,7 @@ if(MITK_WRAP_PYTHON_ENABLED)
 
   # Make a manual list of dependencies for the Swig.i files
   list(APPEND SWIG_EXTRA_DEPS
-    "${MITK_WRAPPING_COMMON_DIR}/MITK_Common.i"
+    "${MITK_WRAPPING_COMMON_DIR}/mitk_swig_common.i"
   )
 
   # A general packaging target, not built by default, to build packages for each

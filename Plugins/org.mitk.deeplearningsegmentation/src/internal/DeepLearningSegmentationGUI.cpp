@@ -67,7 +67,7 @@ void DeepLearningSegmentationGUI::SetUpUI()
 void DeepLearningSegmentationGUI::DoLoadTrainedNet()
 {
   //Open a file dialog to select a trained network
-  QString tempPath = QString::fromStdString(mitk::IOUtil::GetTempPathA());
+  QString tempPath = QString::fromStdString(mitk::IOUtil::GetTempPath());
   QString pretrainedNetResourcesPath =
     QFileDialog::getOpenFileName(nullptr, tr("Open File"), tempPath, tr("Images (*.pth.tar)"));
 

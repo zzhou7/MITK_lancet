@@ -15,10 +15,10 @@ found in the LICENSE file.
 
 #ifdef _DEBUG
   #undef _DEBUG
-  #include <python.h>
+  #include <Python.h>
   #define _DEBUG
 #else
-  #include <python.h>
+  #include <Python.h>
 #endif
 
 #include "PythonPath.h"
@@ -37,7 +37,7 @@ found in the LICENSE file.
 #include <dlfcn.h>
 #endif
 
-#include"swigpyrun.h"
+#include "swigpyrun.h"
 
 typedef itksys::SystemTools ist;
 
@@ -50,8 +50,8 @@ mitk::PythonService::PythonService()
   {
     Py_Initialize();
   }
-  PyGILState_STATE gState = PyGILState_Ensure();
 
+  PyGILState_Ensure();
   std::string programPath = mitk::IOUtil::GetProgramPath();
   std::replace(programPath.begin(), programPath.end(), '\\', '/');
   programPath.append("/");
@@ -105,7 +105,7 @@ void mitk::PythonService::AddRelativeSearchDirs(std::vector< std::string > dirs)
       std::string pythonCommand = "import sys\nsys.path.append('" + path + "')\n";
       this->Execute(pythonCommand.c_str());
     }
-    catch (const mitk::Exception)
+    catch (const mitk::Exception&)
     {
       mitkThrow() << "An error occured setting the relative project path";
     }
@@ -122,7 +122,7 @@ void mitk::PythonService::AddAbsoluteSearchDirs(std::vector< std::string > dirs)
       std::string pythonCommand = "import sys\nsys.path.append('" + dir + "')\n";
       this->Execute(pythonCommand.c_str());
     }
-    catch (const mitk::Exception)
+    catch (const mitk::Exception&)
     {
       mitkThrow() << "An error occured setting the absolute project path";
     }
@@ -137,7 +137,7 @@ std::string mitk::PythonService::Execute(const std::string &stdpythonCommand, in
   }
   std::string result = "";
 
-  PyGILState_STATE gState = PyGILState_Ensure();
+  PyGILState_Ensure();
   try
   {
     // command type is start symbol for python interpreter
@@ -176,7 +176,7 @@ std::string mitk::PythonService::Execute(const std::string &stdpythonCommand, in
       mitkThrow() << "An error occured while running the Python code";
     }
   }
-  catch (const mitk::Exception) 
+  catch (const mitk::Exception& ) 
   {
     PyErr_Print();
     m_ThreadState = PyEval_SaveThread();
@@ -197,7 +197,7 @@ void mitk::PythonService::ExecuteScript(const std::string &pythonScript)
   {
     this->Execute(str.c_str(), MULTI_LINE_COMMAND);
   }
-  catch (const mitk::Exception)
+  catch (const mitk::Exception&)
   {
     throw;
   }
@@ -207,8 +207,7 @@ std::vector<mitk::PythonVariable> mitk::PythonService::GetVariableStack()
 {
   // variables are returned as a list of type mitk::PythonVariable
   std::vector<mitk::PythonVariable> list;
-  PyGILState_STATE gState = PyGILState_Ensure();
-  try
+  PyGILState_Ensure();
   {
     // vaiables are taken from the main module
     // get dictionary where these variables are stored
@@ -262,7 +261,7 @@ std::vector<mitk::PythonVariable> mitk::PythonService::GetVariableStack()
     }
     m_ThreadState = PyEval_SaveThread();
   }
-  catch (const mitk::Exception)
+  catch (const mitk::Exception&)
   {
     m_ThreadState = PyEval_SaveThread();
     throw;
@@ -278,7 +277,7 @@ std::string mitk::PythonService::GetVariable(const std::string& name)
   {
     allVars = this->GetVariableStack();
   }
-  catch (const mitk::Exception)
+  catch (const mitk::Exception&)
   {
     mitkThrow() << "Error getting the variable stack";
   }
@@ -301,7 +300,7 @@ bool mitk::PythonService::DoesVariableExist(const std::string& name)
   {
     allVars = this->GetVariableStack();
   }
-  catch (const mitk::Exception)
+  catch (const mitk::Exception&)
   {
     mitkThrow() << "Error getting the variable stack";
   }
@@ -343,7 +342,8 @@ void mitk::PythonService::RemovePythonCommandObserver(mitk::PythonCommandObserve
 void mitk::PythonService::NotifyObserver(const std::string &command)
 {
   // call CommandExecuted() from observer interface in order to inform observers that command has been executed
-  for (int i = 0; i < m_Observer.size(); ++i)
+  int observerSize = static_cast<int> m_Observer.size();
+  for (int i = 0; i < observerSize; ++i)
   {
     m_Observer.at(i)->CommandExecuted(command);
   }
@@ -389,7 +389,7 @@ bool mitk::PythonService::CopyToPythonAsSimpleItkImage(mitk::Image::Pointer imag
   this->Execute(transferToPython);
 
   mitk::Image::Pointer *img = &image;
-  PyGILState_STATE gState = PyGILState_Ensure();
+  PyGILState_Ensure();//PyGILState_STATE gState = PyGILState_Ensure();
   //necessary for transfer array from C++ to Python
   import_array();
   PyObject *main = PyImport_ImportModule("__main__");
@@ -411,7 +411,7 @@ bool mitk::PythonService::CopyToPythonAsSimpleItkImage(mitk::Image::Pointer imag
   int numberOfImageDimension = image->GetDimension();
   auto spacing = image->GetGeometry()->GetSpacing();
   auto *spacingptr = &spacing;
-  int nd = 1;
+  
   npy_intp dims[] = {numberOfImageDimension};
   PyObject *spacingArray = PyArray_SimpleNewFromData(1, dims, NPY_DOUBLE, (void *)spacingptr);
 
@@ -451,7 +451,7 @@ mitk::Image::Pointer mitk::PythonService::CopySimpleItkImageFromPython(const std
   // after executing this, the desired mitk image is available in the Python context with the variable name mitk_image
   this->Execute(convertToMITKImage);
 
-  PyGILState_STATE gState = PyGILState_Ensure();
+  PyGILState_Ensure();//PyGILState_STATE gState = PyGILState_Ensure();
   // get dictionary with variables from main context
   PyObject *main = PyImport_AddModule("__main__");
   PyObject *globals = PyModule_GetDict(main);
@@ -524,7 +524,7 @@ bool mitk::PythonService::CopyMITKImageToPython(mitk::Image::Pointer &image, con
 
   mitk::Image::Pointer *img = &image;
   // load main context to have access to defined function from above
-  PyGILState_STATE gState = PyGILState_Ensure();
+  PyGILState_Ensure();//PyGILState_STATE gState = PyGILState_Ensure();
   PyObject *main = PyImport_ImportModule("__main__");
   if (main == NULL)
   {
@@ -578,7 +578,7 @@ mitk::Image::Pointer mitk::PythonService::CopyMITKImageFromPython(const std::str
 {
   mitk::Image::Pointer mitkImage;
 
-  PyGILState_STATE gState = PyGILState_Ensure();
+  PyGILState_Ensure();
   // get image from Python context as PyObject
   PyObject *main = PyImport_AddModule("__main__");
   PyObject *globals = PyModule_GetDict(main);
@@ -598,7 +598,7 @@ std::vector<mitk::Image::Pointer> mitk::PythonService::CopyListOfMITKImagesFromP
 {
   std::vector<mitk::Image::Pointer> mitkImages;
 
-  PyGILState_STATE gState = PyGILState_Ensure();
+  PyGILState_Ensure();//PyGILState_STATE gState = PyGILState_Ensure();
   // get the list of the variable name as python list
   PyObject *main = PyImport_AddModule("__main__");
   PyObject *globals = PyModule_GetDict(main);

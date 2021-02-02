@@ -16,8 +16,12 @@ found in the LICENSE file.
 namespace mitk
 {
   void org_mitk_deeplearningsegmentation_Activator::start(ctkPluginContext *context)
-  {
+  { 
+    Q_UNUSED(context)
   }
 
-  void org_mitk_deeplearningsegmentation_Activator::stop(ctkPluginContext *context) { Q_UNUSED(context) }
+  void org_mitk_deeplearningsegmentation_Activator::stop(ctkPluginContext *context)
+  {
+    Q_UNUSED(context)
+  }
 }

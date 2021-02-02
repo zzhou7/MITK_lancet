@@ -60,7 +60,7 @@ SWIG_ADD_MITK_CLASS(PlaneGeometry , mitkPlaneGeometry.h, mitk)
 %rename(itk_BoundingBox) itk::BoundingBox;
 %include <mitkBaseGeometry.h>
 %{
-#include < mitkBaseGeometry.h >
+#include <mitkBaseGeometry.h>
 typedef mitk::BoundingBox BoundingBox;
 %}
 %template(VectorBoundingBoxPointer) std::vector< mitk::BoundingBox * >;
