@@ -77,6 +77,8 @@ mitk::PythonService::PythonService()
   pythonCommand.append("sys.path.append('')\n");
   pythonCommand.append("sys.path.append('" + programPath + "')\n");
   pythonCommand.append("sys.path.append('" + std::string(SWIG_MITK_WRAPPING) + "')\n");
+  pythonCommand.append("sys.path.append('"+std::string(WRAPPING_BINARY_DIR)+"')\n");
+  pythonCommand.append("sys.path.append('"+std::string(LIB_DIR)+"')\n");
   pythonCommand.append("sys.path.append('" +std::string(EXTERNAL_DIST_PACKAGES) + "')\n");
   pythonCommand.append("\nsite.addsitedir('"+std::string(EXTERNAL_SITE_PACKAGES)+"')\n");
   // in python 3.8 onwards, the path system variable is not longer used to find dlls
@@ -88,7 +90,6 @@ mitk::PythonService::PythonService()
                              "              os.add_dll_directory(root)\n"
                              "              break\n";
   pythonCommand.append(searchForDll);
-  
   if (PyRun_SimpleString(pythonCommand.c_str()) == -1)
   {
     MITK_ERROR << "Something went wrong in setting the path in Python";

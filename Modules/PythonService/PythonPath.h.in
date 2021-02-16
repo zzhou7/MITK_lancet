@@ -10,6 +10,10 @@
 
 #define PYTHON_LIBRARY "@PYTHON_LIBRARY@"
 
+#define WRAPPING_BINARY_DIR "@MITK_BINARY_DIR@/Wrapping"
+
+#define LIB_DIR "@MITK_BINARY_DIR@/lib"
+
 #ifdef WIN32
 //Todo: windows system python
 #define EXTERNAL_SITE_PACKAGES "@MITK_EXTERNAL_PROJECT_PREFIX@/lib/python@PYTHON_VERSION_MAJOR@.@PYTHON_VERSION_MINOR@/site-packages"
