@@ -106,7 +106,7 @@ mitk::PythonService::~PythonService()
 
 void mitk::PythonService::AddRelativeSearchDirs(std::vector< std::string > dirs)
 {
-  for (auto dir : dirs)
+  for (const auto& dir : dirs)
   {
     try
     {
@@ -124,7 +124,7 @@ void mitk::PythonService::AddRelativeSearchDirs(std::vector< std::string > dirs)
 
 void mitk::PythonService::AddAbsoluteSearchDirs(std::vector< std::string > dirs)
 {
-  for (auto dir : dirs)
+  for (const auto dir : dirs)
   {
     try
     {
@@ -293,10 +293,12 @@ std::string mitk::PythonService::GetVariable(const std::string& name)
     mitkThrow() << "Error getting the variable stack";
   }
   // search for variable with given name
-  for (unsigned int i = 0; i < allVars.size(); i++)
+  for (const auto& var: allVars)
   {
-    if (allVars.at(i).m_Name == name)
-      return allVars.at(i).m_Value;
+    if (var.m_Name == name)
+    {
+      return var.m_Value;
+    }
   }
 
   return "";
@@ -316,9 +318,9 @@ bool mitk::PythonService::DoesVariableExist(const std::string& name)
     mitkThrow() << "Error getting the variable stack";
   }
   // check if variable with given name exists in context
-  for (unsigned int i = 0; i < allVars.size(); i++)
+  for (const auto& var: allVars)
   {
-    if (allVars.at(i).m_Name == name)
+    if (var.m_Name == name)
     {
       varExists = true;
       break;
@@ -353,11 +355,11 @@ void mitk::PythonService::RemovePythonCommandObserver(mitk::PythonCommandObserve
 void mitk::PythonService::NotifyObserver(const std::string &command)
 {
   // call CommandExecuted() from observer interface in order to inform observers that command has been executed
-  int observerSize = static_cast<int>(m_Observer.size());
-  for (int i = 0; i < observerSize; ++i)
+  for (const auto& observer: this->m_Observer)
   {
-    m_Observer.at(i)->CommandExecuted(command);
+    observer->CommandExecuted(command);
   }
+
 }
 
 
