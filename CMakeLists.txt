@@ -416,6 +416,7 @@ if(MITK_USE_Python3)
     string(REPLACE "\\" "/" Python3_STDLIB "${Python3_STDLIB}")
     string(REPLACE "\\" "/" Python3_SITELIB "${Python3_SITELIB}")
   endif()
+  link_directories(${Python3_LIBRARY_DIRS})
 endif()
 
 if(BUILD_TESTING AND NOT MITK_USE_CppUnit)

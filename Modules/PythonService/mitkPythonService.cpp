@@ -76,19 +76,13 @@ mitk::PythonService::PythonService()
   pythonCommand.append("import os\n");
   pythonCommand.append("sys.path.append('')\n");
   pythonCommand.append("sys.path.append('" + programPath + "')\n");
-  pythonCommand.append("sys.path.append('" + std::string(SWIG_MITK_WRAPPING) + "')\n");
-  pythonCommand.append("sys.path.append('"+std::string(WRAPPING_BINARY_DIR)+"')\n");
-  pythonCommand.append("sys.path.append('"+std::string(LIB_DIR)+"')\n");
+  pythonCommand.append("sys.path.append('" + std::string(BIN_DIR) + "')\n");
   pythonCommand.append("sys.path.append('" +std::string(EXTERNAL_DIST_PACKAGES) + "')\n");
   pythonCommand.append("\nsite.addsitedir('"+std::string(EXTERNAL_SITE_PACKAGES)+"')\n");
   // in python 3.8 onwards, the path system variable is not longer used to find dlls
   // that's why the dlls that are needed for swig wrapping need to be searched manually
   std::string searchForDll = "if sys.version_info[1] > 7:\n"
-                             "  for root, dirs, files in os.walk('" + std::string(SWIG_PYTHON_BUILD_OUTPUT) +"'):\n"
-                             "      for file in files:\n"
-                             "          if file.endswith('.dll'):\n"
-                             "              os.add_dll_directory(root)\n"
-                             "              break\n";
+                             "  os.add_dll_directory('"+std::string(EP_DLL_DIR)+"')\n";
   pythonCommand.append(searchForDll);
   if (PyRun_SimpleString(pythonCommand.c_str()) == -1)
   {

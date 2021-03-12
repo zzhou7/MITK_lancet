@@ -1,18 +1,6 @@
-#ifdef _DEBUG
-#define PYTHON_PATH_BUILD_TYPE "/Debug"
-#define SWIG_MITK_WRAPPING "@MITK_BINARY_DIR@/lib/Debug"
-#else
-#define PYTHON_PATH_BUILD_TYPE "/Release"
-#define SWIG_MITK_WRAPPING "@MITK_BINARY_DIR@/lib/Release"
-#endif
+#define EP_DLL_DIR "@MITK_EXTERNAL_PROJECT_PREFIX@/bin"
 
-#define SWIG_PYTHON_BUILD_OUTPUT "@MITK_BINARY_DIR@/Wrapping/Python/build"
-
-#define PYTHON_LIBRARY "@PYTHON_LIBRARY@"
-
-#define WRAPPING_BINARY_DIR "@MITK_BINARY_DIR@/Wrapping"
-
-#define LIB_DIR "@MITK_BINARY_DIR@/lib"
+#define BIN_DIR "@MITK_BINARY_DIR@/bin"
 
 #ifdef WIN32
 //Todo: windows system python

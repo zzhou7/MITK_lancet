@@ -50,15 +50,16 @@ if(MITK_PYTHON_THREADS)
   list(APPEND CMAKE_SWIG_FLAGS -threads)
 endif()
 
-set(CMAKE_SWIG_OUTDIR ${MITK_BINARY_DIR}/lib/Release)
-
+set(CMAKE_SWIG_OUTDIR ${MITK_CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 set(UseSWIG_TARGET_NAME_PREFERENCE STANDARD)
 swig_add_library(pyMITK LANGUAGE python SOURCES MITK.i)
 set_property(TARGET pyMITK PROPERTY FOLDER "${MITK_ROOT_FOLDER}/Wrapping")
-
 target_link_libraries(pyMITK ${libraries})
 
 mitk_target_link_libraries_with_dynamic_lookup(${SWIG_MODULE_pyMITK_REAL_NAME} ${Python3_LIBRARIES})
+set_target_properties(pyMITK PROPERTIES
+  LIBRARY_OUTPUT_DIRECTORY "${MITK_CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
+)
 
 if(DEFINED SKBUILD)
   #message("SKBuild exists")
