@@ -118,7 +118,7 @@ void mitk::PythonService::AddRelativeSearchDirs(std::vector< std::string > dirs)
 
 void mitk::PythonService::AddAbsoluteSearchDirs(std::vector< std::string > dirs)
 {
-  for (const auto dir : dirs)
+  for (const auto& dir : dirs)
   {
     try
     {
@@ -398,7 +398,7 @@ bool mitk::PythonService::CopyToPythonAsSimpleItkImage(mitk::Image::Pointer imag
   mitk::Image::Pointer *img = &image;
   PyGILState_Ensure();//PyGILState_STATE gState = PyGILState_Ensure();
   //necessary for transfer array from C++ to Python
-  import_array();
+  _import_array();
   PyObject *main = PyImport_ImportModule("__main__");
   if (main == NULL)
   {
@@ -458,7 +458,7 @@ mitk::Image::Pointer mitk::PythonService::CopySimpleItkImageFromPython(const std
   // after executing this, the desired mitk image is available in the Python context with the variable name mitk_image
   this->Execute(convertToMITKImage);
 
-  PyGILState_Ensure();//PyGILState_STATE gState = PyGILState_Ensure();
+  PyGILState_Ensure();
   // get dictionary with variables from main context
   PyObject *main = PyImport_AddModule("__main__");
   PyObject *globals = PyModule_GetDict(main);
@@ -531,7 +531,7 @@ bool mitk::PythonService::CopyMITKImageToPython(mitk::Image::Pointer &image, con
 
   mitk::Image::Pointer *img = &image;
   // load main context to have access to defined function from above
-  PyGILState_Ensure();//PyGILState_STATE gState = PyGILState_Ensure();
+  PyGILState_Ensure();
   PyObject *main = PyImport_ImportModule("__main__");
   if (main == NULL)
   {
@@ -605,7 +605,7 @@ std::vector<mitk::Image::Pointer> mitk::PythonService::CopyListOfMITKImagesFromP
 {
   std::vector<mitk::Image::Pointer> mitkImages;
 
-  PyGILState_Ensure();//PyGILState_STATE gState = PyGILState_Ensure();
+  PyGILState_Ensure();
   // get the list of the variable name as python list
   PyObject *main = PyImport_AddModule("__main__");
   PyObject *globals = PyModule_GetDict(main);
