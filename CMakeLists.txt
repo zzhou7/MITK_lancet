@@ -33,7 +33,7 @@ if(MITK_USE_SUPERBUILD)
   set(MITK_SOURCE_DIR ${PROJECT_SOURCE_DIR})
   set(MITK_BINARY_DIR ${PROJECT_BINARY_DIR})
 else()
-  project(MITK VERSION 2018.04.99)
+  project(MITK VERSION 2021.02.00)
   include_directories(SYSTEM ${MITK_SUPERBUILD_BINARY_DIR})
 endif()
 
@@ -105,14 +105,15 @@ endif()
 #-----------------------------------------------------------------------------
 # Check miminum macOS version
 #-----------------------------------------------------------------------------
-# The minimum supported macOS version is 10.13. If you use a version less than 10.13, there is no guarantee that the build still works.
+# The minimum supported macOS version is 10.14. If you use a version less than
+# 10.14, there is no guarantee that the build still works.
 if(APPLE)
   exec_program(sw_vers ARGS -productVersion OUTPUT_VARIABLE macos_version)
-  if (macos_version VERSION_LESS "10.13")
-    message(WARNING "Detected macOS version \"${macos_version}\" is not supported anymore. Minimum required macOS version is at least 10.13.")
+  if (macos_version VERSION_LESS "10.14")
+    message(WARNING "Detected macOS version \"${macos_version}\" is not supported anymore. Minimum required macOS version is at least 10.14.")
   endif()
-  if (CMAKE_OSX_DEPLOYMENT_TARGET AND CMAKE_OSX_DEPLOYMENT_TARGET VERSION_LESS 10.13)
-    message(WARNING "Detected macOS deployment target \"${CMAKE_OSX_DEPLOYMENT_TARGET}\" is not supported anymore. Minimum required macOS version is at least 10.13.")
+  if (CMAKE_OSX_DEPLOYMENT_TARGET AND CMAKE_OSX_DEPLOYMENT_TARGET VERSION_LESS 10.14)
+    message(WARNING "Detected macOS deployment target \"${CMAKE_OSX_DEPLOYMENT_TARGET}\" is not supported anymore. Minimum required macOS version is at least 10.14.")
   endif()
 endif()
 
@@ -359,19 +360,21 @@ endif()
 # -----------------------------------------
 # Custom dependency logic
 
+if(WIN32 AND Qt5_DIR)
+  set(_dir_candidate "${Qt5_DIR}/../../../../../Tools/OpenSSL/Win_x64")
+  get_filename_component(_dir_candidate ${_dir_candidate} ABSOLUTE)
+  if(EXISTS "${_dir_candidate}")
+    set(OPENSSL_ROOT_DIR "${_dir_candidate}")
+  endif()
+endif()
+
+find_package(OpenSSL)
+
 option(MITK_USE_SYSTEM_Boost "Use the system Boost" OFF)
 
 set(MITK_USE_Boost_LIBRARIES "" CACHE STRING "A semi-colon separated list of required Boost libraries")
 
 if(MITK_USE_cpprestsdk)
-  if(WIN32 AND Qt5_DIR)
-    set(_dir_candidate "${Qt5_DIR}/../../../../../Tools/OpenSSL/Win_x64")
-    get_filename_component(_dir_candidate ${_dir_candidate} ABSOLUTE)
-    if(EXISTS "${_dir_candidate}")
-      set(OPENSSL_ROOT_DIR "${_dir_candidate}")
-    endif()
-  endif()
-  find_package(OpenSSL QUIET)
   if(NOT OpenSSL_FOUND)
     set(openssl_message "Could not find OpenSSL (dependency of C++ REST SDK).\n")
     if(UNIX)
@@ -639,6 +642,24 @@ endforeach()
 # Set MITK specific options and variables (NOT available during superbuild)
 #-----------------------------------------------------------------------------
 
+if(OpenSSL_FOUND AND WIN32)
+  set(MITK_OPENSSL_SSL_DLL "" CACHE FILEPATH "")
+  set(MITK_OPENSSL_CRYPTO_DLL "" CACHE FILEPATH "")
+
+  if(MITK_OPENSSL_SSL_DLL AND EXISTS "${MITK_OPENSSL_SSL_DLL}" AND MITK_OPENSSL_CRYPTO_DLL AND EXISTS "${MITK_OPENSSL_CRYPTO_DLL}")
+    foreach(config_type ${CMAKE_CONFIGURATION_TYPES})
+      execute_process(COMMAND "${CMAKE_COMMAND}" -E make_directory "${MITK_BINARY_DIR}/bin/${config_type}")
+      configure_file("${MITK_OPENSSL_SSL_DLL}" "${MITK_BINARY_DIR}/bin/${config_type}/" COPYONLY)
+      configure_file("${MITK_OPENSSL_CRYPTO_DLL}" "${MITK_BINARY_DIR}/bin/${config_type}/" COPYONLY)
+    endforeach()
+
+    MITK_INSTALL(FILES
+      "${MITK_OPENSSL_SSL_DLL}"
+      "${MITK_OPENSSL_CRYPTO_DLL}"
+    )
+  endif()
+endif()
+
 # Look for optional Doxygen package
 find_package(Doxygen)
 
@@ -861,9 +882,6 @@ set(CMAKE_MODULE_PATH
   )
 
 if(MITK_USE_DCMTK)
-  # Due to the preferred CONFIG mode in find_package calls above,
-  # the DCMTKConfig.cmake file is read, which does not provide useful
-  # package information. We explictly need MODULE mode to find DCMTK.
   if(${_dcmtk_dir_orig} MATCHES "${MITK_EXTERNAL_PROJECT_PREFIX}.*")
     # Help our FindDCMTK.cmake script find our super-build DCMTK
     set(DCMTK_DIR ${MITK_EXTERNAL_PROJECT_PREFIX})
@@ -871,7 +889,6 @@ if(MITK_USE_DCMTK)
     # Use the original value
     set(DCMTK_DIR ${_dcmtk_dir_orig})
   endif()
-  find_package(DCMTK REQUIRED MODULE)
 endif()
 
 if(MITK_USE_DCMQI)

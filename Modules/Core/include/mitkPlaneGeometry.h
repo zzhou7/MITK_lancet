@@ -293,7 +293,7 @@ namespace mitk
     * - R*R^T is ID?
     * Output warning otherwise.
     */
-    static bool CheckRotationMatrix(AffineTransform3D *transform, double epsilon=mitk::eps);
+    static bool CheckRotationMatrix(AffineTransform3D *transform, double epsilon=1e-6);
 
     /**
     * \brief Normal of the plane
@@ -435,7 +435,7 @@ namespace mitk
     * \brief Returns whether the plane is on the plane
     * (bounding-box \em not considered)
     *
-    * @return true iff the normal vector of the planes point to the same or the exactly oposit direction and
+    * @return true if the normal vector of the planes point to the same or the exactly oposit direction and
     *  the distance of the planes is < eps
     *
     */
