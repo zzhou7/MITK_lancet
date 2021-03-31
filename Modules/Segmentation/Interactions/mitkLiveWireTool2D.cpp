@@ -368,7 +368,7 @@ void mitk::LiveWireTool2D::OnAddPoint(StateMachineAction *, InteractionEvent *in
   });
 
   // Remove duplicate first vertex, it's already contained in m_Contour
-  m_LiveWireContour->RemoveVertexAt(0);
+  //m_LiveWireContour->RemoveVertexAt(0);
 
   // Set last point as control point
   m_LiveWireContour->SetControlVertexAt(m_LiveWireContour->GetNumberOfVertices() - 1);
@@ -428,20 +428,16 @@ bool mitk::LiveWireTool2D::OnCheckPoint(const InteractionEvent *interactionEvent
   mitk::Point3D click = positionEvent->GetPositionInWorld();
   mitk::Point3D first = this->m_Contour->GetVertexAt(0)->Coordinates;
 
-  return first.EuclideanDistanceTo(click) < 4.5;
+  return true; //first.EuclideanDistanceTo(click) < 4.5;
 }
 
 void mitk::LiveWireTool2D::OnFinish(StateMachineAction *, InteractionEvent *interactionEvent)
 {
   // Finish LiveWire tool interaction
-
   auto positionEvent = dynamic_cast<mitk::InteractionPositionEvent *>(interactionEvent);
 
   if (nullptr == positionEvent)
     return;
-
-  // Remove last control point added by double click
-  m_Contour->RemoveVertexAt(m_Contour->GetNumberOfVertices() - 1);
 
   // Save contour and corresponding plane geometry to list
   this->m_WorkingContours.emplace_back(std::make_pair(m_ContourNode, positionEvent->GetSender()->GetCurrentWorldPlaneGeometry()->Clone()));
