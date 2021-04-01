@@ -95,7 +95,7 @@ namespace mitk
      */
     http_request InitRequest(const std::map<utility::string_t, utility::string_t> headers);
 
-	void CheckResponseContentType(web::http::http_response &response);
+    bool CheckResponseContentType(web::http::http_response &response);
 
     pplx::task<web::json::value> ExecutePost(const web::uri &uri, http_request request);
     web::http::client::http_client_config m_ClientConfig;

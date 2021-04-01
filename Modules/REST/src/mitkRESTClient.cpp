@@ -32,7 +32,7 @@ mitk::RESTClient::RESTClient()
 
 mitk::RESTClient::~RESTClient() {}
 
-void mitk::RESTClient::CheckResponseContentType(web::http::http_response &response)
+bool mitk::RESTClient::CheckResponseContentType(web::http::http_response &response)
 {
   auto status = response.status_code();
 
@@ -51,7 +51,9 @@ void mitk::RESTClient::CheckResponseContentType(web::http::http_response &respon
     MITK_DEBUG << "Caution! The given response content type was '" << mitk::RESTUtil::convertToUtf8(requestContentType)
                << "' but contains 'json'. So we awesome the answer actually contains a JSON message.";
     response.headers().set_content_type(U("application/json"));
+    return true;
   }
+  return false;
 }
 
 pplx::task<web::json::value> mitk::RESTClient::Get(const web::uri &uri,
@@ -70,8 +72,12 @@ pplx::task<web::json::value> mitk::RESTClient::Get(const web::uri &uri,
     {
       auto response = responseTask.get();
 
-      CheckResponseContentType(response);
-
+      bool isjson = CheckResponseContentType(response);
+      if (!isjson)
+      {
+        web::json::value dummy;
+        return dummy;
+      }
       return response.extract_json().get();
     }
     catch (const std::exception &e)
@@ -133,8 +139,12 @@ pplx::task<web::json::value> mitk::RESTClient::Put(const web::uri &uri, const we
     {
       auto response = responseTask.get();
 
-      CheckResponseContentType(response);
-
+      bool isjson = CheckResponseContentType(response);
+      if (!isjson)
+      {
+        web::json::value dummy;
+        return dummy;
+      }
       return response.extract_json().get();
     }
     catch (std::exception &e)
@@ -190,8 +200,12 @@ pplx::task<web::json::value> mitk::RESTClient::ExecutePost(const web::uri &uri, 
     {
       auto response = responseTask.get();
 
-      CheckResponseContentType(response);
-
+      bool isjson = CheckResponseContentType(response);
+      if (!isjson)
+      {
+        web::json::value dummy;
+        return dummy;
+      }
       return response.extract_json().get();
     }
     catch (std::exception &e)
