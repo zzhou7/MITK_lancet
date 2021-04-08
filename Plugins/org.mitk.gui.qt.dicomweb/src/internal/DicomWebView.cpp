@@ -36,7 +36,8 @@ See LICENSE.txt or http://www.mitk.org for details.
 #include "mitkImage.h"
 #include "mitkNodePredicateDataType.h"
 #include <mitkDICOMDCMTKTagScanner.h>
-#include <mitkDICOMSegIOMimeTypes.h>
+#include <mitkIOMimeTypes.h>
+//#include <mitkDICOMSegIOMimeTypes.h>
 
 const std::string DicomWebView::VIEW_ID = "org.mitk.views.dicomwebview";
 
@@ -276,7 +277,7 @@ void DicomWebView::RestartConnection(utility::string_t newHost)
     return;
   }
 
-  utility::string_t url = newHost + U("/dcm4chee-arc/aets/DCM4CHEE/");
+  utility::string_t url = newHost + U("/dcm4chee-arc/aets/KAAPANA/");
 
   MITK_INFO << "Restarting connection to " << mitk::RESTUtil::convertToUtf8(url) << " ...";
   m_Controls.connectionStatus->setText(QString("Restarting connection..."));
@@ -339,7 +340,7 @@ void DicomWebView::UploadNewSegmentation()
   std::string folderPathSeg = mitk::IOUtil::CreateTemporaryDirectory("XXXXXX", m_UploadBaseDir) + "/";
 
   const std::string savePath = folderPathSeg + segNote->GetName() + ".dcm";
-  const std::string mimeType = mitk::MitkDICOMSEGIOMimeTypes::DICOMSEG_MIMETYPE_NAME();
+  const std::string mimeType = mitk::IOMimeTypes::DEFAULT_BASE_NAME() + ".image.dicom.seg";
   mitk::IOUtil::Save(segNote->GetData(), mimeType, savePath);
 
   // get Series Instance UID from new SEG

@@ -80,7 +80,7 @@ web::http::http_response DicomWebRequestHandler::Notify(const web::uri &uri,
                                                       const web::http::method &method,
                                                       const mitk::RESTUtil::ParamMap &headers)
 {
-  headers.size();
+  //headers.size();
 
   MITK_INFO << "Incoming notify";
   if (method == web::http::methods::GET)
@@ -169,9 +169,18 @@ web::http::http_response DicomWebRequestHandler::HandleGet(const web::uri &uri, 
       try
       {
         auto joinTask = pplx::when_all(begin(tasks), end(tasks));
-        auto filePathList = joinTask.then([&](std::vector<std::string> filePathList) {
-          emit InvokeLoadData(filePathList);
-          emit InvokeProgress(40, {""});
+        auto filePathListTask = joinTask.then([&](pplx::task<std::vector<std::string>> filePathListTask) {
+          try
+          {
+            std::vector<std::string> filePathList = filePathListTask.get();
+            emit InvokeLoadData(filePathList);
+            emit InvokeProgress(40, {""});
+          }
+          catch (...)
+          {
+            emit InvokeProgress(100, {""});
+            MITK_ERROR << "Exception when handling GET";
+          }
         });
       }
       catch (const mitk::Exception &exception)
