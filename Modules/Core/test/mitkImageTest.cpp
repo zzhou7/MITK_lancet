@@ -421,7 +421,7 @@ int mitkImageTest(int argc, char *argv[])
   //  void mitk::Image::Initialize(const mitkIpPicDescriptor* pic, int channels, int tDim, int sDim)
 
   // mitk::Image::Pointer vecImg = mitk::Image::New();
-  // vecImg->Initialize(PixelType(typeid(float), 6, itk::ImageIOBase::SYMMETRICSECONDRANKTENSOR),
+  // vecImg->Initialize(PixelType(typeid(float), 6, itk::IOPixelEnum::SYMMETRICSECONDRANKTENSOR),
   // *imgMem->GetGeometry(), 2 /* #channels */, 0 /*tDim*/, false /*shiftBoundingBoxMinimumToZero*/ );
   // vecImg->Initialize(PixelType(typeid(itk::Vector<float,6>)), *imgMem->GetGeometry(), 2 /* #channels */, 0 /*tDim*/,
   // false /*shiftBoundingBoxMinimumToZero*/ );

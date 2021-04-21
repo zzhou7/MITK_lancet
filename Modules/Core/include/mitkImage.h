@@ -654,7 +654,7 @@ namespace mitk
   protected:
     mitkCloneMacro(Self);
 
-    typedef itk::MutexLockHolder<itk::SimpleFastMutexLock> MutexHolder;
+    typedef std::lock_guard<std::mutex> MutexHolder;
 
     int GetSliceIndex(int s = 0, int t = 0, int n = 0) const;
 
@@ -695,7 +695,7 @@ namespace mitk
     mutable ImageDataItemPointerArray m_Channels;
     mutable ImageDataItemPointerArray m_Volumes;
     mutable ImageDataItemPointerArray m_Slices;
-    mutable itk::SimpleFastMutexLock m_ImageDataArraysLock;
+    mutable std::mutex m_ImageDataArraysLock;
 
     unsigned int m_Dimension;
 
@@ -743,9 +743,9 @@ namespace mitk
     mutable std::vector<ImageAccessorBase *> m_VtkReaders;
 
     /** A mutex, which needs to be locked to manage m_Readers and m_Writers */
-    itk::SimpleFastMutexLock m_ReadWriteLock;
+    mutable std::mutex m_ReadWriteLock;
     /** A mutex, which needs to be locked to manage m_VtkReaders */
-    itk::SimpleFastMutexLock m_VtkReadersLock;
+    mutable std::mutex m_VtkReadersLock;
   };
 
   /**
