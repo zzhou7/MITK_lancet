@@ -238,7 +238,7 @@ pplx::task<bool> DicomWebView::TestConnection()
   seriesInstancesParams.insert(mitk::RESTUtil::ParamMap::value_type(U("limit"), U("1")));
   m_Controls.connectionStatus->setText(QString("Testing connection ..."));
 
-  return m_RequestHandler->DicomWebGet().SendQIDO(seriesInstancesParams).then([=](pplx::task<web::json::value> resultTask) {
+  return m_RequestHandler->DicomWebGet().SendQIDO(seriesInstancesParams, m_Controls.useSystemProxy->isChecked()).then([=](pplx::task<web::json::value> resultTask) {
     try
     {
       auto result = resultTask.get();
@@ -362,7 +362,7 @@ void DicomWebView::UploadNewSegmentation()
   auto filePath = utility::conversions::to_string_t(savePath);
   try
   {
-    m_RequestHandler->DicomWebGet().SendSTOW(filePath, mitk::RESTUtil::convertToTString(m_CurrentStudyUID)).then([=] {
+    m_RequestHandler->DicomWebGet().SendSTOW(filePath, mitk::RESTUtil::convertToTString(m_CurrentStudyUID), m_Controls.useSystemProxy->isChecked()).then([=] {
       emit InvokeProgress(50, {"persist reworked SEG to evaluation database"});
 
       MITK_INFO << "successfully stored";
@@ -404,6 +404,10 @@ void DicomWebView::UploadNewSegmentation()
   catch (const std::exception &exception)
   {
     std::cout << exception.what() << std::endl;
+  }
+  catch(...)
+  {
+    MITK_ERROR << "Error in sending segmentation";
   }
 }
 

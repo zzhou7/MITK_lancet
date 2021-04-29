@@ -44,7 +44,8 @@ namespace mitk
     pplx::task<web::json::value> SendRequest(
       const web::uri &uri,
       const RequestType &type = RequestType::Get,
-      const std::map<utility::string_t, utility::string_t> headers = {}) override;
+      const std::map<utility::string_t, utility::string_t> headers = {},
+      const bool useSystemProxy = false) override;
 
     /**
      * @brief Executes a HTTP request in the mitkRESTClient class
@@ -61,7 +62,8 @@ namespace mitk
                                                  const RequestType &type = RequestType::Get,
                                                  const web::json::value *body = nullptr,
                                                  const std::map<utility::string_t, utility::string_t> headers = {},
-                                                 const utility::string_t &filePath = {}) override;
+                                                 const utility::string_t &filePath = {},
+                                                 const bool useSystemProxy=false) override;
 
     /**
      * @brief Executes a HTTP request in the mitkRESTClient class
@@ -77,7 +79,8 @@ namespace mitk
       const web::uri &uri,
       const RequestType &type = RequestType::Get,
       const std::vector<unsigned char> *body = {},
-      const std::map<utility::string_t, utility::string_t> headers = {}) override;
+      const std::map<utility::string_t, utility::string_t> headers = {},
+      const bool useSystemProxy = false) override;
 
     /**
      * @brief starts listening for requests if there isn't another observer listening and the port is free

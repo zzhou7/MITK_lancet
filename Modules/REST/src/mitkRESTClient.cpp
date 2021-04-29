@@ -57,8 +57,14 @@ bool mitk::RESTClient::CheckResponseContentType(web::http::http_response &respon
 }
 
 pplx::task<web::json::value> mitk::RESTClient::Get(const web::uri &uri,
-                                                   const std::map<utility::string_t, utility::string_t> headers)
+                                                   const std::map<utility::string_t, utility::string_t> headers,
+                                                   const bool useSystemProxy)
 {
+  if (useSystemProxy)
+  {
+    auto proxy = web::web_proxy::web_proxy(web::web_proxy::web_proxy_mode::use_auto_discovery);
+    m_ClientConfig.set_proxy(proxy);
+  }
   auto client = new http_client(uri, m_ClientConfig);
   http_request request;
 
@@ -90,8 +96,14 @@ pplx::task<web::json::value> mitk::RESTClient::Get(const web::uri &uri,
 
 pplx::task<web::json::value> mitk::RESTClient::Get(const web::uri &uri,
                                                    const utility::string_t &filePath,
-                                                   const std::map<utility::string_t, utility::string_t> headers)
+                                                   const std::map<utility::string_t, utility::string_t> headers,
+                                                   const bool useSystemProxy)
 {
+  if (useSystemProxy)
+  {
+    auto proxy = web::web_proxy::web_proxy(web::web_proxy::web_proxy_mode::use_auto_discovery);
+    m_ClientConfig.set_proxy(proxy);
+  }
   auto client = new http_client(uri, m_ClientConfig);
   auto fileBuffer = std::make_shared<concurrency::streams::streambuf<uint8_t>>();
   http_request request;
@@ -126,8 +138,16 @@ pplx::task<web::json::value> mitk::RESTClient::Get(const web::uri &uri,
     .then([=]() { return web::json::value(); });
 }
 
-pplx::task<web::json::value> mitk::RESTClient::Put(const web::uri &uri, const web::json::value *content)
+pplx::task<web::json::value> mitk::RESTClient::Put(const web::uri &uri,
+                                                   const web::json::value *content,
+                                                   const bool useSystemProxy)
 {
+  if (useSystemProxy)
+  {
+    auto proxy = web::web_proxy::web_proxy(web::web_proxy::web_proxy_mode::use_auto_discovery);
+    m_ClientConfig.set_proxy(proxy);
+  }
+
   auto client = new http_client(uri, m_ClientConfig);
   http_request request(methods::PUT);
 
@@ -157,7 +177,8 @@ pplx::task<web::json::value> mitk::RESTClient::Put(const web::uri &uri, const we
 
 pplx::task<web::json::value> mitk::RESTClient::Post(const web::uri &uri,
                                                     const std::vector<unsigned char> *content,
-                                                    const std::map<utility::string_t, utility::string_t> headers)
+                                                    const std::map<utility::string_t, utility::string_t> headers,
+                                                    const bool useSystemProxy)
 {
   auto request = InitRequest(headers);
   request.set_method(methods::POST);
@@ -165,12 +186,13 @@ pplx::task<web::json::value> mitk::RESTClient::Post(const web::uri &uri,
   if (nullptr != content)
     request.set_body(*content);
 
-  return ExecutePost(uri, request);
+  return ExecutePost(uri, request, useSystemProxy);
 }
 
 pplx::task<web::json::value> mitk::RESTClient::Post(const web::uri &uri,
                                                     const web::json::value *content,
-                                                    const std::map<utility::string_t, utility::string_t> headers)
+                                                    const std::map<utility::string_t, utility::string_t> headers,
+                                                    const bool useSystemProxy)
 {
   auto request = InitRequest(headers);
   request.set_method(methods::POST);
@@ -178,7 +200,7 @@ pplx::task<web::json::value> mitk::RESTClient::Post(const web::uri &uri,
   if (nullptr != content)
     request.set_body(*content);
 
-  return ExecutePost(uri, request);
+  return ExecutePost(uri, request, useSystemProxy);
 }
 
 http_request mitk::RESTClient::InitRequest(const std::map<utility::string_t, utility::string_t> headers)
@@ -192,8 +214,15 @@ http_request mitk::RESTClient::InitRequest(const std::map<utility::string_t, uti
   return request;
 }
 
-pplx::task<web::json::value> mitk::RESTClient::ExecutePost(const web::uri &uri, http_request request)
+pplx::task<web::json::value> mitk::RESTClient::ExecutePost(const web::uri &uri,
+                                                           http_request request,
+                                                           const bool useSystemProxy)
 {
+  if (useSystemProxy)
+  {
+    auto proxy = web::web_proxy::web_proxy(web::web_proxy::web_proxy_mode::use_auto_discovery);
+    m_ClientConfig.set_proxy(proxy);
+  }
   auto client = new http_client(uri, m_ClientConfig);
   return client->request(request).then([=](pplx::task<http_response> responseTask) {
     try

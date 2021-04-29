@@ -61,7 +61,7 @@ namespace mitk
     * @param studyUID the DICOM study uid
     * @return the task to wait for
     */
-   pplx::task<void> SendSTOW(utility::string_t filePath, utility::string_t studyUID);
+   pplx::task<void> SendSTOW(utility::string_t filePath, utility::string_t studyUID, const bool useSystemProxy = false);
 
    /**
     * @brief Sends a WADO request for an DICOM object instance matching the given uid parameters and stores it at the
@@ -76,7 +76,8 @@ namespace mitk
    pplx::task<void> SendWADO(utility::string_t filePath,
                              utility::string_t studyUID,
                              utility::string_t seriesUID,
-                             utility::string_t instanceUID);
+                             utility::string_t instanceUID,
+                             const bool useSystemProxy = false);
 
    /**
     * @brief Sends a WADO request for an DICOM object series matching the given uid parameters and stores all the
@@ -89,7 +90,8 @@ namespace mitk
     */
    pplx::task<std::string> SendWADO(utility::string_t folderPath,
                                     utility::string_t studyUID,
-                                    utility::string_t seriesUID);
+                                    utility::string_t seriesUID,
+                                    const bool useSystemProxy = false);
 
    /**
     * @brief Sends a QIDO request containing the given parameters to filter the query.
@@ -103,7 +105,7 @@ namespace mitk
     * @param map the map of parameters to filter the query
     * @return the task to wait for, which unfolds the result JSON response for the request when finished
     */
-   pplx::task<web::json::value> SendQIDO(mitk::RESTUtil::ParamMap map);
+   pplx::task<web::json::value> SendQIDO(mitk::RESTUtil::ParamMap map, const bool useSystemProxy=false);
 
  private:
    /**

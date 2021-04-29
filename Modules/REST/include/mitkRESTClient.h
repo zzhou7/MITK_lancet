@@ -33,7 +33,7 @@ namespace mitk
      * @param headers the additional headers to be set to the HTTP request
      * @return task to wait for with resulting json object
      */
-    pplx::task<web::json::value> Get(const web::uri &uri, const std::map<utility::string_t, utility::string_t> headers);
+    pplx::task<web::json::value> Get(const web::uri &uri, const std::map<utility::string_t, utility::string_t> headers, const bool useSystemProxy=false);
 
     /**
      * @brief Executes a HTTP GET request with the given uri and and stores the byte stream in a file given by the
@@ -47,7 +47,8 @@ namespace mitk
      */
     pplx::task<web::json::value> Get(const web::uri &uri,
                                      const utility::string_t &filePath,
-                                     const std::map<utility::string_t, utility::string_t> headers);
+                                     const std::map<utility::string_t, utility::string_t> headers,
+                                     const bool useSystemProxy=false);
 
     /**
      * @brief Executes a HTTP PUT request with given uri and the content given as json
@@ -58,7 +59,7 @@ namespace mitk
      * created resources
      * @return task to wait for with resulting json object
      */
-    pplx::task<web::json::value> Put(const web::uri &uri, const web::json::value *content);
+    pplx::task<web::json::value> Put(const web::uri &uri, const web::json::value *content, const bool useSystemProxy=false);
 
     /**
      * @brief Executes a HTTP POST request with given uri and the content given as json
@@ -72,7 +73,8 @@ namespace mitk
      */
     pplx::task<web::json::value> Post(const web::uri &uri,
                                       const web::json::value *content,
-                                      const std::map<utility::string_t, utility::string_t> headers);
+                                      const std::map<utility::string_t, utility::string_t> headers,
+                                      const bool useSystemProxy=false);
 
     /**
      * @brief Executes a HTTP POST request with given uri and the content given as json
@@ -86,7 +88,8 @@ namespace mitk
      */
     pplx::task<web::json::value> Post(const web::uri &uri,
                                       const std::vector<unsigned char> *content,
-                                      const std::map<utility::string_t, utility::string_t> headers);
+                                      const std::map<utility::string_t, utility::string_t> headers,
+                                      const bool useSystemProxy=false);
 
   private:
     /**
@@ -97,7 +100,8 @@ namespace mitk
 
     bool CheckResponseContentType(web::http::http_response &response);
 
-    pplx::task<web::json::value> ExecutePost(const web::uri &uri, http_request request);
+    pplx::task<web::json::value> ExecutePost(const web::uri &uri, http_request request, const bool useSystemProxy=false);
+    void SetSystemProxy();
     web::http::client::http_client_config m_ClientConfig;
   };
 } // namespace mitk

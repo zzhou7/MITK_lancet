@@ -58,7 +58,8 @@ namespace mitk
     virtual pplx::task<web::json::value> SendRequest(
       const web::uri &uri,
       const RequestType &type = RequestType::Get,
-      const std::map<utility::string_t, utility::string_t> headers = {}) = 0;
+      const std::map<utility::string_t, utility::string_t> headers = {},
+      const bool useSystemProxy = false) = 0;
 
     /**
      * @brief Executes a HTTP request in the mitkRESTClient class
@@ -75,7 +76,8 @@ namespace mitk
       const RequestType &type = RequestType::Get,
       const web::json::value *body = nullptr,
       const std::map<utility::string_t, utility::string_t> headers = {},
-      const utility::string_t &filePath = {}
+      const utility::string_t &filePath = {},
+      const bool useSystemProxy = false
     ) = 0;
 
     /**
@@ -90,7 +92,8 @@ namespace mitk
     virtual pplx::task<web::json::value> SendBinaryRequest(const web::uri &uri,
                                                      const RequestType &type = RequestType::Get,
                                                      const std::vector<unsigned char> *body = {},
-                                                     const std::map<utility::string_t, utility::string_t> headers = {}) = 0;
+                                                     const std::map<utility::string_t, utility::string_t> headers = {},
+                                                     const bool useSystemProxy = false) = 0;
 
     /**
      * @brief starts listening for requests if there isn't another observer listening and the port is free

@@ -23,7 +23,10 @@ mitk::RESTManager::RESTManager() {}
 mitk::RESTManager::~RESTManager() {}
 
 pplx::task<web::json::value> mitk::RESTManager::SendRequest(
-  const web::uri &uri, const RequestType &type, const std::map<utility::string_t, utility::string_t> headers)
+  const web::uri &uri,
+  const RequestType &type,
+  const std::map<utility::string_t, utility::string_t> headers,
+  const bool useSystemProxy)
 {
   pplx::task<web::json::value> answer;
   auto client = new RESTClient;
@@ -31,7 +34,7 @@ pplx::task<web::json::value> mitk::RESTManager::SendRequest(
   switch (type)
   {
     case RequestType::Get:
-      answer = client->Get(uri, headers);
+      answer = client->Get(uri, headers, useSystemProxy);
       break;
 
     default:
@@ -45,7 +48,8 @@ pplx::task<web::json::value> mitk::RESTManager::SendBinaryRequest(
   const web::uri &uri,
   const RequestType &type,
   const std::vector<unsigned char> *content,
-  const std::map<utility::string_t, utility::string_t> headers)
+  const std::map<utility::string_t, utility::string_t> headers,
+  const bool useSystemProxy)
 {
   pplx::task<web::json::value> answer;
   auto client = new RESTClient;
@@ -56,7 +60,7 @@ pplx::task<web::json::value> mitk::RESTManager::SendBinaryRequest(
       if (nullptr == content)
         MITK_WARN << "Content for post is empty, this will create an empty resource";
 
-      answer = client->Post(uri, content, headers);
+      answer = client->Post(uri, content, headers, useSystemProxy);
       break;
 
     default:
@@ -71,7 +75,8 @@ pplx::task<web::json::value> mitk::RESTManager::SendJSONRequest(
   const RequestType &type,
   const web::json::value *content,
   const std::map<utility::string_t, utility::string_t> headers,
-  const utility::string_t &filePath)
+  const utility::string_t &filePath,
+  const bool useSystemProxy)
 {
   pplx::task<web::json::value> answer;
   auto client = new RESTClient;
@@ -79,14 +84,14 @@ pplx::task<web::json::value> mitk::RESTManager::SendJSONRequest(
   switch (type)
   {
     case RequestType::Get:
-      answer = !filePath.empty() ? client->Get(uri, filePath, headers) : client->Get(uri, headers);
+      answer = !filePath.empty() ? client->Get(uri, filePath, headers, useSystemProxy) : client->Get(uri, headers, useSystemProxy);
       break;
 
     case RequestType::Post:
       if (nullptr == content)
         MITK_WARN << "Content for post is empty, this will create an empty resource";
 
-      answer = client->Post(uri, content, headers);
+      answer = client->Post(uri, content, headers, useSystemProxy);
       break;
 
     case RequestType::Put:
@@ -94,7 +99,7 @@ pplx::task<web::json::value> mitk::RESTManager::SendJSONRequest(
       if (nullptr == content)
         MITK_WARN << "Content for put is empty, this will empty the ressource";
 
-      answer = client->Put(uri, content);
+      answer = client->Put(uri, content, useSystemProxy);
       break;
 
     default:
