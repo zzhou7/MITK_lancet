@@ -14,10 +14,15 @@ found in the LICENSE file.
 
 mitk::DICOMweb::DICOMweb() {}
 
-mitk::DICOMweb::DICOMweb(utility::string_t baseURI) : m_BaseURI(baseURI)
+mitk::DICOMweb::DICOMweb(utility::string_t baseURI, bool useSystemProxy) : m_BaseURI(baseURI), m_UseSystemProxy(useSystemProxy)
 {
   MITK_INFO << "base uri: " << mitk::RESTUtil::convertToUtf8(m_BaseURI);
+  MITK_INFO << "use system proxy: " << m_UseSystemProxy;
   InitializeRESTManager();
+}
+void mitk::DICOMweb::UpdateUseSystemProxy(bool useSystemProxy)
+{
+  m_UseSystemProxy = useSystemProxy;
 }
 
 utility::string_t mitk::DICOMweb::CreateQIDOUri(mitk::RESTUtil::ParamMap map)
@@ -54,7 +59,7 @@ utility::string_t mitk::DICOMweb::CreateSTOWUri(utility::string_t studyUID)
 }
 
 pplx::task<void> mitk::DICOMweb::SendSTOW(utility::string_t filePath,
-                                          utility::string_t studyUID, const bool useSystemProxy)
+                                          utility::string_t studyUID)
 {
   auto uri = CreateSTOWUri(studyUID);
 
@@ -101,7 +106,7 @@ pplx::task<void> mitk::DICOMweb::SendSTOW(utility::string_t filePath,
 
   try
   {
-    return m_RESTManager->SendBinaryRequest(uri, mitk::IRESTManager::RequestType::Post, &result, headers, useSystemProxy)
+    return m_RESTManager->SendBinaryRequest(uri, mitk::IRESTManager::RequestType::Post, &result, headers, m_UseSystemProxy)
       .then([=](web::json::value result) {
         MITK_INFO << "after send";
         MITK_INFO << mitk::RESTUtil::convertToUtf8(result.serialize());
@@ -119,8 +124,7 @@ pplx::task<void> mitk::DICOMweb::SendSTOW(utility::string_t filePath,
 pplx::task<void> mitk::DICOMweb::SendWADO(utility::string_t filePath,
                                           utility::string_t studyUID,
                                           utility::string_t seriesUID,
-                                          utility::string_t instanceUID,
-                                          const bool useSystemProxy)
+                                          utility::string_t instanceUID)
 {
   auto uri = CreateWADOUri(studyUID, seriesUID, instanceUID);
 
@@ -128,7 +132,7 @@ pplx::task<void> mitk::DICOMweb::SendWADO(utility::string_t filePath,
   try
   {
     return m_RESTManager
-      ->SendJSONRequest(uri, mitk::IRESTManager::RequestType::Get, nullptr, {}, filePath, useSystemProxy)
+      ->SendJSONRequest(uri, mitk::IRESTManager::RequestType::Get, nullptr, {}, filePath, m_UseSystemProxy)
       .then([=](web::json::value result) { result.is_null(); });
   }
   catch (const mitk::Exception &e)
@@ -139,14 +143,13 @@ pplx::task<void> mitk::DICOMweb::SendWADO(utility::string_t filePath,
 
 pplx::task<std::string> mitk::DICOMweb::SendWADO(utility::string_t folderPath,
                                                  utility::string_t studyUID,
-                                                 utility::string_t seriesUID,
-                                                 const bool useSystemProxy)
+                                                 utility::string_t seriesUID)
 {
   mitk::RESTUtil::ParamMap seriesInstances;
   seriesInstances.insert(mitk::RESTUtil::ParamMap::value_type(U("StudyInstanceUID"), studyUID));
   seriesInstances.insert(mitk::RESTUtil::ParamMap::value_type(U("SeriesInstanceUID"), seriesUID));
 
-  return SendQIDO(seriesInstances, useSystemProxy).then([=](web::json::value jsonResult) -> pplx::task<std::string> {
+  return SendQIDO(seriesInstances).then([=](web::json::value jsonResult) -> pplx::task<std::string> {
     auto jsonListResult = jsonResult;
     auto resultArray = jsonListResult.as_array();
 
@@ -174,7 +177,7 @@ pplx::task<std::string> mitk::DICOMweb::SendWADO(utility::string_t folderPath,
         }
 
         auto filePath = utility::string_t(folderPath).append(fileName);
-        auto task = SendWADO(filePath, studyUID, seriesUID, sopInstanceUID, useSystemProxy);
+        auto task = SendWADO(filePath, studyUID, seriesUID, sopInstanceUID);
         tasks.push_back(task);
       }
       catch (const web::json::json_exception &e)
@@ -197,14 +200,14 @@ pplx::task<std::string> mitk::DICOMweb::SendWADO(utility::string_t folderPath,
   });
 }
 
-pplx::task<web::json::value> mitk::DICOMweb::SendQIDO(mitk::RESTUtil::ParamMap map, const bool useSystemProxy)
+pplx::task<web::json::value> mitk::DICOMweb::SendQIDO(mitk::RESTUtil::ParamMap map)
 {
   auto uri = CreateQIDOUri(map);
 
   mitk::RESTUtil::ParamMap headers;
   headers.insert(mitk::RESTUtil::ParamMap::value_type(U("Accept"), U("application/json")));
   return m_RESTManager->SendJSONRequest(
-    uri, mitk::IRESTManager::RequestType::Get, nullptr, headers, {}, useSystemProxy);
+    uri, mitk::IRESTManager::RequestType::Get, nullptr, headers, {}, m_UseSystemProxy);
 }
 
 void mitk::DICOMweb::InitializeRESTManager()

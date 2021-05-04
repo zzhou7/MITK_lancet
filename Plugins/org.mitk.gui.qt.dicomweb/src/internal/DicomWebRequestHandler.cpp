@@ -27,14 +27,20 @@ US_INITIALIZE_MODULE
 
 DicomWebRequestHandler::DicomWebRequestHandler() {}
 
-DicomWebRequestHandler::DicomWebRequestHandler(std::string downloadDir, utility::string_t pacsURI)
+DicomWebRequestHandler::DicomWebRequestHandler(std::string downloadDir, utility::string_t pacsURI, bool useSystemProxy)
   : m_DownloadDir{downloadDir}
 {
-  m_DicomWeb = mitk::DICOMweb(pacsURI);
+  m_UseSystemProxy = useSystemProxy;
+  m_DicomWeb = mitk::DICOMweb(pacsURI, m_UseSystemProxy);
 }
 
 void DicomWebRequestHandler::UpdateDicomWebUrl(utility::string_t pacsURI) {
-  m_DicomWeb = mitk::DICOMweb(pacsURI);
+  m_DicomWeb = mitk::DICOMweb(pacsURI, m_UseSystemProxy);
+}
+
+void DicomWebRequestHandler::UpdateUseSystemProxy(bool useSystemProxy) {
+  m_UseSystemProxy = useSystemProxy;
+  m_DicomWeb.UpdateUseSystemProxy(useSystemProxy);
 }
 
 mitk::DICOMweb DicomWebRequestHandler::DicomWebGet() {
@@ -155,7 +161,7 @@ web::http::http_response DicomWebRequestHandler::HandleGet(const web::uri &uri, 
 
           try
           {
-            auto seriesTask = m_DicomWeb.SendWADO(folderPathSeries, dto.studyUID, segSeriesUID, true);
+            auto seriesTask = m_DicomWeb.SendWADO(folderPathSeries, dto.studyUID, segSeriesUID);
             tasks.push_back(seriesTask);
           }
           catch (const mitk::Exception &exception)

@@ -52,7 +52,9 @@ namespace mitk
     * @param baseURI the uri for the PACS server: for example a dcm4chee
     * <code>http://<ip:port>/dcm4chee-arc/aets/DCM4CHEE/</code>
     */
-   DICOMweb(utility::string_t baseURI);
+   DICOMweb(utility::string_t baseURI, bool useSystemProxy=true);
+
+   void UpdateUseSystemProxy(bool useSystemProxy);
 
    /**
     * @brief Sends a STOW request with the file in the given path to the study given bei its UID.
@@ -61,7 +63,7 @@ namespace mitk
     * @param studyUID the DICOM study uid
     * @return the task to wait for
     */
-   pplx::task<void> SendSTOW(utility::string_t filePath, utility::string_t studyUID, const bool useSystemProxy = false);
+   pplx::task<void> SendSTOW(utility::string_t filePath, utility::string_t studyUID);
 
    /**
     * @brief Sends a WADO request for an DICOM object instance matching the given uid parameters and stores it at the
@@ -76,8 +78,7 @@ namespace mitk
    pplx::task<void> SendWADO(utility::string_t filePath,
                              utility::string_t studyUID,
                              utility::string_t seriesUID,
-                             utility::string_t instanceUID,
-                             const bool useSystemProxy = false);
+                             utility::string_t instanceUID);
 
    /**
     * @brief Sends a WADO request for an DICOM object series matching the given uid parameters and stores all the
@@ -90,8 +91,7 @@ namespace mitk
     */
    pplx::task<std::string> SendWADO(utility::string_t folderPath,
                                     utility::string_t studyUID,
-                                    utility::string_t seriesUID,
-                                    const bool useSystemProxy = false);
+                                    utility::string_t seriesUID);
 
    /**
     * @brief Sends a QIDO request containing the given parameters to filter the query.
@@ -105,7 +105,7 @@ namespace mitk
     * @param map the map of parameters to filter the query
     * @return the task to wait for, which unfolds the result JSON response for the request when finished
     */
-   pplx::task<web::json::value> SendQIDO(mitk::RESTUtil::ParamMap map, const bool useSystemProxy=false);
+   pplx::task<web::json::value> SendQIDO(mitk::RESTUtil::ParamMap map);
 
  private:
    /**
@@ -133,6 +133,7 @@ namespace mitk
 
    utility::string_t m_BaseURI;
    mitk::IRESTManager *m_RESTManager;
+   bool m_UseSystemProxy;
  };
 }
 

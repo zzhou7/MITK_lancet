@@ -51,7 +51,7 @@ public:
    *
    * @param downloadDir the directory to which received data is stored.
    */
-  DicomWebRequestHandler(std::string downloadDir, utility::string_t pacsURI);
+  DicomWebRequestHandler(std::string downloadDir, utility::string_t pacsURI, bool useSystemProxy=true);
 
   /**
    * Overrides IRESTObserver::Notify. Here arrive the incoming messages.
@@ -61,6 +61,7 @@ public:
                                   const web::http::method &method,
                                   const mitk::RESTUtil::ParamMap &headers);
   void UpdateDicomWebUrl(utility::string_t pacsURI);
+  void UpdateUseSystemProxy(bool useSystemProxy);
   mitk::DICOMweb DicomWebGet();
 
 signals:
@@ -82,6 +83,7 @@ private:
 
   std::string m_DownloadDir;
   mitk::DICOMweb m_DicomWeb;
+  bool m_UseSystemProxy;
 };
 
 #endif // DicomWebRequestHandler_h

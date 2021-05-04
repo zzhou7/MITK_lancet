@@ -73,6 +73,10 @@ void DicomWebView::CreateQtPartControl(QWidget *parent)
           SIGNAL(CurrentSelectionChanged(QList<mitk::DataNode::Pointer>)),
           this,
           SLOT(OnSegmentationSelectionChanged(QList<mitk::DataNode::Pointer>)));
+  connect(m_Controls.useSystemProxy,
+          &QCheckBox::toggled,
+          this,
+          &DicomWebView::OnUseSystemProxyChanged);
 
   m_DownloadBaseDir = mitk::IOUtil::GetTempPath() + "segrework";
   MITK_INFO << "using download base dir: " << m_DownloadBaseDir;
@@ -112,7 +116,7 @@ void DicomWebView::CreateQtPartControl(QWidget *parent)
     pacsURL = mitk::RESTUtil::convertToTString(std::string(envPacsURL));
   }
 
-  m_RequestHandler = new DicomWebRequestHandler(m_DownloadBaseDir, pacsURL);
+  m_RequestHandler = new DicomWebRequestHandler(m_DownloadBaseDir, pacsURL, m_Controls.useSystemProxy->isChecked());
 
   connect(this, &DicomWebView::InvokeProgress, this, &DicomWebView::AddProgress);
   connect(m_RequestHandler, &DicomWebRequestHandler::InvokeProgress, this, &DicomWebView::AddProgress);
@@ -238,7 +242,7 @@ pplx::task<bool> DicomWebView::TestConnection()
   seriesInstancesParams.insert(mitk::RESTUtil::ParamMap::value_type(U("limit"), U("1")));
   m_Controls.connectionStatus->setText(QString("Testing connection ..."));
 
-  return m_RequestHandler->DicomWebGet().SendQIDO(seriesInstancesParams, m_Controls.useSystemProxy->isChecked()).then([=](pplx::task<web::json::value> resultTask) {
+  return m_RequestHandler->DicomWebGet().SendQIDO(seriesInstancesParams).then([=](pplx::task<web::json::value> resultTask) {
     try
     {
       auto result = resultTask.get();
@@ -362,7 +366,7 @@ void DicomWebView::UploadNewSegmentation()
   auto filePath = utility::conversions::to_string_t(savePath);
   try
   {
-    m_RequestHandler->DicomWebGet().SendSTOW(filePath, mitk::RESTUtil::convertToTString(m_CurrentStudyUID), m_Controls.useSystemProxy->isChecked()).then([=] {
+    m_RequestHandler->DicomWebGet().SendSTOW(filePath, mitk::RESTUtil::convertToTString(m_CurrentStudyUID)).then([=] {
       emit InvokeProgress(50, {"persist reworked SEG to evaluation database"});
 
       MITK_INFO << "successfully stored";
@@ -461,6 +465,11 @@ void DicomWebView::OnSegmentationSelectionChanged(QList<mitk::DataNode::Pointer>
     segNode->SetProperty("layer", mitk::IntProperty::New(layer));
     m_Controls.buttonUpload->setEnabled(true);
   }
+}
+
+void DicomWebView::OnUseSystemProxyChanged(bool toggled)
+{
+    m_RequestHandler->UpdateUseSystemProxy(toggled);
 }
 
 void DicomWebView::CleanDicomFolder()

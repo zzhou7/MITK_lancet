@@ -85,6 +85,7 @@ signals:
 protected slots:
   void OnPatientSelectionChanged(QList<mitk::DataNode::Pointer> nodes);
   void OnSegmentationSelectionChanged(QList<mitk::DataNode::Pointer> nodes);
+  void OnUseSystemProxyChanged(bool toggled);
 
 
 protected:
