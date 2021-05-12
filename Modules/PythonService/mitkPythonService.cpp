@@ -396,7 +396,7 @@ bool mitk::PythonService::CopyToPythonAsSimpleItkImage(mitk::Image::Pointer imag
   this->Execute(transferToPython);
 
   mitk::Image::Pointer *img = &image;
-  PyGILState_Ensure();//PyGILState_STATE gState = PyGILState_Ensure();
+  PyGILState_Ensure();
   //necessary for transfer array from C++ to Python
   _import_array();
   PyObject *main = PyImport_ImportModule("__main__");
@@ -520,18 +520,26 @@ bool mitk::PythonService::CopyMITKImageToPython(mitk::Image::Pointer &image, con
   std::string transferToPython = "import pyMITK\n"
                                  + stdvarName +" = None\n"
                                  "\n"
+                                 "spacing = None\n"
+                                 "origin = None\n"
                                  "def setup(image_from_cxx):\n"
                                  "    print ('setup called with', image_from_cxx)\n"
                                  "    global "+stdvarName+"\n"
-                                 "    "+stdvarName+" = image_from_cxx\n";
+                                 "    "+stdvarName+" = image_from_cxx\n"
+                                 "\n"
+                                 "def set_origin_and_spacing(s,o):\n"
+                                 "    global spacing\n"
+                                 "    global origin\n"                                
+                                 "    spacing = numpy.array(s , dtype=float)\n"
+                                 "    origin = numpy.array(o , dtype=float)\n";
 
   // execute code to make the implemented functions available in the Python context (function is not executed, only
   // definition loaded in Python)
   this->Execute(transferToPython);
-
   mitk::Image::Pointer *img = &image;
   // load main context to have access to defined function from above
   PyGILState_Ensure();
+  _import_array();
   PyObject *main = PyImport_ImportModule("__main__");
   if (main == NULL)
   {
@@ -555,7 +563,26 @@ bool mitk::PythonService::CopyMITKImageToPython(mitk::Image::Pointer &image, con
   {
     mitkThrow() << "Something went wrong setting the MITK image in Python";
   }
+  // get image spacing and convert it to Python array
+  int numberOfImageDimension = image->GetDimension();
+  auto spacing = image->GetGeometry()->GetSpacing();
+  auto *spacingptr = &spacing;
+  
+  npy_intp dims[] = {numberOfImageDimension};
+  PyObject *spacingArray = PyArray_SimpleNewFromData(1, dims, NPY_DOUBLE, (void *)spacingptr);
 
+  // get image origin and convert it to Python array
+  auto origin = image->GetGeometry()->GetOrigin();
+  auto *originptr = &origin;
+  PyObject *originArray = PyArray_SimpleNewFromData(1, dims, NPY_DOUBLE, (void *)originptr);
+
+  // convert correct origin and spacing calling set_origin_and_spacing from above
+  PyObject *convert = PyObject_GetAttrString(main, "set_origin_and_spacing");
+  result = PyObject_CallFunctionObjArgs(convert,spacingArray, originArray, NULL);
+  if (result == NULL)
+  {
+    mitkThrow() << "Something went wrong converting the MITK image to a SimpleITK image";
+  }
   m_ThreadState = PyEval_SaveThread();
   return true;
 }
