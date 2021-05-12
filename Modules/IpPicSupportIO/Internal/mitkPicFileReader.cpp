@@ -72,15 +72,23 @@ static mitk::ImageDescriptor::Pointer CastToImageDescriptor(mitkIpPicDescriptor 
   return imDescriptor;
 }
 
-static mitkIpPicType_t CastToIpPicType(int intype)
+static mitkIpPicType_t CastToIpPicType(itk::IOComponentEnum intype)
 {
-  const bool isSignedIntegralType = (intype == itk::ImageIOBase::INT || intype == itk::ImageIOBase::SHORT ||
-    intype == itk::ImageIOBase::CHAR || intype == itk::ImageIOBase::LONG);
+  const bool isSignedIntegralType =
+    intype == itk::IOComponentEnum::INT ||
+    intype == itk::IOComponentEnum::SHORT ||
+    intype == itk::IOComponentEnum::CHAR ||
+    intype == itk::IOComponentEnum::LONG;
 
-  const bool isUnsignedIntegralType = (intype == itk::ImageIOBase::UINT || intype == itk::ImageIOBase::USHORT ||
-    intype == itk::ImageIOBase::UCHAR || intype == itk::ImageIOBase::ULONG);
+  const bool isUnsignedIntegralType = 
+    intype == itk::IOComponentEnum::UINT ||
+    intype == itk::IOComponentEnum::USHORT ||
+    intype == itk::IOComponentEnum::UCHAR ||
+    intype == itk::IOComponentEnum::ULONG;
 
-  const bool isFloatingPointType = (intype == itk::ImageIOBase::FLOAT || intype == itk::ImageIOBase::DOUBLE);
+  const bool isFloatingPointType = 
+    intype == itk::IOComponentEnum::FLOAT ||
+    intype == itk::IOComponentEnum::DOUBLE;
 
   if (isSignedIntegralType)
     return mitkIpPicInt;

@@ -19,6 +19,13 @@ found in the LICENSE file.
 
 namespace mitk
 {
+#pragma GCC visibility push(default)
+  /**
+    \brief Can be observed by GUI class to update button states when mode is changed programatically.
+  */
+  itkEventMacroDeclaration(MouseModeChangedEvent, itk::AnyEvent);
+#pragma GCC visibility pop
+
   /***********************************************************************
   *
   * \brief Class that offers a convenient way to switch between different
@@ -57,13 +64,6 @@ namespace mitk
   class MITKCORE_EXPORT MouseModeSwitcher : public itk::Object
   {
   public:
-#pragma GCC visibility push(default)
-    /**
-      \brief Can be observed by GUI class to update button states when mode is changed programatically.
-    */
-    itkEventMacro(MouseModeChangedEvent, itk::AnyEvent);
-#pragma GCC visibility pop
-
     mitkClassMacroItkParent(MouseModeSwitcher, itk::Object);
     itkFactorylessNewMacro(Self);
     itkCloneMacro(Self);

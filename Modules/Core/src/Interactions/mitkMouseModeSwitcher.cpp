@@ -17,6 +17,11 @@ found in the LICENSE file.
 
 #include "mitkInteractionEventObserver.h"
 
+namespace mitk
+{
+  itkEventMacroDefinition(MouseModeChangedEvent, itk::AnyEvent);
+}
+
 mitk::MouseModeSwitcher::MouseModeSwitcher()
   : m_ActiveInteractionScheme(MITK), m_ActiveMouseMode(MousePointer), m_CurrentObserver(nullptr)
 {
