@@ -581,7 +581,7 @@ bool mitk::PythonService::CopyMITKImageToPython(mitk::Image::Pointer &image, con
   result = PyObject_CallFunctionObjArgs(convert,spacingArray, originArray, NULL);
   if (result == NULL)
   {
-    mitkThrow() << "Something went wrong converting the MITK image to a SimpleITK image";
+    mitkThrow() << "Something went wrong setting the origin and spacing for the image";
   }
   m_ThreadState = PyEval_SaveThread();
   return true;
