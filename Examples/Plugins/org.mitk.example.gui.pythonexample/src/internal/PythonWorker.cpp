@@ -18,7 +18,6 @@ found in the LICENSE file.
 #include<mitkIPythonService.h>
 #include <usModuleInitialization.h>
 #include <mitkStandardFileLocations.h>
-#include <QMessageBox.h>
 
 void PythonWorker::DoWork() 
 {
