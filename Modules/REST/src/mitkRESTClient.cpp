@@ -117,7 +117,7 @@ pplx::task<web::json::value> mitk::RESTClient::Get(const web::uri &uri,
   return file_buffer::open(filePath, std::ios::out)
     .then([=](streambuf outFile) -> pplx::task<http_response> {
       *fileBuffer = outFile;
-      return client->request(methods::GET);
+      return client->request(request);
     })
     // Write the response body into the file buffer
     .then([=](http_response response) -> pplx::task<size_t> {

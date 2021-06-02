@@ -124,15 +124,22 @@ pplx::task<void> mitk::DICOMweb::SendSTOW(utility::string_t filePath,
 pplx::task<void> mitk::DICOMweb::SendWADO(utility::string_t filePath,
                                           utility::string_t studyUID,
                                           utility::string_t seriesUID,
-                                          utility::string_t instanceUID)
+                                          utility::string_t instanceUID,
+                                          utility::string_t access_token)
 {
   auto uri = CreateWADOUri(studyUID, seriesUID, instanceUID);
+
+  mitk::RESTUtil::ParamMap headers;
+  if (access_token != U(""))
+  {
+    headers.insert(mitk::RESTUtil::ParamMap::value_type(U("Cookie"), access_token));
+  }
 
   // don't want return something
   try
   {
     return m_RESTManager
-      ->SendJSONRequest(uri, mitk::IRESTManager::RequestType::Get, nullptr, {}, filePath, m_UseSystemProxy)
+      ->SendJSONRequest(uri, mitk::IRESTManager::RequestType::Get, nullptr, headers, filePath, m_UseSystemProxy)
       .then([=](web::json::value result) { result.is_null(); });
   }
   catch (const mitk::Exception &e)
@@ -143,13 +150,14 @@ pplx::task<void> mitk::DICOMweb::SendWADO(utility::string_t filePath,
 
 pplx::task<std::string> mitk::DICOMweb::SendWADO(utility::string_t folderPath,
                                                  utility::string_t studyUID,
-                                                 utility::string_t seriesUID)
+                                                 utility::string_t seriesUID,
+                                                 utility::string_t access_token)
 {
   mitk::RESTUtil::ParamMap seriesInstances;
   seriesInstances.insert(mitk::RESTUtil::ParamMap::value_type(U("StudyInstanceUID"), studyUID));
   seriesInstances.insert(mitk::RESTUtil::ParamMap::value_type(U("SeriesInstanceUID"), seriesUID));
 
-  return SendQIDO(seriesInstances).then([=](web::json::value jsonResult) -> pplx::task<std::string> {
+  return SendQIDO(seriesInstances, access_token).then([=](web::json::value jsonResult) -> pplx::task<std::string> {
     auto jsonListResult = jsonResult;
     auto resultArray = jsonListResult.as_array();
 
@@ -177,7 +185,7 @@ pplx::task<std::string> mitk::DICOMweb::SendWADO(utility::string_t folderPath,
         }
 
         auto filePath = utility::string_t(folderPath).append(fileName);
-        auto task = SendWADO(filePath, studyUID, seriesUID, sopInstanceUID);
+        auto task = SendWADO(filePath, studyUID, seriesUID, sopInstanceUID, access_token);
         tasks.push_back(task);
       }
       catch (const web::json::json_exception &e)
@@ -200,11 +208,45 @@ pplx::task<std::string> mitk::DICOMweb::SendWADO(utility::string_t folderPath,
   });
 }
 
-pplx::task<web::json::value> mitk::DICOMweb::SendQIDO(mitk::RESTUtil::ParamMap map)
+pplx::task<std::string> mitk::DICOMweb::SendWADOSeries(utility::string_t folderPath,
+                                                 utility::string_t studyUID,
+                                                 utility::string_t seriesUID,
+                                                 utility::string_t access_token)
+{
+  auto uri = m_BaseURI + U("rs/studies/") + studyUID + U("/series/") + seriesUID + U("?accept=application/zip");
+
+  mitk::RESTUtil::ParamMap headers;
+  if (access_token != U(""))
+  {
+    headers.insert(mitk::RESTUtil::ParamMap::value_type(U("Cookie"), access_token));
+  }
+
+  auto filePath = folderPath + seriesUID + U(".zip");
+  try
+  {
+    auto task = m_RESTManager -> SendJSONRequest(uri, mitk::IRESTManager::RequestType::Get, nullptr, headers, filePath, m_UseSystemProxy)
+      .then([=](web::json::value result) {
+        result.is_null();
+        auto filePathUtf8 = utility::conversions::to_utf8string(filePath);
+        return filePathUtf8;
+    });
+    return task;
+  }
+  catch (const mitk::Exception &e)
+  {
+    mitkThrow() << e.what();
+  }
+}
+
+pplx::task<web::json::value> mitk::DICOMweb::SendQIDO(mitk::RESTUtil::ParamMap map, utility::string_t access_token)
 {
   auto uri = CreateQIDOUri(map);
 
   mitk::RESTUtil::ParamMap headers;
+  if (access_token != U(""))
+  {
+    headers.insert(mitk::RESTUtil::ParamMap::value_type(U("Cookie"), access_token));
+  }
   headers.insert(mitk::RESTUtil::ParamMap::value_type(U("Accept"), U("application/json")));
   return m_RESTManager->SendJSONRequest(
     uri, mitk::IRESTManager::RequestType::Get, nullptr, headers, {}, m_UseSystemProxy);

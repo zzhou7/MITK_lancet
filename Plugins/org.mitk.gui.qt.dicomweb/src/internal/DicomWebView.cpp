@@ -241,8 +241,7 @@ pplx::task<bool> DicomWebView::TestConnection()
 
   seriesInstancesParams.insert(mitk::RESTUtil::ParamMap::value_type(U("limit"), U("1")));
   m_Controls.connectionStatus->setText(QString("Testing connection ..."));
-
-  return m_RequestHandler->DicomWebGet().SendQIDO(seriesInstancesParams).then([=](pplx::task<web::json::value> resultTask) {
+  return m_RequestHandler->DicomWebGet().SendQIDO(seriesInstancesParams, accessToken).then([=](pplx::task<web::json::value> resultTask) {
     try
     {
       auto result = resultTask.get();

@@ -23,6 +23,10 @@ See LICENSE.txt or http://www.mitk.org for details.
 #include <usModuleContext.h>
 #include <usModuleInitialization.h>
 
+#include <Poco/Zip/Decompress.h>
+#include <Poco/File.h>
+#include <Poco/Path.h>
+
 US_INITIALIZE_MODULE
 
 DicomWebRequestHandler::DicomWebRequestHandler() {}
@@ -119,6 +123,32 @@ web::http::http_response DicomWebRequestHandler::HandlePut(const web::uri &uri, 
   return errorResponse;
 }
 
+std::vector<std::string> DicomWebRequestHandler::GetPathsToLoad(std::vector<std::string> filePathList)
+{
+  std::vector<std::string> filesToLoad;
+  for (std::string &filePath : filePathList)
+  {
+    std::ifstream file(filePath.c_str(), std::ios::binary);
+    if (!file.good())
+    {
+      mitkThrow() << "Cannot open '" + filePath + "' for reading";
+    }
+    std::string folder = filePath.substr(0, filePath.find(".zip"));
+    Poco::Path pocoPath = Poco::Path(folder);
+    Poco::Zip::Decompress unzipper(file, Poco::Path(folder));
+    unzipper.decompressAllFiles();
+    while (pocoPath.getExtension() != "dcm")
+    {
+      std::vector<std::string> pathes;
+      auto path = Poco::File(pocoPath);
+      path.list(pathes);
+      pocoPath.append(Poco::Path(pathes.front()));
+    }
+    filesToLoad.push_back(pocoPath.toString());
+  }
+  return filesToLoad;
+}
+
 web::http::http_response DicomWebRequestHandler::HandleGet(const web::uri &uri, const web::json::value &data)
 {
   if (!data.is_null()) // avoid unused warning
@@ -141,6 +171,7 @@ web::http::http_response DicomWebRequestHandler::HandleGet(const web::uri &uri, 
       dto.studyUID = httpParams.at(U("studyUID"));
       auto seriesUIDList = httpParams.at(U("seriesUIDList"));
       auto seriesUIDListUtf8 = mitk::RESTUtil::convertToUtf8(seriesUIDList);
+      //auto accessToken = U("kc-access=") + httpParams.at(U("accessToken"));
       std::istringstream f(seriesUIDListUtf8);
       std::string s;
       while (getline(f, s, ','))
@@ -161,7 +192,7 @@ web::http::http_response DicomWebRequestHandler::HandleGet(const web::uri &uri, 
 
           try
           {
-            auto seriesTask = m_DicomWeb.SendWADO(folderPathSeries, dto.studyUID, segSeriesUID);
+            auto seriesTask = m_DicomWeb.SendWADOSeries(folderPathSeries, dto.studyUID, segSeriesUID, U(""));
             tasks.push_back(seriesTask);
           }
           catch (const mitk::Exception &exception)
@@ -178,8 +209,8 @@ web::http::http_response DicomWebRequestHandler::HandleGet(const web::uri &uri, 
         auto filePathListTask = joinTask.then([&](pplx::task<std::vector<std::string>> filePathListTask) {
           try
           {
-            std::vector<std::string> filePathList = filePathListTask.get();
-            emit InvokeLoadData(filePathList);
+            std::vector<std::string> filesToLoad = GetPathsToLoad(filePathListTask.get());
+            emit InvokeLoadData(filesToLoad);
             emit InvokeProgress(40, {""});
           }
           catch (...)

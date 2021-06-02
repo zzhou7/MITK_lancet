@@ -80,6 +80,7 @@ private:
   web::http::http_response HandlePost(const web::uri &uri,
                                       const web::json::value &data,
                                       const mitk::RESTUtil::ParamMap &headers);
+  std::vector<std::string> GetPathsToLoad(std::vector<std::string> filePathList);
 
   std::string m_DownloadDir;
   mitk::DICOMweb m_DicomWeb;
