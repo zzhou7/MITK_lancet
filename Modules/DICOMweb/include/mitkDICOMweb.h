@@ -88,14 +88,9 @@ namespace mitk
     * @param folderPath the path at which the retrieved DICOM object instances of the retrieved series will be stored
     * @param studyUID the DICOM study uid
     * @param seriesUID the DICOM series uid
-    * @return the task to wait for, which unfolds the name of the first DICOM object file within the folder path
+    * @return the task to wait for, which unfolds the name of the returned zip file from the request
     */
    pplx::task<std::string> SendWADO(utility::string_t folderPath,
-                                    utility::string_t studyUID,
-                                    utility::string_t seriesUID,
-                                    utility::string_t access_token);
-
-   pplx::task<std::string> SendWADOSeries(utility::string_t folderPath,
                                     utility::string_t studyUID,
                                     utility::string_t seriesUID,
                                     utility::string_t access_token);

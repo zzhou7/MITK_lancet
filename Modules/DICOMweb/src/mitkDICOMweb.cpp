@@ -153,66 +153,6 @@ pplx::task<std::string> mitk::DICOMweb::SendWADO(utility::string_t folderPath,
                                                  utility::string_t seriesUID,
                                                  utility::string_t access_token)
 {
-  mitk::RESTUtil::ParamMap seriesInstances;
-  seriesInstances.insert(mitk::RESTUtil::ParamMap::value_type(U("StudyInstanceUID"), studyUID));
-  seriesInstances.insert(mitk::RESTUtil::ParamMap::value_type(U("SeriesInstanceUID"), seriesUID));
-
-  return SendQIDO(seriesInstances, access_token).then([=](web::json::value jsonResult) -> pplx::task<std::string> {
-    auto jsonListResult = jsonResult;
-    auto resultArray = jsonListResult.as_array();
-
-    auto firstFileName = std::string();
-
-    std::vector<pplx::task<void>> tasks;
-
-    for (unsigned short i = 0; i < resultArray.size(); i++)
-    {
-      try
-      {
-        auto firstResult = resultArray[i];
-        auto sopInstanceUIDKey = firstResult.at(U("00080018"));
-        auto sopInstanceObject = sopInstanceUIDKey.as_object();
-        auto valueKey = sopInstanceObject.at(U("Value"));
-        auto valueArray = valueKey.as_array();
-        auto sopInstanceUID = valueArray[0].as_string();
-
-        auto fileName = utility::string_t(sopInstanceUID).append(U(".dcm"));
-
-        // save first file name as result to load series
-        if (i == 0)
-        {
-          firstFileName = utility::conversions::to_utf8string(fileName);
-        }
-
-        auto filePath = utility::string_t(folderPath).append(fileName);
-        auto task = SendWADO(filePath, studyUID, seriesUID, sopInstanceUID, access_token);
-        tasks.push_back(task);
-      }
-      catch (const web::json::json_exception &e)
-      {
-        MITK_ERROR << e.what();
-        mitkThrow() << e.what();
-      }
-    }
-
-    auto joinTask = pplx::when_all(begin(tasks), end(tasks));
-
-    auto returnTask = joinTask.then([=](void) -> std::string {
-      auto folderPathUtf8 = utility::conversions::to_utf8string(folderPath);
-      auto result = folderPathUtf8 + firstFileName;
-
-      return result;
-    });
-
-    return returnTask;
-  });
-}
-
-pplx::task<std::string> mitk::DICOMweb::SendWADOSeries(utility::string_t folderPath,
-                                                 utility::string_t studyUID,
-                                                 utility::string_t seriesUID,
-                                                 utility::string_t access_token)
-{
   auto uri = m_BaseURI + U("rs/studies/") + studyUID + U("/series/") + seriesUID + U("?accept=application/zip");
 
   mitk::RESTUtil::ParamMap headers;

@@ -192,7 +192,7 @@ web::http::http_response DicomWebRequestHandler::HandleGet(const web::uri &uri, 
 
           try
           {
-            auto seriesTask = m_DicomWeb.SendWADOSeries(folderPathSeries, dto.studyUID, segSeriesUID, U(""));
+            auto seriesTask = m_DicomWeb.SendWADO(folderPathSeries, dto.studyUID, segSeriesUID, U(""));
             tasks.push_back(seriesTask);
           }
           catch (const mitk::Exception &exception)
