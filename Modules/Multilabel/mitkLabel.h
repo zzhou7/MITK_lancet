@@ -25,59 +25,84 @@ namespace mitk
   //## @brief A data structure describing a label.
   //## @ingroup Data
   //##
-  class MITKMULTILABEL_EXPORT Label : public PropertyList
+  class MITKMULTILABEL_EXPORT Label : public itk::Object, public IPropertyProvider
   {
   public:
-    mitkClassMacro(Label, mitk::PropertyList);
-
-    itkNewMacro(Self);
+    mitkClassMacroItkParent(Label, itk::Object);
+    itkFactorylessNewMacro(Self);
 
     typedef unsigned short PixelType;
 
     /// The maximum value a label can get: Since the value is of type unsigned short MAX_LABEL_VALUE = 65535
     static const PixelType MAX_LABEL_VALUE;
 
-    void SetLocked(bool locked);
-    bool GetLocked() const;
+    itkSetMacro(Locked, bool);
+    itkGetConstMacro(Locked, bool);
+    itkBooleanMacro(Locked);
 
-    void SetVisible(bool visible);
-    bool GetVisible() const;
+    itkSetMacro(Visible, bool);
+    itkGetConstMacro(Visible, bool);
+    itkBooleanMacro(Visible);
 
-    void SetOpacity(float opacity);
-    float GetOpacity() const;
+    itkSetMacro(Opacity, float);
+    itkGetConstMacro(Opacity, float);
 
     void SetName(const std::string &name);
-    std::string GetName() const;
+    const std::string& GetName() const;
 
-    void SetCenterOfMassIndex(const mitk::Point3D &center);
-    mitk::Point3D GetCenterOfMassIndex() const;
+    itkSetMacro(Color, mitk::Color);
+    itkGetConstReferenceMacro(Color, mitk::Color);
 
-    void SetCenterOfMassCoordinates(const mitk::Point3D &center);
-    mitk::Point3D GetCenterOfMassCoordinates() const;
+    /** Returns the center of mass for a given time step.
+     *@param t Timestep for which the information is requested.
+     *@pre t must be a valid time step.*/
+    mitk::Point3D GetCenterOfMassCoordinates(TimeStepType t = 0) const;
 
-    void SetColor(const mitk::Color &);
-    const mitk::Color &GetColor() const;
+    /** Returns the number of pixels of the label for a given time step.
+     *@param t Timestep for which the information is requested.
+     *@pre t must be a valid time step.*/
+    itk::SizeValueType GetNumberOfPixels(TimeStepType t = 0) const;
 
-    void SetValue(PixelType pixelValue);
     PixelType GetValue() const;
 
-    void SetLayer(unsigned int layer);
-    unsigned int GetLayer() const;
+    BaseProperty::ConstPointer GetConstProperty(const std::string& propertyKey,
+      const std::string& contextName = "",
+      bool fallBackOnDefaultContext = true) const override;
 
-    void SetProperty(const std::string &propertyKey, BaseProperty *property, const std::string &contextName = "", bool fallBackOnDefaultContext = false) override;
+    std::vector<std::string> GetPropertyKeys(const std::string& contextName = "",
+      bool includeDefaultContext = false) const override;
 
-    using itk::Object::Modified;
-    void Modified() { Superclass::Modified(); }
-    Label();
-    ~Label() override;
+    std::vector<std::string> GetPropertyContextNames() const override;
 
   protected:
+    mitkCloneMacro(Self);
+
+    Label();
+    ~Label() override;
+    Label(const Label& other);
+
+    using CenterVectorType = std::vector<mitk::Point3D>;
+    using SizeVectorType = std::vector<itk::SizeValueType>;
+
+    //The following setters are only available via friend access (MultiLabelImage),
+    //as changes are managed by the friend class to ensure a valid state of
+    //the MultiLabelImage instance that owns this label.
+    friend class MultiLabelImage;
+    void SetCenterOfMassCoordinates(const CenterVectorType& centers);
+    void SetNumberOfVoxels(const SizeVectorType& numbers);
+    void SetValue(PixelType pixelValue);
+
     void PrintSelf(std::ostream &os, itk::Indent indent) const override;
 
-    Label(const Label &other);
-
   private:
-    itk::LightObject::Pointer InternalClone() const override;
+    bool m_Locked = false;
+    bool m_Visible = true;
+    float m_Opacity = 1.0;
+    std::string m_Name;
+    mitk::Color m_Color;
+    PixelType m_Value;
+    CenterVectorType m_Centers;
+    SizeVectorType m_NumberOfVoxels;
   };
 
   /**
