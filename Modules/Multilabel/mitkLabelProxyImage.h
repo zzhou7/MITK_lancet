@@ -73,9 +73,9 @@ namespace mitk
      * @pre Parent is valid -> InvalidMultiLabelImageException*/
     mitk::Label* GetLabel(LabelValueType value);
 
-    /** Returns the exterior label information of the parent.*
+    /** Returns the background label information of the parent.*
      * @pre Parent is valid -> InvalidMultiLabelImageException*/
-    const mitk::Label *GetExteriorLabel() const;
+    const mitk::Label *GetBackgroundLabel() const;
 
     /**Gets the modified time for the whole instance. Equals at least the newest MTime of all its components.*/
     unsigned long GetMTime() const override;
