@@ -56,6 +56,7 @@ found in the LICENSE file.
 #include <berryPlatform.h>
 
 #include <ImporterUtil.h>
+#include "QmitkIOUtil.h"
 
 namespace
 {
@@ -88,10 +89,11 @@ void DicomEventHandler::OnSignalAddSeriesToDataManager(const ctkEvent& ctkEvent)
   if (!listOfFilesForSeries.isEmpty())
   {
     //for rt data, if the modality tag isn't defined or is "CT" the image is handled like before
-    if(ctkEvent.containsProperty("Modality") &&
-       (ctkEvent.getProperty("Modality").toString().compare("RTDOSE",Qt::CaseInsensitive) == 0 ||
-        ctkEvent.getProperty("Modality").toString().compare("RTSTRUCT",Qt::CaseInsensitive) == 0 ||
-        ctkEvent.getProperty("Modality").toString().compare("RTPLAN", Qt::CaseInsensitive) == 0))
+    //if(ctkEvent.containsProperty("Modality") &&
+    //   (ctkEvent.getProperty("Modality").toString().compare("RTDOSE",Qt::CaseInsensitive) == 0 ||
+    //    //ctkEvent.getProperty("Modality").toString().compare("RTSTRUCT",Qt::CaseInsensitive) == 0 ||
+    //    ctkEvent.getProperty("Modality").toString().compare("RTPLAN", Qt::CaseInsensitive) == 0))
+    if(false)
     {
       QString modality = ctkEvent.getProperty("Modality").toString();
       mitk::FileReaderRegistry readerRegistry;
@@ -142,7 +144,7 @@ void DicomEventHandler::OnSignalAddSeriesToDataManager(const ctkEvent& ctkEvent)
             }
         }//END DOSE
       }
-      else if(modality.compare("RTSTRUCT",Qt::CaseInsensitive) == 0)
+      else if(false) //modality.compare("RTSTRUCT",Qt::CaseInsensitive) == 0)
       {
           auto structReader = GetReader(readerRegistry, mitk::DICOMRTMimeTypes::DICOMRT_STRUCT_MIMETYPE());
           structReader->SetInput(ImporterUtil::getUTF8String(listOfFilesForSeries.front()));
@@ -152,8 +154,6 @@ void DicomEventHandler::OnSignalAddSeriesToDataManager(const ctkEvent& ctkEvent)
               MITK_ERROR << "No structure sets were created" << endl;
           }
           else {
-              std::vector<mitk::DataNode::Pointer> modelVector;
-
               ctkServiceReference serviceReference = mitk::PluginActivator::getContext()->getServiceReference<mitk::IDataStorageService>();
               mitk::IDataStorageService* storageService = mitk::PluginActivator::getContext()->getService<mitk::IDataStorageService>(serviceReference);
               mitk::DataStorage* dataStorage = storageService->GetDefaultDataStorage().GetPointer()->GetDataStorage();
@@ -217,27 +217,16 @@ void DicomEventHandler::OnSignalAddSeriesToDataManager(const ctkEvent& ctkEvent)
       mitk::IDataStorageService* storageService = mitk::PluginActivator::getContext()->getService<mitk::IDataStorageService>(serviceReference);
       mitk::DataStorage* dataStorage = storageService->GetDefaultDataStorage().GetPointer()->GetDataStorage();
 
-      std::vector<mitk::BaseData::Pointer> baseDatas = mitk::IOUtil::Load(seriesToLoad.front());
-      for (const auto &data : baseDatas)
+      // Do the actual work of loading the data into the data storage
+      mitk::DataStorage::SetOfObjects::Pointer data;
+      try
       {
-        mitk::DataNode::Pointer node = mitk::DataNode::New();
-        node->SetData(data);
-
-        std::string nodeName = mitk::DataNode::NO_NAME_VALUE();
-
-        auto nameDataProp = data->GetProperty("name");
-        if (nameDataProp.IsNotNull())
-        { //if data has a name property set by reader, use this name
-          nodeName = nameDataProp->GetValueAsString();
-        }
-        else
-        { //reader didn't specify a name, generate one.
-          nodeName = mitk::GenerateNameFromDICOMProperties(node);
-        }
-
-        node->SetName(nodeName);
-
-        dataStorage->Add(node);
+        data = QmitkIOUtil::Load(seriesToLoad, *dataStorage);
+      }
+      catch (const mitk::Exception& e)
+      {
+        MITK_INFO << e;
+        return;
       }
     }
   }
