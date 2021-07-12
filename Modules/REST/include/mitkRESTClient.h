@@ -62,6 +62,21 @@ namespace mitk
     pplx::task<web::json::value> Put(const web::uri &uri, const web::json::value *content, const bool useSystemProxy=false);
 
     /**
+     * @brief Executes a HTTP POST request with given uri and the content given as map
+     *
+     * @throw mitk::Exception if request went wrong
+     * @param uri defines the URI resulting the target of the HTTP request
+     * @param content the content as map which should be the body of the request and thus the content of the
+     * created resource
+     * @param headers the additional headers to be set to the HTTP request
+     * @return task to wait for with resulting json object
+     */
+    pplx::task<web::json::value> Post(const web::uri &uri,
+                                      const std::map<utility::string_t, utility::string_t> content,
+                                      const std::map<utility::string_t, utility::string_t> headers,
+                                      const bool useSystemProxy);
+
+    /**
      * @brief Executes a HTTP POST request with given uri and the content given as json
      *
      * @throw mitk::Exception if request went wrong

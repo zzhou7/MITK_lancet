@@ -241,7 +241,7 @@ pplx::task<bool> DicomWebView::TestConnection()
 
   seriesInstancesParams.insert(mitk::RESTUtil::ParamMap::value_type(U("limit"), U("1")));
   m_Controls.connectionStatus->setText(QString("Testing connection ..."));
-  return m_RequestHandler->DicomWebGet().SendQIDO(seriesInstancesParams, U("")).then([=](pplx::task<web::json::value> resultTask) {
+  return m_RequestHandler->DicomWebGet().SendQIDO(seriesInstancesParams).then([=](pplx::task<web::json::value> resultTask) {
     try
     {
       auto result = resultTask.get();
@@ -267,10 +267,13 @@ pplx::task<bool> DicomWebView::TestConnection()
 
 void DicomWebView::OnRestartConnection()
 {
-  RestartConnection(mitk::RESTUtil::convertToTString(m_Controls.dcm4cheeHostValue->text().toStdString()));
+  utility::string_t newHost = mitk::RESTUtil::convertToTString(m_Controls.dcm4cheeHostValue->text().toStdString());
+  utility::string_t username = mitk::RESTUtil::convertToTString(m_Controls.usernameValue->text().toStdString());
+  utility::string_t password = mitk::RESTUtil::convertToTString(m_Controls.passwordValue->text().toStdString());
+  RestartConnection(newHost, username, password);
 }
 
-void DicomWebView::RestartConnection(utility::string_t newHost)
+void DicomWebView::RestartConnection(utility::string_t newHost, utility::string_t username, utility::string_t password)
 {
   utility::string_t host;
   if (newHost.empty())
@@ -279,23 +282,34 @@ void DicomWebView::RestartConnection(utility::string_t newHost)
     m_Controls.connectionStatus->setText(QString("Host must not be empty!"));
     return;
   }
+  MITK_INFO << utility::conversions::to_utf8string(username);
+  MITK_INFO << utility::conversions::to_utf8string(password);
+  bool successfulAuthentication = m_RequestHandler->Authenticate(newHost, username, password);
 
-  utility::string_t url = newHost + U("/dcm4chee-arc/aets/KAAPANA/");
-
-  MITK_INFO << "Restarting connection to " << mitk::RESTUtil::convertToUtf8(url) << " ...";
-  m_Controls.connectionStatus->setText(QString("Restarting connection..."));
-  m_Controls.dcm4cheeURL->setText({(utility::conversions::to_utf8string(url).c_str())});
-
-  m_RequestHandler->UpdateDicomWebUrl(url);
-
-  if (!TestConnection().get())
+  if (successfulAuthentication)
   {
-    MITK_INFO << "Restart did not work..";
-    m_Controls.connectionStatus->setText(QString("No PACS server available under given host!"));
+
+    utility::string_t url = newHost + U("/dcm4chee-arc/aets/KAAPANA/");
+
+    MITK_INFO << "Restarting connection to " << mitk::RESTUtil::convertToUtf8(url) << " ...";
+    m_Controls.connectionStatus->setText(QString("Restarting connection..."));
+    m_Controls.dcm4cheeURL->setText({(utility::conversions::to_utf8string(url).c_str())});
+
+    m_RequestHandler->UpdateDicomWebUrl(newHost);
+
+    if (!TestConnection().get())
+    {
+        MITK_INFO << "Restart did not work..";
+        m_Controls.connectionStatus->setText(QString("No PACS server available under given host!"));
+    }
+    else
+    {
+        MITK_INFO << "requests to pacs are sent to: " << mitk::RESTUtil::convertToUtf8(url);
+    }
   }
   else
   {
-    MITK_INFO << "requests to pacs are sent to: " << mitk::RESTUtil::convertToUtf8(url);
+    m_Controls.connectionStatus->setText("Authorization went wrong");
   }
 }
 

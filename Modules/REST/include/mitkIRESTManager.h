@@ -59,6 +59,7 @@ namespace mitk
       const web::uri &uri,
       const RequestType &type = RequestType::Get,
       const std::map<utility::string_t, utility::string_t> headers = {},
+      const std::map<utility::string_t, utility::string_t> content = {},
       const bool useSystemProxy = false) = 0;
 
     /**

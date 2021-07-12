@@ -26,6 +26,7 @@ pplx::task<web::json::value> mitk::RESTManager::SendRequest(
   const web::uri &uri,
   const RequestType &type,
   const std::map<utility::string_t, utility::string_t> headers,
+  const std::map<utility::string_t, utility::string_t> content,
   const bool useSystemProxy)
 {
   pplx::task<web::json::value> answer;
@@ -37,10 +38,17 @@ pplx::task<web::json::value> mitk::RESTManager::SendRequest(
       answer = client->Get(uri, headers, useSystemProxy);
       break;
 
+    case RequestType::Post:
+        if (content.empty())
+            MITK_WARN << "Content for post is empty, this will create an empty resource";
+
+        answer = client->Post(uri, content, headers, useSystemProxy);
+        break;
+
     default:
       mitkThrow() << "Request Type not supported";
   }
-
+  MITK_INFO << "in send request";
   return answer;
 }
 

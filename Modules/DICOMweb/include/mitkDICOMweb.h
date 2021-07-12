@@ -56,6 +56,12 @@ namespace mitk
 
    void UpdateUseSystemProxy(bool useSystemProxy);
 
+   void UpdateAccessToken(utility::string_t accessToken);
+
+   void UpdateBaseUri(utility::string_t baseUri);
+
+   void UpdateSendUri(utility::string_t baseUri);
+
    /**
     * @brief Sends a STOW request with the file in the given path to the study given bei its UID.
     *
@@ -78,8 +84,7 @@ namespace mitk
    pplx::task<void> SendWADO(utility::string_t filePath,
                              utility::string_t studyUID,
                              utility::string_t seriesUID,
-                             utility::string_t instanceUID,
-                             utility::string_t access_token);
+                             utility::string_t instanceUID);
 
    /**
     * @brief Sends a WADO request for an DICOM object series matching the given uid parameters and stores all the
@@ -92,8 +97,7 @@ namespace mitk
     */
    pplx::task<std::string> SendWADO(utility::string_t folderPath,
                                     utility::string_t studyUID,
-                                    utility::string_t seriesUID,
-                                    utility::string_t access_token);
+                                    utility::string_t seriesUID);
 
    /**
     * @brief Sends a QIDO request containing the given parameters to filter the query.
@@ -107,7 +111,9 @@ namespace mitk
     * @param map the map of parameters to filter the query
     * @return the task to wait for, which unfolds the result JSON response for the request when finished
     */
-   pplx::task<web::json::value> SendQIDO(mitk::RESTUtil::ParamMap map, utility::string_t access_token);
+   pplx::task<web::json::value> SendQIDO(mitk::RESTUtil::ParamMap map);
+
+   mitk::IRESTManager *m_RESTManager;
 
  private:
    /**
@@ -134,7 +140,9 @@ namespace mitk
    void InitializeRESTManager();
 
    utility::string_t m_BaseURI;
-   mitk::IRESTManager *m_RESTManager;
+   // URI to send images back with CTP
+   utility::string_t m_SendURI;
+   utility::string_t m_AccessToken = U("");
    bool m_UseSystemProxy;
  };
 }

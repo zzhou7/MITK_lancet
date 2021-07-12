@@ -11,6 +11,7 @@ found in the LICENSE file.
 ============================================================================*/
 
 #include "mitkDICOMweb.h"
+#include <mitkRestRedirectException.h>
 
 mitk::DICOMweb::DICOMweb() {}
 
@@ -20,9 +21,25 @@ mitk::DICOMweb::DICOMweb(utility::string_t baseURI, bool useSystemProxy) : m_Bas
   MITK_INFO << "use system proxy: " << m_UseSystemProxy;
   InitializeRESTManager();
 }
+
 void mitk::DICOMweb::UpdateUseSystemProxy(bool useSystemProxy)
 {
   m_UseSystemProxy = useSystemProxy;
+}
+
+void mitk::DICOMweb::UpdateAccessToken(utility::string_t accessToken)
+{
+  m_AccessToken = accessToken;
+}
+
+void mitk::DICOMweb::UpdateBaseUri(utility::string_t baseUri)
+{
+  m_BaseURI = baseUri;
+}
+
+void mitk::DICOMweb::UpdateSendUri(utility::string_t sendUri)
+{
+  m_SendURI = sendUri;
 }
 
 utility::string_t mitk::DICOMweb::CreateQIDOUri(mitk::RESTUtil::ParamMap map)
@@ -53,7 +70,7 @@ utility::string_t mitk::DICOMweb::CreateWADOUri(utility::string_t studyUID,
 
 utility::string_t mitk::DICOMweb::CreateSTOWUri(utility::string_t studyUID)
 {
-  MitkUriBuilder builder(m_BaseURI + U("rs/studies"));
+  MitkUriBuilder builder(m_SendURI + U("rs/studies"));
   builder.append_path(studyUID);
   return builder.to_string();
 }
@@ -101,6 +118,7 @@ pplx::task<void> mitk::DICOMweb::SendSTOW(utility::string_t filePath,
   result.insert(result.end(), tail.begin(), tail.end());
 
   mitk::RESTUtil::ParamMap headers;
+
   headers.insert(mitk::RESTUtil::ParamMap::value_type(
     U("Content-Type"), U("multipart/related; type=\"application/dicom\"; boundary=boundary")));
 
@@ -124,15 +142,14 @@ pplx::task<void> mitk::DICOMweb::SendSTOW(utility::string_t filePath,
 pplx::task<void> mitk::DICOMweb::SendWADO(utility::string_t filePath,
                                           utility::string_t studyUID,
                                           utility::string_t seriesUID,
-                                          utility::string_t instanceUID,
-                                          utility::string_t access_token)
+                                          utility::string_t instanceUID)
 {
   auto uri = CreateWADOUri(studyUID, seriesUID, instanceUID);
 
   mitk::RESTUtil::ParamMap headers;
-  if (access_token != U(""))
+  if (m_AccessToken != U(""))
   {
-    headers.insert(mitk::RESTUtil::ParamMap::value_type(U("Cookie"), access_token));
+    headers.insert(mitk::RESTUtil::ParamMap::value_type(U("Cookie"), m_AccessToken));
   }
 
   // don't want return something
@@ -150,15 +167,14 @@ pplx::task<void> mitk::DICOMweb::SendWADO(utility::string_t filePath,
 
 pplx::task<std::string> mitk::DICOMweb::SendWADO(utility::string_t folderPath,
                                                  utility::string_t studyUID,
-                                                 utility::string_t seriesUID,
-                                                 utility::string_t access_token)
+                                                 utility::string_t seriesUID)
 {
   auto uri = m_BaseURI + U("rs/studies/") + studyUID + U("/series/") + seriesUID + U("?accept=application/zip");
 
   mitk::RESTUtil::ParamMap headers;
-  if (access_token != U(""))
+  if (m_AccessToken != U(""))
   {
-    headers.insert(mitk::RESTUtil::ParamMap::value_type(U("Cookie"), access_token));
+    headers.insert(mitk::RESTUtil::ParamMap::value_type(U("Cookie"), m_AccessToken));
   }
 
   auto filePath = folderPath + seriesUID + U(".zip");
@@ -178,14 +194,14 @@ pplx::task<std::string> mitk::DICOMweb::SendWADO(utility::string_t folderPath,
   }
 }
 
-pplx::task<web::json::value> mitk::DICOMweb::SendQIDO(mitk::RESTUtil::ParamMap map, utility::string_t access_token)
+pplx::task<web::json::value> mitk::DICOMweb::SendQIDO(mitk::RESTUtil::ParamMap map)
 {
   auto uri = CreateQIDOUri(map);
 
   mitk::RESTUtil::ParamMap headers;
-  if (access_token != U(""))
+  if (m_AccessToken != U(""))
   {
-    headers.insert(mitk::RESTUtil::ParamMap::value_type(U("Cookie"), access_token));
+    headers.insert(mitk::RESTUtil::ParamMap::value_type(U("Cookie"), m_AccessToken));
   }
   headers.insert(mitk::RESTUtil::ParamMap::value_type(U("Accept"), U("application/json")));
   return m_RESTManager->SendJSONRequest(

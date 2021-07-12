@@ -74,6 +74,8 @@ public:
    */
   void InitializeDcmMeta(DicomWebRequestHandler::DicomDTO dto);
 
+  void RefreshAccessToken();
+
   virtual void Activated() override;
   virtual void Deactivated() override;
   virtual void Visible() override;
@@ -96,7 +98,7 @@ protected:
 
   void CleanDicomFolder();
   void UploadNewSegmentation();
-  void RestartConnection(utility::string_t newHost);
+  void RestartConnection(utility::string_t newHost, utility::string_t username, utility::string_t password);
   void OnRestartConnection();
   pplx::task<bool> TestConnection();
 

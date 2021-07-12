@@ -60,9 +60,14 @@ public:
                                   const web::json::value &data,
                                   const web::http::method &method,
                                   const mitk::RESTUtil::ParamMap &headers);
-  void UpdateDicomWebUrl(utility::string_t pacsURI);
+  void UpdateDicomWebUrl(utility::string_t baseURI);
+  void UpdateAccessToken(utility::string_t accessToken);
+  void UpdateUserCredentials(utility::string_t userName, utility::string_t password);
   void UpdateUseSystemProxy(bool useSystemProxy);
-  mitk::DICOMweb DicomWebGet();
+  bool Authenticate(utility::string_t newHost,
+                                       utility::string_t username,
+                                       utility::string_t password);
+  mitk::DICOMweb& DicomWebGet();
 
 signals:
   void InvokeProgress(int, QString status);
@@ -70,7 +75,7 @@ signals:
   void InvokeUpdateDcmMeta(DicomDTO dto);
   void InvokeLoadData(std::vector<std::string>);
   void InvokeLoadDataSegDicomWeb(std::vector<std::string>);
-;
+  void RefreshAccessToken();
 
 private:
   DicomDTO ExtractDTO(const web::json::value &data);
@@ -82,6 +87,9 @@ private:
                                       const mitk::RESTUtil::ParamMap &headers);
   std::vector<std::string> GetPathsToLoad(std::vector<std::string> filePathList);
 
+  utility::string_t m_BaseURI;
+  utility::string_t m_UserName;
+  utility::string_t m_Password;
   std::string m_DownloadDir;
   mitk::DICOMweb m_DicomWeb;
   bool m_UseSystemProxy;
