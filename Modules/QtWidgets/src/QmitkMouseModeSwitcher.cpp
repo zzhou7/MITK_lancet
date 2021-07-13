@@ -64,7 +64,7 @@ void QmitkMouseModeSwitcher::setMouseModeSwitcher(mitk::MouseModeSwitcher *mms)
   {
     itk::ReceptorMemberCommand<QmitkMouseModeSwitcher>::Pointer command = itk::ReceptorMemberCommand<QmitkMouseModeSwitcher>::New();
     command->SetCallbackFunction(this, &QmitkMouseModeSwitcher::OnMouseModeChangedViaCommand);
-    m_ObserverTag = m_MouseModeSwitcher->AddObserver(mitk::MouseModeSwitcher::MouseModeChangedEvent(), command);
+    m_ObserverTag = m_MouseModeSwitcher->AddObserver(mitk::MouseModeChangedEvent(), command);
   }
 }
 

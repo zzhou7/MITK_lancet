@@ -200,7 +200,7 @@ void mitk::OverwriteSliceImageFilter::GenerateData()
 template <typename TPixel, unsigned int VImageDimension>
 void mitk::OverwriteSliceImageFilter::ItkImageSwitch(itk::Image<TPixel, VImageDimension> *itkImage)
 {
-  const int typeId = m_SliceImage->GetPixelType().GetComponentType();
+  const auto typeId = m_SliceImage->GetPixelType().GetComponentType();
 
   myMITKOverwriteSliceImageFilterAccessAllTypesByItk(m_SliceImage, ItkImageProcessing, 2, itkImage);
 }

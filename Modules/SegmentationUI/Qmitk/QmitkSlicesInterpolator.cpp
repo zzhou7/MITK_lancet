@@ -744,7 +744,7 @@ void QmitkSlicesInterpolator::AcceptAllInterpolations(mitk::SliceNavigationContr
 
       // For legacy purpose support former pixel type of segmentations (before multilabel)
       if (m_Segmentation->GetImageDescriptor()->GetChannelDescriptor().GetPixelType().GetComponentType() ==
-          itk::ImageIOBase::UCHAR)
+          itk::IOComponentEnum::UCHAR)
       {
         pixelType = mitk::MakeScalarPixelType<unsigned char>();
       }
@@ -886,7 +886,7 @@ void QmitkSlicesInterpolator::OnAccept3DInterpolationClicked()
 
   surfaceToImageFilter->SetImage(referenceImage);
   surfaceToImageFilter->SetMakeOutputBinary(true);
-  surfaceToImageFilter->SetUShortBinaryPixelType(itk::ImageIOBase::USHORT == segmentation->GetPixelType().GetComponentType());
+  surfaceToImageFilter->SetUShortBinaryPixelType(itk::IOComponentEnum::USHORT == segmentation->GetPixelType().GetComponentType());
   surfaceToImageFilter->SetInput(interpolatedSurface);
   surfaceToImageFilter->Update();
 

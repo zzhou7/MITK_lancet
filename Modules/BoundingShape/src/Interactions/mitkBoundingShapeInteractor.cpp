@@ -37,6 +37,8 @@ const char *boundingShapePropertyName = "Bounding Shape";
 
 namespace mitk
 {
+  itkEventMacroDefinition(BoundingShapeInteractionEvent, itk::AnyEvent);
+
   class BoundingShapeInteractor::Impl
   {
   public:
