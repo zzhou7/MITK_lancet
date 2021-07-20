@@ -26,6 +26,7 @@ See LICENSE.txt or http://www.mitk.org for details.
 #include <Poco/Zip/Decompress.h>
 #include <Poco/File.h>
 #include <Poco/Path.h>
+#include <itkFileTools.h>
 
 #include <mitkRestRedirectException.h>
 
@@ -212,6 +213,11 @@ web::http::http_response DicomWebRequestHandler::HandleGet(const web::uri &uri, 
 
   auto errorResponse = web::http::http_response(web::http::status_codes::BadRequest);
   auto successResponse = web::http::http_response(web::http::status_codes::OK);
+
+  if (!itksys::SystemTools::FileIsDirectory(m_DownloadDir))
+  {
+    itk::FileTools::CreateDirectory(m_DownloadDir);
+  }
 
   if (requestType != httpParams.end())
   {

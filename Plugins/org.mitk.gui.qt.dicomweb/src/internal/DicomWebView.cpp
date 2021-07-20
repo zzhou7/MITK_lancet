@@ -488,5 +488,13 @@ void DicomWebView::OnUseSystemProxyChanged(bool toggled)
 void DicomWebView::CleanDicomFolder()
 {
   auto downloadDir = Poco::File(m_DownloadBaseDir);
-  downloadDir.remove(true);
+  if(downloadDir.exists())
+  {
+    downloadDir.remove(true);
+    m_Controls.cleanFolderLabel->setText(QString("DICOM download folder deleted"));
+  }
+  else
+  {
+    m_Controls.cleanFolderLabel->setText(QString("DICOM download folder not yet created or already deleted"));
+  }
 }
