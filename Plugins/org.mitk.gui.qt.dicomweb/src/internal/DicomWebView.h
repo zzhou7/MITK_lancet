@@ -25,10 +25,6 @@ See LICENSE.txt or http://www.mitk.org for details.
 #include <mitkIRESTManager.h>
 #include <berryIPartListener.h>
 
-
-
-
-
 #include "ui_DicomWebViewControls.h"
 #include "mitkNodePredicateNot.h"
 #include "mitkNodePredicateAnd.h"
@@ -74,8 +70,6 @@ public:
    */
   void InitializeDcmMeta(DicomWebRequestHandler::DicomDTO dto);
 
-  void RefreshAccessToken();
-
   virtual void Activated() override;
   virtual void Deactivated() override;
   virtual void Visible() override;
@@ -93,7 +87,7 @@ protected slots:
 protected:
   virtual void CreateQtPartControl(QWidget *parent) override;
 
-	void SetPredicates();
+  void SetPredicates();
   virtual void SetFocus() override;
 
   void CleanDicomFolder();
@@ -110,34 +104,20 @@ protected:
   
 
 private:
-  // std::vector<unsigned int> CreateSegmentation(mitk::Image::Pointer baseSegmentation, double threshold);
-
-  //std::string GetAlgorithmOfSegByPath(std::string path);
-
-  void SetSimilarityGraph(std::vector<double> simScoreArray, int sliceMinStart);
-
   void StartServer();
+  void CreateDownloadTempDir();
+  void CreateUploadTempDir();
+  utility::string_t BuildInitialURL();
+  void InitializeRestManager();
 
   mitk::IRESTManager *m_ManagerService;
   DicomWebRequestHandler *m_RequestHandler;
 
   std::string m_CurrentStudyUID;
-  std::string m_SRUID;
 
   std::string m_DownloadBaseDir;
   std::string m_UploadBaseDir;
 
-  mitk::DataNode::Pointer m_Image;
-  mitk::DataNode::Pointer m_SegA;
-  mitk::DataNode::Pointer m_SegB;
-  mitk::DataNode::Pointer m_SegC;
-  std::map<double, double> m_ScoreMap;
-  std::string m_GroundTruth;
-  std::string m_thresholdLabel;
-
-  QWidget *m_Parent;
-
-  utility::string_t m_restURL;
   utility::string_t m_HostURL;
 };
 

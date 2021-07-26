@@ -28,7 +28,6 @@ See LICENSE.txt or http://www.mitk.org for details.
 // mitk 
 #include "DicomWebView.h"
 
-
 #include "mitkLabelSetImage.h"
 #include <mitkWorkbenchUtil.h>
 #include "mitkIOUtil.h"
@@ -37,7 +36,6 @@ See LICENSE.txt or http://www.mitk.org for details.
 #include "mitkNodePredicateDataType.h"
 #include <mitkDICOMDCMTKTagScanner.h>
 #include <mitkIOMimeTypes.h>
-//#include <mitkDICOMSegIOMimeTypes.h>
 
 const std::string DicomWebView::VIEW_ID = "org.mitk.views.dicomwebview";
 
@@ -47,20 +45,14 @@ void DicomWebView::CreateQtPartControl(QWidget *parent)
 {
   // create GUI widgets from the Qt Designer's .ui file
   m_Controls.setupUi(parent);
-  m_Parent = parent;
 
   SetPredicates();
-
-  
-
 
   qRegisterMetaType<std::vector<std::string>>("std::vector<std::string>");
   qRegisterMetaType<std::vector<double>>("std::vector<double>");
   qRegisterMetaType<DicomWebRequestHandler::DicomDTO>("DicomDTO");
 
   m_Controls.cleanDicomBtn->setVisible(true);
-
-
 
   connect(m_Controls.buttonUpload, &QPushButton::clicked, this, &DicomWebView::UploadNewSegmentation);
   connect(m_Controls.cleanDicomBtn, &QPushButton::clicked, this, &DicomWebView::CleanDicomFolder);
@@ -79,43 +71,11 @@ void DicomWebView::CreateQtPartControl(QWidget *parent)
           &DicomWebView::OnUseSystemProxyChanged);
 
   m_DownloadBaseDir = mitk::IOUtil::GetTempPath() + "segrework";
-  MITK_INFO << "using download base dir: " << m_DownloadBaseDir;
   m_UploadBaseDir = mitk::IOUtil::GetTempPath() + "uploadSeg";
+  CreateDownloadTempDir();
+  CreateUploadTempDir();
 
-  if (!itksys::SystemTools::FileIsDirectory(m_DownloadBaseDir))
-  {
-    itk::FileTools::CreateDirectory(m_DownloadBaseDir);
-  }
-
-  if (!itksys::SystemTools::FileIsDirectory(m_UploadBaseDir))
-  {
-    itk::FileTools::CreateDirectory(m_UploadBaseDir);
-  }
-
-  m_HostURL = U("http://localhost");
-  auto host = m_HostURL;
-  auto envHostURL = std::getenv("HOST_URL");
-  if (envHostURL)
-  {
-    MITK_INFO << "host url " << std::string(envHostURL);
-    m_HostURL = mitk::RESTUtil::convertToTString(std::string(envHostURL));
-    host = m_HostURL;
-  }
-  else
-  {
-    host = host.append(U(":8000"));
-  }
-
-  m_restURL = host.append(U("/rest-srs"));
-  MITK_INFO << "rest url: " << mitk::RESTUtil::convertToUtf8(m_restURL);
-  utility::string_t pacsURL = U("");// e.g. http://10.128.129.166:8080
-  auto envPacsURL = std::getenv("PACS_URL");
-
-  if (envPacsURL)
-  {
-    pacsURL = mitk::RESTUtil::convertToTString(std::string(envPacsURL));
-  }
-
+  auto pacsURL = BuildInitialURL();
   m_RequestHandler = new DicomWebRequestHandler(m_DownloadBaseDir, pacsURL, m_Controls.useSystemProxy->isChecked());
 
   connect(this, &DicomWebView::InvokeProgress, this, &DicomWebView::AddProgress);
@@ -124,22 +84,11 @@ void DicomWebView::CreateQtPartControl(QWidget *parent)
     m_RequestHandler, &DicomWebRequestHandler::InvokeUpdateDcmMeta, this, &DicomWebView::InitializeDcmMeta);
   connect(m_RequestHandler, &DicomWebRequestHandler::InvokeLoadData, this, &DicomWebView::LoadData);
 
-  // Get the micro service
-  us::ModuleContext *context = us::ModuleRegistry::GetModule(1)->GetModuleContext();
-  auto managerRef = context->GetServiceReference<mitk::IRESTManager>();
-  if (managerRef)
-  {
-    auto managerService = context->GetService(managerRef);
-    if (managerService)
-    {
-      m_ManagerService = managerService;
-    }
-  }
+  InitializeRestManager();
 
   // Should be done last, if everything else is configured because it triggers the autoselection of data.
   m_Controls.patImageSelector->SetAutoSelectNewNodes(true);
   m_Controls.segImageSelector->SetAutoSelectNewNodes(true);
-  //RestartConnection(pacsURL);
 }
 
 void DicomWebView::SetPredicates() {
@@ -190,6 +139,58 @@ void DicomWebView::SetPredicates() {
   m_Controls.segImageSelector->SetPopUpHint("Select a segmentation that should be uploaded.");
 }
 
+void DicomWebView::CreateDownloadTempDir()
+{
+  if (!itksys::SystemTools::FileIsDirectory(m_DownloadBaseDir))
+  {
+    MITK_INFO << "using download base dir: " << m_DownloadBaseDir;
+    itk::FileTools::CreateDirectory(m_DownloadBaseDir);
+  }
+}
+
+void DicomWebView::CreateUploadTempDir()
+{
+  if (!itksys::SystemTools::FileIsDirectory(m_UploadBaseDir))
+  {
+    itk::FileTools::CreateDirectory(m_UploadBaseDir);
+  }
+}
+
+utility::string_t DicomWebView::BuildInitialURL()
+{
+  m_HostURL = U("http://localhost");
+  auto envHostURL = std::getenv("HOST_URL");
+  if (envHostURL)
+  {
+    MITK_INFO << "host url " << std::string(envHostURL);
+    m_HostURL = mitk::RESTUtil::convertToTString(std::string(envHostURL));
+  }
+
+  utility::string_t pacsURL = U(""); // e.g. http://10.128.129.166:8080
+  auto envPacsURL = std::getenv("PACS_URL");
+
+  if (envPacsURL)
+  {
+    pacsURL = mitk::RESTUtil::convertToTString(std::string(envPacsURL));
+  }
+
+  return pacsURL;
+}
+
+void DicomWebView::InitializeRestManager()
+{
+  // Get the micro service
+  us::ModuleContext *context = us::ModuleRegistry::GetModule(1)->GetModuleContext();
+  auto managerRef = context->GetServiceReference<mitk::IRESTManager>();
+  if (managerRef)
+  {
+    auto managerService = context->GetService(managerRef);
+    if (managerService)
+    {
+      m_ManagerService = managerService;
+    }
+  }
+}
 
 void DicomWebView::AddProgress(int progress, QString status)
 {
@@ -209,30 +210,26 @@ void DicomWebView::AddProgress(int progress, QString status)
 void DicomWebView::InitializeDcmMeta(DicomWebRequestHandler::DicomDTO dto)
 {
   m_CurrentStudyUID = mitk::RESTUtil::convertToUtf8(dto.studyUID);
-  m_SRUID = mitk::RESTUtil::convertToUtf8(dto.srSeriesUID);
-  m_GroundTruth = mitk::RESTUtil::convertToUtf8(dto.groundTruth);
 }
 
 void DicomWebView::Activated()
 {
   StartServer();
-  MITK_INFO << "activated";
 }
 
 void DicomWebView::Deactivated()
 {
-  MITK_INFO << "deactivated";
   m_ManagerService->HandleDeleteObserver(m_RequestHandler);
 }
 
 void DicomWebView::Visible()
 {
-  MITK_INFO << "visible";
+  MITK_DEBUG << "visible";
 }
 
 void DicomWebView::Hidden()
 {
-  MITK_INFO << "hidden";
+  MITK_DEBUG << "hidden";
 }
 
 pplx::task<bool> DicomWebView::TestConnection()
@@ -275,20 +272,17 @@ void DicomWebView::OnRestartConnection()
 
 void DicomWebView::RestartConnection(utility::string_t newHost, utility::string_t username, utility::string_t password)
 {
-  utility::string_t host;
   if (newHost.empty())
   {
     MITK_INFO << "Host was empty";
     m_Controls.connectionStatus->setText(QString("Host must not be empty!"));
     return;
   }
-  MITK_INFO << utility::conversions::to_utf8string(username);
-  MITK_INFO << utility::conversions::to_utf8string(password);
+
   bool successfulAuthentication = m_RequestHandler->Authenticate(newHost, username, password);
 
   if (successfulAuthentication)
   {
-
     utility::string_t url = newHost + U("/dcm4chee-arc/aets/KAAPANA/");
 
     MITK_INFO << "Restarting connection to " << mitk::RESTUtil::convertToUtf8(url) << " ...";
@@ -360,21 +354,6 @@ void DicomWebView::UploadNewSegmentation()
   const std::string mimeType = mitk::IOMimeTypes::DEFAULT_BASE_NAME() + ".image.dicom.seg";
   mitk::IOUtil::Save(segNote->GetData(), mimeType, savePath);
 
-  // get Series Instance UID from new SEG
-  auto scanner = mitk::DICOMDCMTKTagScanner::New();
-  mitk::DICOMTagPath seriesUID(0x0020, 0x000E);
-
-  mitk::StringList files;
-  files.push_back(savePath);
-  scanner->SetInputFiles(files);
-  scanner->AddTagPath(seriesUID);
-
-  scanner->Scan();
-
-  mitk::DICOMDatasetAccessingImageFrameList frames = scanner->GetFrameInfoList();
-  auto findings = frames.front()->GetTagValueAsString(seriesUID);
-  auto segSeriesUID = findings.front().value;
-
   AddProgress(20, {"push SEG to PACS"});
   auto filePath = utility::conversions::to_string_t(savePath);
   try
@@ -384,38 +363,6 @@ void DicomWebView::UploadNewSegmentation()
 
       MITK_INFO << "successfully stored";
       emit InvokeProgress(30, {"successfully stored"});
-
-      // TODO update content on server?? needed?
-     // mitk::DICOMweb::MitkUriBuilder queryBuilder(m_restURL + U("/tasks/evaluations/"));
-      //TODO update content on server?? needed?
-      //queryBuilder.append_query(U("srUID"), utility::conversions::to_string_t(m_SRUID));
-          
-
-      //m_ManagerService->SendRequest(queryBuilder.to_uri(), mitk::IRESTManager::RequestType::Get)
-      //  .then([=](web::json::value result) {
-      //    MITK_INFO << "after GET";
-      //    MITK_INFO << utility::conversions::to_utf8string(result.serialize());
-      //    auto updatedContent = result.as_array()[0];
-      //    updatedContent[U("reworkedSegmentationUID")] =
-      //      web::json::value::string(utility::conversions::to_string_t(segSeriesUID));
-
-      //    auto id = updatedContent.at(U("id")).as_integer();
-      //    MITK_INFO << id;
-      //    auto idParam = std::to_string(id).append("/");
-
-      //    mitk::DICOMweb::MitkUriBuilder queryBuilder(m_restURL + U("/tasks/evaluations"));
-      //    queryBuilder.append_path(utility::conversions::to_string_t(idParam));
-
-      //    m_ManagerService->SendJSONRequest(queryBuilder.to_uri(), mitk::IRESTManager::RequestType::Put, &updatedContent)
-      //      .then([=](web::json::value result) {
-      //        MITK_INFO << utility::conversions::to_utf8string(result.serialize());
-      //        if (result[U("reworkedSegmentationUID")].as_string() == utility::conversions::to_string_t(segSeriesUID))
-      //        {
-      //          MITK_INFO << "successfully stored";
-      //          emit InvokeProgress(30, {"successfully stored"});
-      //        }
-      //      });
-      //  });
     });
   }
   catch (const std::exception &exception)
@@ -461,7 +408,6 @@ void DicomWebView::OnSegmentationSelectionChanged(QList<mitk::DataNode::Pointer>
   if (nodes.empty())
     return;
   
-
   auto refNode = m_Controls.patImageSelector->GetSelectedNode();
   auto segNode = nodes.front();
 
