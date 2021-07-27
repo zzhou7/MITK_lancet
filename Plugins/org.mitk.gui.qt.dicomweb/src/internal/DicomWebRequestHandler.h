@@ -21,6 +21,7 @@ See LICENSE.txt or http://www.mitk.org for details.
 #include <mitkDICOMweb.h>
 #include <mitkIRESTManager.h>
 #include <mitkIRESTObserver.h>
+#include <itkFileTools.h>
 
 /**
  * @brief This class represents the http message handler for the segmentation DicomWeb.
@@ -31,17 +32,8 @@ class DicomWebRequestHandler : public QObject, public mitk::IRESTObserver
 public:
   struct DicomDTO
   {
-    utility::string_t segSeriesUIDA;
-    utility::string_t segSeriesUIDB;
-    utility::string_t imageSeriesUID;
     utility::string_t studyUID;
-    utility::string_t segInstanceUIDA;
-    utility::string_t segInstanceUIDB;
-    utility::string_t srSeriesUID;
     std::vector<utility::string_t> seriesUIDList;
-    std::vector<double> simScoreArray;
-    int minSliceStart;
-    utility::string_t groundTruth;
   };
 
   DicomWebRequestHandler();
@@ -71,16 +63,16 @@ public:
 
 signals:
   void InvokeProgress(int, QString status);
-  void InvokeSimilarityGraph(std::vector<double> score, int sliceStart);
   void InvokeUpdateDcmMeta(DicomDTO dto);
   void InvokeLoadData(std::vector<std::string>);
-  void InvokeLoadDataSegDicomWeb(std::vector<std::string>);
-  void RefreshAccessToken();
 
 private:
-  DicomDTO ExtractDTO(const web::json::value &data);
+  DicomDTO ExtractDTO(std::map<utility::string_t, utility::string_t>);
+  std::vector<pplx::task<std::string>> CreateWADOTasks(DicomDTO dto);
+  void RefreshAccess(std::shared_ptr<web::uri> uri);
+  void ProcessWADOTasks(std::vector<pplx::task<std::string>> tasks, const web::uri &uri);
   web::http::http_response HandlePut(const web::uri &uri, const web::json::value &data);
-  web::http::http_response HandleGet(const web::uri &uri, const web::json::value &data);
+  web::http::http_response HandleGet(const web::uri &uri);
   web::http::http_response HandleOptions(const web::uri &uri, const web::json::value &data);
   web::http::http_response HandlePost(const web::uri &uri,
                                       const web::json::value &data,

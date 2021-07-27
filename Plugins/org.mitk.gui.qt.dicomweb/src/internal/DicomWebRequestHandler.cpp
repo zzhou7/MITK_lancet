@@ -26,7 +26,6 @@ See LICENSE.txt or http://www.mitk.org for details.
 #include <Poco/Zip/Decompress.h>
 #include <Poco/File.h>
 #include <Poco/Path.h>
-#include <itkFileTools.h>
 
 #include <mitkRestRedirectException.h>
 
@@ -35,9 +34,8 @@ US_INITIALIZE_MODULE
 DicomWebRequestHandler::DicomWebRequestHandler() {}
 
 DicomWebRequestHandler::DicomWebRequestHandler(std::string downloadDir, utility::string_t pacsURI, bool useSystemProxy)
-  : m_DownloadDir{downloadDir}
+  : m_DownloadDir{downloadDir}, m_UseSystemProxy(useSystemProxy)
 {
-  m_UseSystemProxy = useSystemProxy;
   m_DicomWeb = mitk::DICOMweb(pacsURI, m_UseSystemProxy);
 }
 
@@ -71,7 +69,6 @@ mitk::DICOMweb& DicomWebRequestHandler::DicomWebGet() {
 bool DicomWebRequestHandler::Authenticate(utility::string_t newHost, utility::string_t username, utility::string_t password)
 {
   web::uri authUrl = web::uri(newHost + U("/oauth/login"));
-  MITK_INFO << utility::conversions::to_utf8string(authUrl.to_string());
   std::map<utility::string_t, utility::string_t> content = {};
   content[U("client_id")] = U("admin-cli");
   content[U("username")] = username;
@@ -102,51 +99,15 @@ bool DicomWebRequestHandler::Authenticate(utility::string_t newHost, utility::st
   return true;
 }
 
-DicomWebRequestHandler::DicomDTO DicomWebRequestHandler::ExtractDTO(const web::json::value &data)
-{
-  DicomDTO dto;
-  auto messageTypeKey = data.at(U("messageType"));
-  if (messageTypeKey.as_string() == U("downloadData"))
-  {
-    MITK_INFO << "within extract dto";
-
-    auto imageStudyUIDKey = data.at(U("studyUID"));
-    auto srSeriesUIDKey = data.at(U("srSeriesUID"));
-
-    auto groundTruthKey = data.at(U("groundTruth"));
-
-    auto simScoreKey = data.at(U("simScoreArray"));
-    auto minSliceStartKey = data.at(U("minSliceStart"));
-
-    dto.srSeriesUID = srSeriesUIDKey.as_string();
-    dto.groundTruth = groundTruthKey.as_string();
-    dto.studyUID = imageStudyUIDKey.as_string();
-    dto.minSliceStart = minSliceStartKey.as_integer();
-
-    std::vector<double> vec;
-    web::json::array simArray = simScoreKey.as_array();
-
-    for (web::json::value score : simArray)
-    {
-      vec.push_back(score.as_double() * 100);
-    }
-
-    dto.simScoreArray = vec;
-  }
-  return dto;
-}
-
 web::http::http_response DicomWebRequestHandler::Notify(const web::uri &uri,
                                                       const web::json::value &data,
                                                       const web::http::method &method,
                                                       const mitk::RESTUtil::ParamMap &headers)
 {
-  //headers.size();
-
   MITK_INFO << "Incoming notify";
   if (method == web::http::methods::GET)
   {
-    return HandleGet(uri, data);
+    return HandleGet(uri);
   }
   else if (method == web::http::methods::PUT)
   {
@@ -172,6 +133,47 @@ web::http::http_response DicomWebRequestHandler::HandlePut(const web::uri &uri, 
   MITK_INFO << "not implemented yet";
   auto errorResponse = web::http::http_response(web::http::status_codes::BadRequest);
   return errorResponse;
+}
+
+DicomWebRequestHandler::DicomDTO DicomWebRequestHandler::ExtractDTO(
+  std::map<utility::string_t, utility::string_t> httpParams)
+{
+  // data extraction
+  DicomDTO dto;
+  dto.studyUID = httpParams.at(U("studyUID"));
+  auto seriesUIDList = httpParams.at(U("seriesUIDList"));
+  auto seriesUIDListUtf8 = mitk::RESTUtil::convertToUtf8(seriesUIDList);
+  std::istringstream f(seriesUIDListUtf8);
+  std::string s;
+  while (getline(f, s, ','))
+  {
+    dto.seriesUIDList.push_back(mitk::RESTUtil::convertToTString(s));
+  }
+  return dto;
+}
+
+std::vector<pplx::task<std::string>> DicomWebRequestHandler::CreateWADOTasks(DicomDTO dto)
+{
+  std::vector<pplx::task<std::string>> tasks;
+
+    for (auto segSeriesUID : dto.seriesUIDList)
+    {
+      utility::string_t folderPathSeries =
+        utility::conversions::to_string_t(mitk::IOUtil::CreateTemporaryDirectory("XXXXXX", m_DownloadDir) + "/");
+
+      try
+      {
+        auto seriesTask = m_DicomWeb.SendWADO(folderPathSeries, dto.studyUID, segSeriesUID);
+        tasks.push_back(seriesTask);
+      }
+      catch (const mitk::Exception &exception)
+      {
+        MITK_INFO << exception.what();
+        return std::vector<pplx::task<std::string>>();
+      }
+    }
+
+  return tasks;
 }
 
 std::vector<std::string> DicomWebRequestHandler::GetPathsToLoad(std::vector<std::string> filePathList)
@@ -200,11 +202,49 @@ std::vector<std::string> DicomWebRequestHandler::GetPathsToLoad(std::vector<std:
   return filesToLoad;
 }
 
-web::http::http_response DicomWebRequestHandler::HandleGet(const web::uri &uri, const web::json::value &data)
+void DicomWebRequestHandler::RefreshAccess(std::shared_ptr<web::uri> uri)
 {
-  if (!data.is_null()) // avoid unused warning
-    MITK_INFO << "data was not null";
+  // if access token is expired, refresh the access token and send same request again
+  MITK_INFO << "Refresh access";
+  emit InvokeProgress(100, {""});
+  bool successfulAuthentification = Authenticate(m_BaseURI, m_UserName, m_Password);
+  if (successfulAuthentification)
+  {
+    HandleGet(*uri);
+  }
+  else
+  {
+    emit InvokeProgress(100, {""});
+    MITK_ERROR << "Exception when handling GET";
+  }
+}
 
+void DicomWebRequestHandler::ProcessWADOTasks(std::vector<pplx::task<std::string>> tasks, const web::uri &uri)
+{
+  auto joinTask = pplx::when_all(begin(tasks), end(tasks));
+  auto reauthUri = std::make_shared<web::uri>(web::uri(uri.to_string()));
+  joinTask.then([&, reauthUri](pplx::task<std::vector<std::string>> filePathListTask) {
+    try
+    {
+      std::vector<std::string> filesToLoad = GetPathsToLoad(filePathListTask.get());
+      emit InvokeLoadData(filesToLoad);
+      emit InvokeProgress(40, {""});
+    }
+    catch (const mitk::RestRedirectException &e)
+    {
+      RefreshAccess(reauthUri);
+    }
+    catch (...)
+    {
+      emit InvokeProgress(100, {""});
+      MITK_ERROR << "Exception when handling GET";
+    }
+  });
+  joinTask.wait();
+}
+
+web::http::http_response DicomWebRequestHandler::HandleGet(const web::uri &uri)
+{
   auto query = web::uri(uri).query();
   auto httpParams = web::uri::split_query(query);
 
@@ -219,97 +259,35 @@ web::http::http_response DicomWebRequestHandler::HandleGet(const web::uri &uri, 
     itk::FileTools::CreateDirectory(m_DownloadDir);
   }
 
-  if (requestType != httpParams.end())
+  if (requestType == httpParams.end())
   {
-    if (requestType->second == U("LOAD_SERIES"))
-    {
-      // data extraction
-      DicomDTO dto;
-      dto.studyUID = httpParams.at(U("studyUID"));
-      auto seriesUIDList = httpParams.at(U("seriesUIDList"));
-      auto seriesUIDListUtf8 = mitk::RESTUtil::convertToUtf8(seriesUIDList);
-      //auto accessToken = U("kc-access=") + httpParams.at(U("accessToken"));
-      std::istringstream f(seriesUIDListUtf8);
-      std::string s;
-      while (getline(f, s, ','))
-      {
-        dto.seriesUIDList.push_back(mitk::RESTUtil::convertToTString(s));
-      }
-      emit InvokeProgress(20, {"incoming series request ..."});
-      emit InvokeUpdateDcmMeta(dto);
-      // tasks
-      std::vector<pplx::task<std::string>> tasks;
-
-      if (dto.seriesUIDList.size() > 0)
-      {
-        for (auto segSeriesUID : dto.seriesUIDList)
-        {
-          utility::string_t folderPathSeries =
-            utility::conversions::to_string_t(mitk::IOUtil::CreateTemporaryDirectory("XXXXXX", m_DownloadDir) + "/");
-
-          try
-          {
-            auto seriesTask = m_DicomWeb.SendWADO(folderPathSeries, dto.studyUID, segSeriesUID);
-            tasks.push_back(seriesTask);
-          }
-          catch (const mitk::Exception &exception)
-          {
-            MITK_INFO << exception.what();
-            return errorResponse;
-          }
-        }
-      }
-      emit InvokeProgress(40, {"download series ..."});
-      try
-      {
-        auto joinTask = pplx::when_all(begin(tasks), end(tasks));
-        bool reauth = false;
-        auto reauthUri = std::make_shared<web::uri>(web::uri(uri.to_string()));
-        joinTask.then([&, reauthUri](pplx::task<std::vector<std::string>> filePathListTask) {
-          try
-          {
-            std::vector<std::string> filesToLoad = GetPathsToLoad(filePathListTask.get());
-            emit InvokeLoadData(filesToLoad);
-            emit InvokeProgress(40, {""});
-          }
-          catch (const mitk::RestRedirectException &e)
-          {
-            // if access token is expired, refresh the access token and send same request again
-            MITK_INFO << "Refresh access";
-            emit InvokeProgress(100, {""});
-            bool successfulAuthentification = Authenticate(m_BaseURI, m_UserName, m_Password);
-            if (successfulAuthentification)
-            {
-              HandleGet(*reauthUri, NULL);
-            }
-            else
-            {
-              emit InvokeProgress(100, {""});
-              MITK_ERROR << "Exception when handling GET";
-            }
-          }
-          catch (...)
-          {
-            emit InvokeProgress(100, {""});
-            MITK_ERROR << "Exception when handling GET";
-          }
-        });
-        joinTask.wait();
-        if (reauth)
-        {
-          return HandleGet(uri, data);
-        }
-      }
-      catch (const mitk::Exception &exception)
-      {
-        MITK_INFO << exception.what();
-        return errorResponse;
-      }
-    }
+    MITK_INFO << "no requestType parameter was provided";
+    return errorResponse;
   }
   else
   {
-    MITK_INFO << "no requestType parameter was provided";
+    DicomDTO dto = ExtractDTO(httpParams);
+    emit InvokeProgress(20, {"incoming series request ..."});
+    emit InvokeUpdateDcmMeta(dto);
+
+    std::vector<pplx::task<std::string>> tasks = CreateWADOTasks(dto);
+    if (tasks.empty())
+    {
+      MITK_INFO << "WADO request failed";
+      return errorResponse;
+    }
+
+    emit InvokeProgress(40, {"download series ..."});
+
+    try
+    {
+      ProcessWADOTasks(tasks, uri);
+    }
+    catch (const mitk::Exception &exception)
+    {
+      MITK_INFO << exception.what();
+      return errorResponse;
+    }
   }
   return successResponse;
 }
@@ -320,13 +298,6 @@ web::http::http_response DicomWebRequestHandler::HandlePost(const web::uri &uri,
 {
   if (!data.is_null()) // avoid unused warning
     MITK_INFO << "data was not null";
-
-  auto contentType = headers.find(U("Content-Type"));
-  if ((contentType->second.find(U("multipart/form-data")) != std::string::npos) ||
-        contentType->second.find(U("multipart/related")) != std::string::npos &&
-        contentType->second.find(U("application/dicom")) != std::string::npos)
-  {
-  }
 
   MITK_INFO <<"not implemented yet";
   auto errorResponse = web::http::http_response(web::http::status_codes::BadRequest);
