@@ -75,17 +75,13 @@ utility::string_t mitk::DICOMweb::CreateSTOWUri(utility::string_t studyUID)
   return builder.to_string();
 }
 
-pplx::task<void> mitk::DICOMweb::SendSTOW(utility::string_t filePath,
-                                          utility::string_t studyUID)
+std::vector<unsigned char> mitk::DICOMweb::CreateSTOWBody(utility::string_t filePath)
 {
-  auto uri = CreateSTOWUri(studyUID);
-
   // this is the working stow-rs request which supports just one dicom file packed into a multipart message
   std::ifstream input(filePath, std::ios::binary);
   if (!input)
   {
-    MITK_WARN << "could not read file to POST";
-    return pplx::task<void>();
+    mitkThrow() << "could not read file to POST";
   }
 
   std::vector<unsigned char> result;
@@ -116,6 +112,23 @@ pplx::task<void> mitk::DICOMweb::SendSTOW(utility::string_t filePath,
   result.insert(result.end(), bodyVector.begin(), bodyVector.end());
   result.insert(result.end(), buffer.begin(), buffer.end());
   result.insert(result.end(), tail.begin(), tail.end());
+  return result;
+}
+
+pplx::task<void> mitk::DICOMweb::SendSTOW(utility::string_t filePath,
+                                          utility::string_t studyUID)
+{
+  auto uri = CreateSTOWUri(studyUID);
+  std::vector<unsigned char> result;
+  try
+  {
+    result = CreateSTOWBody(filePath);
+  }
+  catch (const mitk::Exception &e)
+  {
+    MITK_ERROR << e.what();
+    return pplx::task<void>();
+  }
 
   mitk::RESTUtil::ParamMap headers;
 
@@ -126,8 +139,6 @@ pplx::task<void> mitk::DICOMweb::SendSTOW(utility::string_t filePath,
   {
     return m_RESTManager->SendBinaryRequest(uri, mitk::IRESTManager::RequestType::Post, &result, headers, m_UseSystemProxy)
       .then([=](web::json::value result) {
-        MITK_INFO << "after send";
-        MITK_INFO << mitk::RESTUtil::convertToUtf8(result.serialize());
         result.is_null();
       });
   }

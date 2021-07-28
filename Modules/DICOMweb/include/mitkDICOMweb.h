@@ -40,9 +40,6 @@ namespace mitk
  {
  public:
    typedef web::http::uri_builder MitkUriBuilder;
-   typedef web::http::http_request MitkRequest;
-   typedef web::http::http_response MitkResponse;
-   typedef web::http::methods MitkRESTMethods;
 
    DICOMweb();
 
@@ -132,6 +129,8 @@ namespace mitk
     * @brief Creates a STOW request URI with the study uid
     */
    utility::string_t CreateSTOWUri(utility::string_t studyUID);
+
+   std::vector<unsigned char> CreateSTOWBody(utility::string_t filePath);
 
    /**
     * @brief Initializes the rest manager for this service instance. Should be called in constructor to make sure the
