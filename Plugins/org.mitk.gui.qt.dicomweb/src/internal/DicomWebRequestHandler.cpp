@@ -31,10 +31,10 @@ See LICENSE.txt or http://www.mitk.org for details.
 
 US_INITIALIZE_MODULE
 
-DicomWebRequestHandler::DicomWebRequestHandler() {}
+DicomWebRequestHandler::DicomWebRequestHandler() : m_UseSystemProxy{true} {}
 
 DicomWebRequestHandler::DicomWebRequestHandler(std::string downloadDir, utility::string_t pacsURI, bool useSystemProxy)
-  : m_DownloadDir{downloadDir}, m_UseSystemProxy(useSystemProxy)
+  : m_DownloadDir{downloadDir}, m_UseSystemProxy{useSystemProxy}
 {
   m_DicomWeb = mitk::DICOMweb(pacsURI, m_UseSystemProxy);
 }
