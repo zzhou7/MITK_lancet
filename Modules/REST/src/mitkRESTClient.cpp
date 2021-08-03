@@ -63,7 +63,7 @@ pplx::task<web::json::value> mitk::RESTClient::Get(const web::uri &uri,
 {
   if (useSystemProxy)
   {
-    auto proxy = web::web_proxy::web_proxy(web::web_proxy::web_proxy_mode::use_auto_discovery);
+    auto proxy = web::web_proxy(web::web_proxy::web_proxy_mode::use_auto_discovery);
     m_ClientConfig.set_proxy(proxy);
   }
   auto client = new http_client(uri, m_ClientConfig);
@@ -102,7 +102,7 @@ pplx::task<web::json::value> mitk::RESTClient::Get(const web::uri &uri,
 {
   if (useSystemProxy)
   {
-    auto proxy = web::web_proxy::web_proxy(web::web_proxy::web_proxy_mode::use_auto_discovery);
+    auto proxy = web::web_proxy(web::web_proxy::web_proxy_mode::use_auto_discovery);
     m_ClientConfig.set_proxy(proxy);
   }
   auto client = new http_client(uri, m_ClientConfig);
@@ -153,7 +153,7 @@ pplx::task<web::json::value> mitk::RESTClient::Put(const web::uri &uri,
 {
   if (useSystemProxy)
   {
-    auto proxy = web::web_proxy::web_proxy(web::web_proxy::web_proxy_mode::use_auto_discovery);
+    auto proxy = web::web_proxy(web::web_proxy::web_proxy_mode::use_auto_discovery);
     m_ClientConfig.set_proxy(proxy);
   }
 
@@ -254,7 +254,7 @@ pplx::task<web::json::value> mitk::RESTClient::ExecutePost(const web::uri &uri,
 {
   if (useSystemProxy)
   {
-    auto proxy = web::web_proxy::web_proxy(web::web_proxy::web_proxy_mode::use_auto_discovery);
+    auto proxy = web::web_proxy(web::web_proxy::web_proxy_mode::use_auto_discovery);
     m_ClientConfig.set_proxy(proxy);
   }
 
