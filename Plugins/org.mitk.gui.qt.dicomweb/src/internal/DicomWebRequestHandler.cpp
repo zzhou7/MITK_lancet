@@ -79,7 +79,7 @@ bool DicomWebRequestHandler::Authenticate(utility::string_t newHost, utility::st
   try
   {
     web::json::value result = resultJSON.get();
-    auto token = result[U("access_token")].to_string();
+    auto token = result[U("access_token")].serialize();
     UpdateAccessToken(U("kc-access=") + token.substr(1, token.size() - 2));
     UpdateUserCredentials(username, password);
   }
@@ -127,7 +127,7 @@ web::http::http_response DicomWebRequestHandler::Notify(const web::uri &uri,
   return response;
 }
 
-web::http::http_response DicomWebRequestHandler::HandlePut(const web::uri &uri, const web::json::value &data)
+web::http::http_response DicomWebRequestHandler::HandlePut(const web::uri &/*uri*/, const web::json::value &/*data*/)
 {
 
   MITK_INFO << "not implemented yet";
@@ -292,26 +292,17 @@ web::http::http_response DicomWebRequestHandler::HandleGet(const web::uri &uri)
   return successResponse;
 }
 
-web::http::http_response DicomWebRequestHandler::HandlePost(const web::uri &uri,
-                                                            const web::json::value &data,
-                                                            const mitk::RESTUtil::ParamMap &headers)
+web::http::http_response DicomWebRequestHandler::HandlePost(const web::uri &/*uri*/,
+                                                            const web::json::value &/*data*/,
+                                                            const mitk::RESTUtil::ParamMap &/*headers*/)
 {
-  if (!data.is_null()) // avoid unused warning
-    MITK_INFO << "data was not null";
-
   MITK_INFO <<"not implemented yet";
   auto errorResponse = web::http::http_response(web::http::status_codes::BadRequest);
   return errorResponse;
 }
 
-web::http::http_response DicomWebRequestHandler::HandleOptions(const web::uri &uri, const web::json::value &data)
+web::http::http_response DicomWebRequestHandler::HandleOptions(const web::uri &/*uri*/, const web::json::value &/*data*/)
 {
-  if (uri.to_string() != U("/inject")) // avoid unused warning
-    MITK_INFO << "no inject path";
-
-  if (!data.is_null()) // avoid unused warning
-    MITK_INFO << "data was not null";
-
   MITK_INFO << "OPTIONS incoming";
 
   web::http::http_response response(web::http::status_codes::OK);
