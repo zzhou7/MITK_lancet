@@ -22,6 +22,7 @@
 #include <numeric>
 #include <functional>
 
+#include <mitkImageWriteAccessor.h>
 #include "mitkImage.h"
 
 
@@ -50,6 +51,7 @@ mitk_GetMemoryViewFromImage( PyObject *SWIGUNUSEDPARM(self), PyObject *args )
   PyObject *                  pyImage;
   void *                      voidImage;
   mitk::Image *               mitkImage;
+  mitk::ImageWriteAccessor*   writeAccess = NULL;
   int                         res           = 0;
 
   PyObject *                  memoryView    = NULL;
@@ -57,7 +59,6 @@ mitk_GetMemoryViewFromImage( PyObject *SWIGUNUSEDPARM(self), PyObject *args )
   memset(&pyBuffer, 0, sizeof(Py_buffer));
 
   unsigned int accumulatorValue = 1;
-
   if( !PyArg_ParseTuple( args, "O", &pyImage ) )
     {
     SWIG_fail; // SWIG_fail is a macro that says goto: fail (return NULL)
@@ -76,7 +77,8 @@ mitk_GetMemoryViewFromImage( PyObject *SWIGUNUSEDPARM(self), PyObject *args )
   }
   mitkImage = reinterpret_cast< mitk::Image * >( voidImage );
 
-  mitkBufferPtr = mitkImage->GetData();  
+  writeAccess = &mitk::ImageWriteAccessor(mitkImage);
+  mitkBufferPtr = writeAccess->GetData();
   pixelSize = mitkImage->GetPixelType().GetBitsPerComponent() / 8;
 
   dimension = mitkImage->GetDimension();
@@ -123,6 +125,7 @@ mitk_SetImageFromArray( PyObject *SWIGUNUSEDPARM(self), PyObject *args )
   memset(&pyBuffer, 0, sizeof(Py_buffer));
 
   mitk::Image * mitkImage = NULL;
+  mitk::ImageWriteAccessor *writeAccess = NULL;
   void * mitkBufferPtr = NULL;
   size_t pixelSize = 1;
 
@@ -187,7 +190,8 @@ mitk_SetImageFromArray( PyObject *SWIGUNUSEDPARM(self), PyObject *args )
 
   try
     {
-	  mitkBufferPtr = mitkImage->GetData();
+      writeAccess = &mitk::ImageWriteAccessor(mitkImage);
+      mitkBufferPtr = writeAccess->GetData();
 	  pixelSize= mitkImage->GetPixelType().GetBitsPerComponent() / 8;
     }
   catch( const std::exception &e )

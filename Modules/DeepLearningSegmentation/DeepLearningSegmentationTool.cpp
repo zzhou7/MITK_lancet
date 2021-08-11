@@ -341,18 +341,18 @@ std::vector<mitk::LabelSetImage::Pointer> mitk::DeepLearningSegmentationTool::Do
 
 mitk::DataStorage *mitk::DeepLearningSegmentationTool::GetDataStorage()
 {
-  return m_ToolManager->GetDataStorage();
-  m_ToolManager->GetReferenceData(0);
+  return GetToolManager()->GetDataStorage();
+  GetToolManager()->GetReferenceData(0);
 }
 
 mitk::DataNode *mitk::DeepLearningSegmentationTool::GetReferenceData()
 {
-  return m_ToolManager->GetReferenceData(0);
+  return GetToolManager()->GetReferenceData(0);
 }
   
 mitk::Image::Pointer mitk::DeepLearningSegmentationTool::GetInputImage()
   {
-  mitk::DataNode::Pointer referenceData = m_ToolManager->GetReferenceData(0);
+  mitk::DataNode::Pointer referenceData = GetToolManager()->GetReferenceData(0);
   mitk::Image::Pointer input = dynamic_cast<mitk::Image *>(referenceData->GetData());
   if (input.IsNull())
   {
