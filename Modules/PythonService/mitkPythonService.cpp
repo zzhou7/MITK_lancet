@@ -37,7 +37,7 @@ found in the LICENSE file.
 #include <dlfcn.h>
 #endif
 
-#include "swigpyrun.h"
+#include <swigpyrun.h>
 #include <boost/algorithm/string.hpp>
 
 typedef itksys::SystemTools ist;

@@ -61,6 +61,8 @@ set_target_properties(pyMITK PROPERTIES
   LIBRARY_OUTPUT_DIRECTORY "${MITK_CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
 )
 
+execute_process(COMMAND ${SWIG_EXECUTABLE} -python -external-runtime)
+
 if(DEFINED SKBUILD)
   #message("SKBuild exists")
   install(
