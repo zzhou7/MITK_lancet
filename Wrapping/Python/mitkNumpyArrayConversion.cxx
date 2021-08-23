@@ -77,7 +77,7 @@ mitk_GetMemoryViewFromImage( PyObject *SWIGUNUSEDPARM(self), PyObject *args )
   }
   mitkImage = reinterpret_cast< mitk::Image * >( voidImage );
 
-  writeAccess = &mitk::ImageWriteAccessor(mitkImage);
+  writeAccess = new mitk::ImageWriteAccessor(mitkImage);
   mitkBufferPtr = writeAccess->GetData();
   pixelSize = mitkImage->GetPixelType().GetBitsPerComponent() / 8;
 
@@ -103,10 +103,12 @@ mitk_GetMemoryViewFromImage( PyObject *SWIGUNUSEDPARM(self), PyObject *args )
   memoryView = PyMemoryView_FromBuffer(&pyBuffer);
 
   PyBuffer_Release(&pyBuffer);
+  delete writeAccess;
   return memoryView;
 
 fail:
   Py_XDECREF( memoryView );
+  delete writeAccess;
   return NULL;
 }
 
@@ -190,7 +192,7 @@ mitk_SetImageFromArray( PyObject *SWIGUNUSEDPARM(self), PyObject *args )
 
   try
     {
-      writeAccess = &mitk::ImageWriteAccessor(mitkImage);
+      writeAccess = new mitk::ImageWriteAccessor(mitkImage);
       mitkBufferPtr = writeAccess->GetData();
 	  pixelSize= mitkImage->GetPixelType().GetBitsPerComponent() / 8;
     }
@@ -227,10 +229,12 @@ mitk_SetImageFromArray( PyObject *SWIGUNUSEDPARM(self), PyObject *args )
 
 
   PyBuffer_Release( &pyBuffer );
+  delete writeAccess;
   Py_RETURN_NONE;
 
 fail:
   PyBuffer_Release( &pyBuffer );
+  delete writeAccess;
   return NULL;
 }
 
