@@ -254,22 +254,24 @@ your image but you are just interested in one special region.
 
 \imageMacro{QmitkSegmentation_PickingTool.png,"Picking tool",10.00}
 
-\subsection org_mitk_views_segmentationUserManualnnUNetTool nnUNet Tool (Windows & Ubuntu only)
+\subsection org_mitk_views_segmentationUserManualnnUNetTool nnU-Net Tool (Windows & Ubuntu only)
 
 This tool provides a GUI to the deep learning-based segmentation algorithm called the nnUNet. With this tool, you can get a segmentation mask predicted for the loaded image in MITK. Be ready with the pre-trained weights (a.k.a <b>RESULTS_FOLDER</b>) for your organ or task concerned, before using the tool.
 For a detailed explanation of the parameters and pre-trained weights folder structure etc., please refer to https://github.com/MIC-DKFZ/nnUNet. <br>
 Remark: The tool assumes that you have a Python3 environment with nnUNet (pip) installed. Your machine should be also equipped with a CUDA enabled GPU.
 <br>
 <b>Workflow</b>:
-    -# Click on the directory icon and navigate to the results folder on your hard disk. If your results folder is as per the nnUNet required folder structure, the models, 
+    -# Click on the "nnUNet Results Folder" directory icon and navigate to the results folder on your hard disk. This is equivalent to setting the <b>RESULTS_FOLDER</b> environment variable. If your results folder is as per the nnUNet required folder structure, the models, 
     trainers, tasks and folds are automatically parsed and correspondingly loaded in the drop-down boxes below. 
     <i>sample screenhsot of filled boxes</i>
-    -# Choose your required model-task-trainer-fold parameters sequentially. If your nnUNet is pip-installed in the default python (/usr/bin/ for Ubuntu), click "Preview" button.
-    -# Click on "Advanced" if you'd like to choose another Python environment. Select the drop-down next to "Python Path" to see if MITK has automatically detected other Python environments. 
+    -# Choose your required model-task-trainer-fold parameters, sequentially. If your nnUNet is pip-installed in the default python (/usr/bin/ for Ubuntu), click "Preview" button.
+    -# If your task requires multi-modal inputs, then check the "Multi-Modal" checkbox and enter the no.of modalities in the "No. of Extra Modalities" spinbox you'd like to refer to. Instantly, as much path selectors should
+    appear below to select other modal image files.
+    -# Click on "Advanced" if you'd like to choose a different Python environment. Select the "Python Path" drop-down to see if MITK has automatically detected other Python environments. 
     Click on a fitting environment for the nnUNet inference or click "Select" to choose an unlisted python environment. 
     <i>sample screenhsot of Advanced groupbox </i>
-    -# In the "Advanced" section, you can also see other options like "Mixed Precision",  "Enable Mirroring" (for test time data augmentation) pertaining to nnUNet.
-    -# Use "GPU Id" (in the "Advanced" section) to change the preferred GPU for inference. This is equivalent to setting the <b>CUDA_VISIBLE_DEVICES</b> environment variable.
+    -# In the "Advanced" section, you can also see other options like "Mixed Precision" and "Enable Mirroring" (for test time data augmentation) pertaining to nnUNet.
+    -# Use "GPU Id" (in the "Advanced" section) to change the preferred GPU for inferencing. This is equivalent to setting the <b>CUDA_VISIBLE_DEVICES</b> environment variable.
     -# In case, you have a nnUNet code-base yet to be pip-installed into any environment (eg. developer modified nnUNet forks), click checkbox "No pip". 
     Once the checkbox is checked a new directory selector appears in the section. You may click and navigate to your nnUNet fork to select the code from which you want inference.
     <i>sample screenhsot of Advanced groupbox with nnUNet directory option</i>
