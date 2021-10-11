@@ -300,7 +300,10 @@ bool mitk::ContourElement::IsClosed() const
   return this->m_IsClosed;
 }
 
-bool mitk::ContourElement::IsNearContour(const mitk::Point3D &point, float eps) const
+bool mitk::ContourElement::IsNearContour(const mitk::Point3D &point,
+                                         float eps,
+                                         mitk::ContourElement::VertexType *previousVertex,
+                                         mitk::ContourElement::VertexType *nextVertex) const
 {
   ConstVertexIterator it1 = this->m_Vertices.begin();
   ConstVertexIterator it2 = this->m_Vertices.begin();
@@ -337,6 +340,16 @@ bool mitk::ContourElement::IsNearContour(const mitk::Point3D &point, float eps) 
 
     if (distance < eps)
     {
+      if (previousVertex)
+      {
+        previousVertex->Coordinates = (*it1)->Coordinates;
+        previousVertex->IsControlPoint = (*it1)->IsControlPoint;
+      }
+      if (nextVertex)
+      {
+        nextVertex->Coordinates = (*it1)->Coordinates;
+        nextVertex->IsControlPoint = (*it1)->IsControlPoint;
+      }
       return true;
     }
   }

@@ -254,6 +254,12 @@ namespace mitk
     */
     virtual const VertexType *GetVertexAt(int index, TimeStepType timestep = 0) const;
 
+    const mitk::ContourModel::VertexType *GetVertexAt(mitk::Point3D &point, float eps, TimeStepType timestep) const;
+
+    const mitk::ContourModel::VertexType *GetControlVertexAt(mitk::Point3D &point,
+                                                             float eps,
+                                                             TimeStepType timestep) const;
+
     virtual const VertexType *GetNextVertexAt(mitk::Point3D &point, float eps, TimeStepType timestep) const;
 
     virtual const VertexType *GetPreviousVertexAt(mitk::Point3D &point, float eps, TimeStepType timestep) const;
@@ -270,7 +276,11 @@ namespace mitk
 
     /** \brief Check if mouse cursor is near the contour.
     */
-    virtual bool IsNearContour(Point3D &point, float eps, TimeStepType timestep);
+    virtual bool IsNearContour(Point3D &point,
+                               float eps,
+                               TimeStepType timestep,
+                               mitk::ContourElement::VertexType *previousVertex = NULL,
+                               mitk::ContourElement::VertexType *nextVertex = NULL);
 
 
     /** \brief Mark a vertex at an index in the container as selected.

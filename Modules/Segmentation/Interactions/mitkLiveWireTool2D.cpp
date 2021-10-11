@@ -340,7 +340,7 @@ void mitk::LiveWireTool2D::OnInitLiveWire(StateMachineAction *, InteractionEvent
   m_ReferenceDataSlice->GetSlicedGeometry()->SetOrigin(origin);
 
   m_LiveWireFilter = ImageLiveWireContourModelFilter::New();
-  m_LiveWireFilter->SetUseCostFunction(true);
+  m_LiveWireFilter->SetUseCostFunction(false);
   m_LiveWireFilter->SetInput(m_ReferenceDataSlice);
 
   m_LiveWireFilterClosure = ImageLiveWireContourModelFilter::New();

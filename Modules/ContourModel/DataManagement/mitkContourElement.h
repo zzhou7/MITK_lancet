@@ -186,7 +186,10 @@ namespace mitk
     \param point - query position in 3D space.
     \param eps - the error bound for search algorithm.
     */
-    bool IsNearContour(const mitk::Point3D &point, float eps) const;
+    bool IsNearContour(const mitk::Point3D &point,
+                       float eps,
+                       mitk::ContourElement::VertexType *previousVertex = NULL,
+                       mitk::ContourElement::VertexType *nextVertex = NULL) const;
 
     /** \brief Close the contour.
     Connect first with last element.
