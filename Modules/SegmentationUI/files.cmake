@@ -14,6 +14,7 @@ Qmitk/QmitkFastMarchingToolGUIBase.cpp
 Qmitk/QmitkFastMarchingTool3DGUI.cpp
 Qmitk/QmitkFastMarchingToolGUI.cpp
 Qmitk/QmitkLiveWireTool2DGUI.cpp
+Qmitk/QmitkNewAddTool2DGUI.cpp
 Qmitk/QmitkNewSegmentationDialog.cpp
 Qmitk/QmitkOtsuTool3DGUI.cpp
 Qmitk/QmitkPaintbrushToolGUI.cpp
@@ -50,6 +51,7 @@ Qmitk/QmitkFastMarchingToolGUIBase.h
 Qmitk/QmitkFastMarchingTool3DGUI.h
 Qmitk/QmitkFastMarchingToolGUI.h
 Qmitk/QmitkLiveWireTool2DGUI.h
+Qmitk/QmitkNewAddTool2DGUI.h
 Qmitk/QmitkNewSegmentationDialog.h
 Qmitk/QmitkOtsuTool3DGUI.h
 Qmitk/QmitkPaintbrushToolGUI.h

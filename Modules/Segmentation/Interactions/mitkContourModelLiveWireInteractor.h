@@ -47,6 +47,8 @@ namespace mitk
 
     void ConnectActionsAndFunctions() override;
 
+    void SetUseCostFunction(bool useCostFunction);
+
   protected:
     ContourModelLiveWireInteractor();
     ~ContourModelLiveWireInteractor() override;

@@ -22,16 +22,22 @@ found in the LICENSE file.
 
 #include "mitkIOUtil.h"
 
-mitk::ContourModelLiveWireInteractor::ContourModelLiveWireInteractor() : ContourModelInteractor()
+mitk::ContourModelLiveWireInteractor::ContourModelLiveWireInteractor()
+  : ContourModelInteractor()
 {
   m_LiveWireFilter = mitk::ImageLiveWireContourModelFilter::New();
-  m_LiveWireFilter->SetUseCostFunction(false);
+  m_LiveWireFilter->SetUseCostFunction(true);
   m_NextActiveVertexDown.Fill(0);
   m_NextActiveVertexUp.Fill(0);
 }
 
 mitk::ContourModelLiveWireInteractor::~ContourModelLiveWireInteractor()
 {
+}
+
+void mitk::ContourModelLiveWireInteractor::SetUseCostFunction(bool useCostFunction)
+{
+  m_LiveWireFilter->SetUseCostFunction(useCostFunction);
 }
 
 void mitk::ContourModelLiveWireInteractor::ConnectActionsAndFunctions()
