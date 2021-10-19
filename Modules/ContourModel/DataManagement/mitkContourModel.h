@@ -256,13 +256,17 @@ namespace mitk
 
     const mitk::ContourModel::VertexType *GetVertexAt(mitk::Point3D &point, float eps, TimeStepType timestep) const;
 
-    const mitk::ContourModel::VertexType *GetControlVertexAt(mitk::Point3D &point,
-                                                             float eps,
-                                                             TimeStepType timestep) const;
+    const mitk::ContourModel::VertexType *GetControlVertexAt(mitk::Point3D &point, float eps, TimeStepType timestep) const;
 
-    virtual const VertexType *GetNextVertexAt(mitk::Point3D &point, float eps, TimeStepType timestep) const;
+    /** Returns the next control vertex to the approximate nearest vertex of a given position in 3D space
+     * If the timestep is invalid a nullptr will be returned.
+     */
+    virtual const VertexType *GetNextControlVertexAt(mitk::Point3D &point, float eps, TimeStepType timestep) const;
 
-    virtual const VertexType *GetPreviousVertexAt(mitk::Point3D &point, float eps, TimeStepType timestep) const;
+    /** Returns the previous control vertex to the approximate nearest vertex of a given position in 3D space
+     * If the timestep is invalid a nullptr will be returned.
+     */
+    virtual const VertexType *GetPreviousControlVertexAt(mitk::Point3D &point, float eps, TimeStepType timestep) const;
 
     /** \brief Remove a vertex at given timestep within the container.
 
@@ -371,6 +375,14 @@ namespace mitk
     */
     void Initialize(const ContourModel &other);
 
+    /** \brief Returns a list pointing to all vertices that are indicated to be control points.
+    */
+    VertexListType GetControlVertices(TimeStepType timestep);
+
+    /** \brief Returns the container of the vertices.
+     */
+    VertexListType GetVertexList(TimeStepType timestep);
+
     /*++++++++++++++++++ method inherit from base data +++++++++++++++++++++++++++*/
     /**
     \brief Inherit from base data - no region support available for contourModel objects.
@@ -422,9 +434,6 @@ namespace mitk
     \param timestep - at this timestep all lines will be rebuilt.
     */
     virtual void RedistributeControlVertices(int period, TimeStepType timestep);
-
-    VertexListType GetControlVertexList(TimeStepType timestep);
-    VertexListType GetVertexList(TimeStepType timestep);
 
   protected:
     mitkCloneMacro(Self);

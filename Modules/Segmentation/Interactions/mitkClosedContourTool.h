@@ -46,6 +46,7 @@ namespace mitk
 
     /// \brief Add a control point and finish current segment.
     void OnAddPoint(StateMachineAction *, InteractionEvent *interactionEvent);
+    void OnDrawing(StateMachineAction *, InteractionEvent *interactionEvent);
     mitk::ContourModel::Pointer m_LiveWireContour;
     mitk::ImageLiveWireContourModelFilter::Pointer m_LiveWireFilter;
     mitk::ImageLiveWireContourModelFilter::Pointer m_LiveWireFilterClosure;

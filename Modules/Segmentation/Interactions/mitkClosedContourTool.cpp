@@ -89,6 +89,8 @@ void mitk::ClosedContourTool::ConnectActionsAndFunctions()
   CONNECT_FUNCTION("InitObject", OnInitLiveWire);
   CONNECT_FUNCTION("AddPoint", OnAddPoint);
   CONNECT_FUNCTION("CtrlAddPoint", OnAddPoint);
+  CONNECT_FUNCTION("Drawing", OnDrawing);
+  CONNECT_FUNCTION("EndDrawing", OnAddPoint);
   CONNECT_FUNCTION("MovePoint", OnMouseMoveNoDynamicCosts);
   CONNECT_FUNCTION("FinishContour", OnFinish);
   CONNECT_FUNCTION("DeletePoint", OnLastSegmentDelete);
@@ -353,7 +355,7 @@ void mitk::ClosedContourTool::OnInitLiveWire(StateMachineAction *, InteractionEv
   m_CreateAndUseDynamicCosts = true;
 
   mitk::RenderingManager::GetInstance()->RequestUpdate(positionEvent->GetSender()->GetRenderWindow());
-  this->LoadStateMachine("LiveWireToolInitialized.xml", us::GetModuleContext()->GetModule());
+  //this->LoadStateMachine("LiveWireToolInitialized.xml", us::GetModuleContext()->GetModule());
 }
 
 void mitk::ClosedContourTool::OnAddPoint(StateMachineAction *, InteractionEvent *interactionEvent)
@@ -407,6 +409,24 @@ void mitk::ClosedContourTool::OnAddPoint(StateMachineAction *, InteractionEvent 
     m_LiveWireFilterClosure->SetUseDynamicCostMap(true);
   }
 
+  mitk::RenderingManager::GetInstance()->RequestUpdate(positionEvent->GetSender()->GetRenderWindow());
+}
+
+void mitk::ClosedContourTool::OnDrawing(StateMachineAction *, InteractionEvent *interactionEvent)
+{
+  auto *positionEvent = dynamic_cast<mitk::InteractionPositionEvent *>(interactionEvent);
+  if (!positionEvent)
+    return;
+
+  mitk::Point3D point = positionEvent->GetPositionInWorld();
+  m_LiveWireContour->AddVertex(positionEvent->GetPositionInWorld());
+  m_LiveWireFilter->Update();
+  m_LiveWireFilterClosure->SetStartPoint(positionEvent->GetPositionInWorld());
+  m_LiveWireFilterClosure->Update();
+
+  this->UpdateLiveWireContour();
+
+  assert(positionEvent->GetSender()->GetRenderWindow());
   mitk::RenderingManager::GetInstance()->RequestUpdate(positionEvent->GetSender()->GetRenderWindow());
 }
 
@@ -506,7 +526,7 @@ void mitk::ClosedContourTool::OnFinish(StateMachineAction *, InteractionEvent *i
   m_LiveWireFilterClosure->SetUseDynamicCostMap(false);
 
   this->FinishTool();
-  this->LoadStateMachine("LiveWireTool.xml", us::GetModuleContext()->GetModule());
+  //this->LoadStateMachine("LiveWireTool.xml", us::GetModuleContext()->GetModule());
 }
 
 void mitk::ClosedContourTool::FinishTool()

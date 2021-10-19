@@ -52,22 +52,10 @@ namespace mitk
     const char *GetName() const override;
     const char **GetXPM() const override;
 
-    void ConnectActionsAndFunctions() override;
-
-    /// \brief Convert all current contours to binary segmentations.
-    //void ConfirmSegmentation();
-
-    /// \brief Delete all current contours.
-    //void ClearSegmentation();
-
   protected:
     NewAddTool2D();
     ~NewAddTool2D() override;
   
-  private:
-    void OnLoadConfig(StateMachineAction *, InteractionEvent *interactionEvent);
-    void OnDrawing(StateMachineAction *, InteractionEvent *interactionEvent);
-    void OnEndDrawing(StateMachineAction *, InteractionEvent *interactionEvent);
   };
 }
 
