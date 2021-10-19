@@ -355,7 +355,6 @@ void mitk::ClosedContourTool::OnInitLiveWire(StateMachineAction *, InteractionEv
   m_CreateAndUseDynamicCosts = true;
 
   mitk::RenderingManager::GetInstance()->RequestUpdate(positionEvent->GetSender()->GetRenderWindow());
-  //this->LoadStateMachine("LiveWireToolInitialized.xml", us::GetModuleContext()->GetModule());
 }
 
 void mitk::ClosedContourTool::OnAddPoint(StateMachineAction *, InteractionEvent *interactionEvent)
@@ -526,7 +525,6 @@ void mitk::ClosedContourTool::OnFinish(StateMachineAction *, InteractionEvent *i
   m_LiveWireFilterClosure->SetUseDynamicCostMap(false);
 
   this->FinishTool();
-  //this->LoadStateMachine("LiveWireTool.xml", us::GetModuleContext()->GetModule());
 }
 
 void mitk::ClosedContourTool::FinishTool()
