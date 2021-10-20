@@ -44,9 +44,6 @@ namespace mitk
     void UpdateLiveWireContour();
     void OnTimePointChanged() override;
 
-    /// \brief Add a control point and finish current segment.
-    void OnAddPoint(StateMachineAction *, InteractionEvent *interactionEvent);
-    void OnDrawing(StateMachineAction *, InteractionEvent *interactionEvent);
     mitk::ContourModel::Pointer m_LiveWireContour;
     mitk::ImageLiveWireContourModelFilter::Pointer m_LiveWireFilter;
     mitk::ImageLiveWireContourModelFilter::Pointer m_LiveWireFilterClosure;
@@ -55,6 +52,12 @@ namespace mitk
     bool m_SnapToContour;
     /// \brief Initialize tool.
     void OnInitLiveWire(StateMachineAction *, InteractionEvent *interactionEvent);
+
+    /// \brief Add a control point and finish current segment.
+    void OnAddPoint(StateMachineAction *, InteractionEvent *interactionEvent);
+
+    /// \brief Draw a contour according to the mouse movement when mouse button is pressed and mouse is moved.
+    void OnDrawing(StateMachineAction *, InteractionEvent *interactionEvent);
 
     /// \brief Actual LiveWire computation.
     void OnMouseMoved(StateMachineAction *, InteractionEvent *interactionEvent);
