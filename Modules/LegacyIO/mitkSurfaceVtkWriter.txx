@@ -11,7 +11,7 @@ found in the LICENSE file.
 ============================================================================*/
 
 #include "mitkSurfaceVtkWriter.h"
-#include <vtkConfigure.h>
+//#include <vtkConfigure.h>
 #include <vtkErrorCode.h>
 #include <vtkLinearTransform.h>
 #include <vtkPolyData.h>
