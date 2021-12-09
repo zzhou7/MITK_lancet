@@ -273,6 +273,7 @@ set(mitk_cmake_boolean_args
   MITK_USE_BLUEBERRY
   MITK_USE_OpenCL
   MITK_USE_OpenMP
+  MITK_USE_TBB
   )
 
 #-----------------------------------------------------------------------------
