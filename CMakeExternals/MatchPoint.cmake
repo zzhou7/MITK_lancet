@@ -26,8 +26,10 @@ if(MITK_USE_MatchPoint)
       set(download_step SOURCE_DIR ${MatchPoint_SOURCE_DIR})
     else()
       set(download_step
-          URL ${MITK_THIRDPARTY_DOWNLOAD_PREFIX_URL}/MatchPoint_rev_f2a64255.tar.gz
-          URL_MD5 4407836f85e6382e65c9d3a4bd79c370
+          URL ${MITK_THIRDPARTY_DOWNLOAD_PREFIX_URL}/MatchPoint.tar.gz
+          URL_MD5 b5df7cba4505ae61b04a825c34ba6225
+          #URL ${MITK_THIRDPARTY_DOWNLOAD_PREFIX_URL}/MatchPoint_rev_f2a64255.tar.gz
+          #URL_MD5 4407836f85e6382e65c9d3a4bd79c370
          )
     endif()
 

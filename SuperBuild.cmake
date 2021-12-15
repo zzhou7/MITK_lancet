@@ -273,6 +273,7 @@ set(mitk_cmake_boolean_args
   MITK_USE_BLUEBERRY
   MITK_USE_OpenCL
   MITK_USE_OpenMP
+  MITK_USE_TBB
   )
 
 #-----------------------------------------------------------------------------
@@ -443,6 +444,7 @@ ExternalProject_Add(${proj}
     -DMITK_ACCESSBYITK_DIMENSIONS:STRING=${MITK_ACCESSBYITK_DIMENSIONS}
     -DMITK_CUSTOM_REVISION_DESC:STRING=${MITK_CUSTOM_REVISION_DESC}
     # --------------- External project options ---------------
+    -DMITK_LOCAL_EP_PATH:PATH=${MITK_LOCAL_EP_PATH}
     -DMITK_DATA_DIR:PATH=${MITK_DATA_DIR}
     -DMITK_EXTERNAL_PROJECT_PREFIX:PATH=${ep_prefix}
     -DCppMicroServices_DIR:PATH=${CppMicroServices_DIR}

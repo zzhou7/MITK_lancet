@@ -60,7 +60,7 @@ found in the LICENSE file.
 #include <QmitkOpenStdMultiWidgetEditorAction.h>
 
 #include <itkConfigure.h>
-#include <vtkConfigure.h>
+// #include <vtkConfigure.h>
 #include <mitkVersion.h>
 #include <mitkIDataStorageService.h>
 #include <mitkIDataStorageReference.h>

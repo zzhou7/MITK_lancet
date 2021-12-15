@@ -17,7 +17,7 @@ found in the LICENSE file.
 #include <MitkSegmentationExports.h>
 #include <mitkContour.h>
 #include <mitkPlaneGeometry.h>
-#include <vtkConfigure.h>
+//#include <vtkConfigure.h>
 #include <vtkVersionMacros.h>
 
 class vtkLinearExtrusionFilter;

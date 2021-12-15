@@ -100,7 +100,7 @@ void mitk::ImageWriter::SetDefaultExtension()
   this->Modified();
 }
 
-#include <vtkConfigure.h>
+//#include <vtkConfigure.h>
 #include <vtkImageData.h>
 #include <vtkXMLImageDataWriter.h>
 static void writeVti(const char *filename, mitk::Image *image, int t = 0)
