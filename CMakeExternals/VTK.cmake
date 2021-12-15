@@ -48,10 +48,11 @@ if(NOT DEFINED VTK_DIR)
     list(APPEND additional_cmake_args
       -DVTK_SMP_IMPLEMENTATION_TYPE:STRING=TBB
       -DVTK_SMP_ENABLE_TBB:BOOL=TRUE
-      -DTBB_DIR:PATH=H:/ep/tbb-2020.3-win/tbb/cmake
-      -DTBB_INCLUDE_DIR:PATH=H:/ep/tbb-2020.3-win/tbb/include
-      -DTBB_LIBRARY_DEBUG:FILEPATH=H:/ep/tbb-2020.3-win/tbb/lib/intel64/vc14/tbb_debug.lib
-      -DTBB_LIBRARY_RELEASE:FILEPATH=H:/ep/tbb-2020.3-win/tbb/lib/intel64/vc14/tbb.lib
+      -DTBB_DIR:PATH=${TBB_DIR}
+      #-DTBB_DIR:PATH=H:/ep/tbb-2020.3-win/tbb/cmake
+      #-DTBB_INCLUDE_DIR:PATH=H:/ep/tbb-2020.3-win/tbb/include
+      #-DTBB_LIBRARY_DEBUG:FILEPATH=H:/ep/tbb-2020.3-win/tbb/lib/intel64/vc14/tbb_debug.lib
+      #-DTBB_LIBRARY_RELEASE:FILEPATH=H:/ep/tbb-2020.3-win/tbb/lib/intel64/vc14/tbb.lib
       # -DTBB_MALLOC_INCLUDE_DIR:PATH=${TBB_MALLOC_INCLUDE_DIR}
       # -DTBB_MALLOC_LIBRARY_DEBUG:FILEPATH=${TBB_MALLOC_LIBRARY_DEBUG}
       # -DTBB_MALLOC_LIBRARY_RELEASE:FILEPATH=${TBB_MALLOC_LIBRARY_RELEASE}
@@ -84,11 +85,6 @@ if(NOT DEFINED VTK_DIR)
       -DVTK_MODULE_ENABLE_VTK_TestingRendering:STRING=YES
       -DVTK_MODULE_ENABLE_VTK_RenderingContextOpenGL2:STRING=YES
       -DVTK_MODULE_ENABLE_VTK_RenderingVolumeOpenGL2:STRING=YES
-      # -DVTK_SMP_IMPLEMENTATION_TYPE:STRING=TBB
-      # -DTBB_DIR:PATH=E:/MITK-master/tbb2017_20170807oss/cmake
-      # -DTBB_INCLUDE_DIR:PATH=E:/MITK-master/tbb2017_20170807oss/include
-      # -DTBB_LIBRARY_DEBUG:PATH=E:/MITK-master/tbb2017_20170807oss/lib/intel64/vc14/tbb_debug.lib
-      # -DTBB_LIBRARY_RELEASE:PATH=E:/MITK-master/tbb2017_20170807oss/lib/intel64/vc14/tbb.lib
       ${additional_cmake_args}
       ${${proj}_CUSTOM_CMAKE_ARGS}
     CMAKE_CACHE_ARGS

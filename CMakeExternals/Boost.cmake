@@ -63,8 +63,8 @@ if(NOT DEFINED BOOST_ROOT AND NOT MITK_USE_SYSTEM_Boost)
           copy of the FindBoost module again. ]]
 
   set(url "${MITK_THIRDPARTY_DOWNLOAD_PREFIX_URL}/boost_1_78_0_b1.tar.gz")
-  set(md5 bbaa634603e3789d7dd0c21d0bdf4f09)
-
+  #set(md5 bbaa634603e3789d7dd0c21d0bdf4f09)
+  set(md5 e754b2039fbd33de854b338906ccce3f)
   if(MITK_USE_Boost_LIBRARIES)
 
      #[[ Boost has a two-step build process. In the first step, a bootstrap

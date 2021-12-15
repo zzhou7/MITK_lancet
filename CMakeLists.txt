@@ -42,6 +42,24 @@ else()
 endif()
 
 #-----------------------------------------------------------------------------
+# Local External Project Option - Enabled by default
+#-----------------------------------------------------------------------------
+
+option(MITK_Local_EP "Use local ep path instead of downloading them. " ON)
+
+if(MITK_Local_EP)
+  message("Use local ep")
+  set(MITK_LOCAL_EP_PATH CACHE PATH "local ep path")
+
+  if(NOT MITK_LOCAL_EP_PATH)
+    message(FATAL_ERROR "not set path to local ep")
+  else()
+    string(CONCAT url "file:///" ${MITK_LOCAL_EP_PATH})
+    set(MITK_THIRDPARTY_DOWNLOAD_PREFIX_URL ${url} CACHE PATH "")
+  endif()
+endif()
+
+#-----------------------------------------------------------------------------
 # MITK Extension Feature
 #-----------------------------------------------------------------------------
 
@@ -210,7 +228,7 @@ endif()
 # General build options
 option(BUILD_SHARED_LIBS "Build MITK with shared libraries" ON)
 option(WITH_COVERAGE "Enable/Disable coverage" OFF)
-option(BUILD_TESTING "Test the project" ON)
+option(BUILD_TESTING "Test the project" OFF)
 option(MITK_FAST_TESTING "Disable long-running tests like packaging" OFF)
 option(MITK_XVFB_TESTING "Execute test drivers through xvfb-run" OFF)
 
@@ -256,6 +274,7 @@ option(MITK_USE_BLUEBERRY "Build the BlueBerry platform" ON)
 option(MITK_USE_OpenCL "Use OpenCL GPU-Computing library" OFF)
 option(MITK_USE_OpenMP "Use OpenMP" OFF)
 option(MITK_USE_Python3 "Use Python 3" OFF)
+option(MITK_USE_TBB "Use TBB a runtime-based parallel programming model for C++ code that uses threads. " ON)
 
 #-----------------------------------------------------------------------------
 # Build configurations
@@ -281,7 +300,7 @@ foreach(MITK_EXTENSION_DIR ${MITK_ABSOLUTE_EXTENSION_DIRS})
   list(REMOVE_DUPLICATES _buildConfigs)
 endforeach()
 
-set(MITK_BUILD_CONFIGURATION "Custom" CACHE STRING "Use pre-defined MITK configurations")
+set(MITK_BUILD_CONFIGURATION "LancetRelease" CACHE STRING "Use pre-defined lancet configurations")
 set_property(CACHE MITK_BUILD_CONFIGURATION PROPERTY STRINGS ${_buildConfigs})
 
 mitkFunctionEnableBuildConfiguration()
@@ -440,6 +459,32 @@ if(MITK_USE_BLUEBERRY)
   endif()
 endif()
 
+if(MITK_USE_TBB)
+  message("MITK_USE_TBB ON")
+  if(MITK_Local_EP)
+    set(TBB_ROOT "${MITK_LOCAL_EP_PATH}/tbb-2020.3-win/tbb" CACHE PATH "tbb root path")
+    set(TBB_DIR "${TBB_ROOT}/cmake" CACHE PATH "tbb dir that contain TBBConfig.cmake")
+    message("TBB_DIR=${TBB_DIR}")
+  else()
+    set(TBB_DIR CACHE PATH "tbb dir")
+  endif()
+
+  list(APPEND CMAKE_PREFIX_PATH ${TBB_DIR})
+
+  if(TBB_DIR)
+    message("copying tbb dlls to ${ep_prefix}/bin/")
+    file(GLOB _tbb_dlls ${TBB_ROOT}/bin/intel64/vc14/*.dll)
+    # foreach(tbb_dll ${_tbb_dlls})
+    #   configure_file("${tbb_dll}" "${ep_prefix}/bin/" COPYONLY)
+    # endforeach()
+    file(COPY ${_tbb_dlls} DESTINATION "ep/bin")
+  else()
+    message(FATAL_ERROR "TBB_DIR not set") 
+  endif()
+  
+endif()
+
+
 #-----------------------------------------------------------------------------
 # Pixel type multiplexing
 #-----------------------------------------------------------------------------
@@ -524,6 +569,8 @@ if(MITK_USE_SUPERBUILD)
     WHAT ALL)
   return()
 endif()
+
+#!!! if MITK_USE_SUPERBUILD ON,The following code does not take effect
 
 #*****************************************************************************
 #****************************  END OF SUPERBUILD  ****************************
@@ -644,7 +691,7 @@ endforeach()
 #-----------------------------------------------------------------------------
 # Set MITK specific options and variables (NOT available during superbuild)
 #-----------------------------------------------------------------------------
-
+# openssl
 if(OpenSSL_FOUND AND WIN32)
   set(MITK_OPENSSL_SSL_DLL "" CACHE FILEPATH "")
   set(MITK_OPENSSL_CRYPTO_DLL "" CACHE FILEPATH "")
@@ -932,6 +979,7 @@ else()
     endif()
   endif()
 endif()
+
 
 # Qt support
 if(MITK_USE_Qt5)
@@ -1438,6 +1486,6 @@ endif()
 
 message("\n\n")
 feature_summary(
-  DESCRIPTION "------- FEATURE SUMMARY FOR ${PROJECT_NAME} -------"
+  DESCRIPTION "------- !!!FEATURE SUMMARY FOR ${PROJECT_NAME} -------"
   WHAT ALL
 )
