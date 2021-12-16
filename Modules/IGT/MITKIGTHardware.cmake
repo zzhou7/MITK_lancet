@@ -5,6 +5,8 @@ option(MITK_USE_OPTITRACK_TRACKER "Enable support for Optitrack tracker hardware
 
 option(MITK_USE_POLHEMUS_TRACKER "Enable support for Polhemus tracker hardware" OFF)
 
+option(MITK_USE_VEGA_TRACKER "Enable support for NDI VEGA tracker hardware" ON)
+
 # only if MicronTracker is enabled
 if(MITK_USE_MICRON_TRACKER)
   find_library(MITK_MICRON_TRACKER_LIB MTC DOC "Path which contains the MT2 library.")
@@ -27,10 +29,22 @@ ENDIF(MITK_USE_OPTITRACK_TRACKER)
 #End Optitrack Hardware
 
 if(MITK_USE_POLHEMUS_TRACKER)
-  find_library(MITK_POLHEMUS_TRACKER_LIB PDI DOC "Path which contains the Polhemus library.")
-  find_path(MITK_POLHEMUS_TRACKER_INCLUDE_DIR PDI.h DOC  "Include directory of the Polhemus library.")
+  find_library(MITK_POLHEMUS_TRACKER_LIB PDI DOC "Path which contains the Polhemus library." REQUIRED)
+  find_path(MITK_POLHEMUS_TRACKER_INCLUDE_DIR PDI.h DOC  "Include directory of the Polhemus library." REQUIRED)
 ENDIF(MITK_USE_POLHEMUS_TRACKER)
 
+#only if VEGA is enabled
+if(MITK_USE_VEGA_TRACKER)
+  find_library(MITK_VEGA_TRACKER_LIB CAPIcommon DOC "Path which contains the vega library."
+               PATHS "${CMAKE_CURRENT_SOURCE_DIR}/vega/bin" 
+  )
+  get_filename_component(VEGA_TRACKER_SDK_DIR ${MITK_VEGA_TRACKER_LIB} PATH)
+  find_path(MITK_VEGA_TRACKER_INCLUDE_DIR CombinedApi.h DOC  "Include directory of the vega library."
+            PATHS "${CMAKE_CURRENT_SOURCE_DIR}/vega/bin/include"
+  )
+  MITK_INSTALL(FILES ${VEGA_TRACKER_SDK_DIR}/CAPIcommon.dll  CONFIGURATIONS Release)
+ENDIF(MITK_USE_VEGA_TRACKER)
+#End VEGA Hardware
 
 # only on Win32
 if(WIN32)
@@ -46,3 +60,4 @@ if(WIN32)
   #End MicroBird Hardware
 
 endif(WIN32)
+

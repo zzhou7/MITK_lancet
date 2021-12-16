@@ -689,6 +689,11 @@ void mitk::BaseGeometry::IndexToWorld(const mitk::Point3D & /*atPt3d_units*/,
   this->IndexToWorld(vec_units, vec_mm);
 }
 
+vtkMatrix4x4 *mitk::BaseGeometry::GetVtkMatrix() const
+{
+  return m_GeometryTransform->GetVtkMatrix();
+}
+
 vtkMatrix4x4 *mitk::BaseGeometry::GetVtkMatrix()
 {
   return m_GeometryTransform->GetVtkMatrix();

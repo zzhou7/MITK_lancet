@@ -205,8 +205,8 @@ namespace mitk
     void SetIndexToWorldTransformByVtkMatrixWithoutChangingSpacing(vtkMatrix4x4 *vtkmatrix);
 
     //## Get the Vtk Matrix which describes the transform.
-    vtkMatrix4x4 *GetVtkMatrix();
-
+    vtkMatrix4x4 *GetVtkMatrix() const;
+    vtkMatrix4x4* GetVtkMatrix();
     //##Documentation
     //## @brief Get the m_IndexToWorldTransform as a vtkLinearTransform
     vtkLinearTransform *GetVtkTransform() const;

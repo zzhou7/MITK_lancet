@@ -1,0 +1,7 @@
+MITK_CREATE_MODULE(
+  DEPENDS MitkCore
+  PACKAGE_DEPENDS EIGEN VTK
+  FORCE_STATIC
+)
+
+#add_subdirectory(autoload)

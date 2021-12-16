@@ -74,7 +74,7 @@ set(MITK_PLUGINS
   org.mitk.gui.qt.matchpoint.visualizer:OFF
   org.mitk.gui.qt.matchpoint.evaluator:OFF
   org.mitk.gui.qt.matchpoint.manipulator:OFF
-  org.mitk.gui.qt.preprocessing.resampling:OFF
+  org.mitk.gui.qt.preprocessing.resampling:ON
   org.mitk.gui.qt.radiomics:OFF
   org.mitk.gui.qt.cest:OFF
   org.mitk.gui.qt.fit.demo:OFF
@@ -87,4 +87,7 @@ set(MITK_PLUGINS
   org.mitk.gui.qt.pharmacokinetics.concentration.mri:OFF
   org.mitk.gui.qt.flowapplication:OFF
   org.mitk.gui.qt.flow.segmentation:OFF
+  org.mitk.lancet.robot:OFF
+  org.mitk.virtualcorrection:OFF
+  org.mitk.lancet.fit:OFF
 )

@@ -128,12 +128,26 @@ namespace mitk
           offset += idx[2] * imageDims[0] * imageDims[1];
           /* FALLTHRU */
         case 2:
-          offset += idx[0] + idx[1] * imageDims[0];
+          offset += idx[1] * imageDims[0];
+        case 1:
+          offset += idx[0];
           /* FALLTHRU */
         default:
           break;
       }
       return offset;
+    }
+  public:
+    itk::Index<3> Get3DIndex(unsigned int offset)
+    {
+        itk::Index<3> res{};
+        const unsigned int* imageDims = m_ImageDataItem->m_Dimensions;
+        res[2] = offset / (imageDims[0] * imageDims[1]);
+        unsigned int remainder = offset % (imageDims[0] * imageDims[1]);
+        res[1] = remainder / imageDims[0];
+        res[0] = remainder % imageDims[0];
+
+        return res;
     }
   };
 }

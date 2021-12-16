@@ -74,4 +74,12 @@ set(MITK_MODULES
   REST
   RESTService
   DICOMweb
+  #lancetModule
+  LancetAlgo
+  LancetGeoUtil
+  Robot
+  RobotBase
+  TKAGapAssessment
+  DRR
+  SurfaceRegistration
 )
