@@ -24,7 +24,23 @@ get_property(_mitk_executable_targets GLOBAL PROPERTY MITK_EXECUTABLE_TARGETS)
 if(_mitk_executable_targets)
   get_property(_mitk_module_targets GLOBAL PROPERTY MITK_MODULE_TARGETS)
   foreach(_mitk_module_target ${_mitk_module_targets})
+    message("module target: ${_mitk_module_target}")
     if(TARGET ${_mitk_module_target})
+      install(TARGETS ${_mitk_module_target}
+              ARCHIVE DESTINATION lib
+              LIBRARY DESTINATION lib
+              RUNTIME DESTINATION bin
+              PUBLIC_HEADER DESTINATION include
+              #PRIVATE_HEADER DESTINATION include
+              )
+      # get_target_property(_module_h_files ${_mitk_module_target} H_FILES)
+      # MITK_INSTALL(FILES ${_module_h_files})
+
+      #get_target_property(_module_include_dirs ${_mitk_module_target} INCLUDE_DIRECTORIES)
+      # message("-- ${_mitk_module_target} INCLUDE_DIRECTORIES --")
+      # message("${_module_include_dirs}")
+      # install(DIRECTORY ${_module_include_dirs} TYPE INCLUDE 
+      #         FILES_MATCHING PATTERN "*.h")
       get_target_property(_mitk_autoload_targets ${_mitk_module_target} MITK_AUTOLOAD_TARGETS)
       if (_mitk_autoload_targets)
         foreach(_mitk_autoload_target ${_mitk_autoload_targets})
@@ -41,6 +57,9 @@ if(_mitk_executable_targets)
             set(_mitk_autoload_target_filename "${_prefix}${_mitk_autoload_target}${_ext}")
             set(_mitk_autoload_target_filepath "${_target_location}/${_mitk_autoload_target_filename}")
             set(_install_DESTINATION "${_mitk_autoload_directory}")
+            message("_mitk_autoload_target_filename: ${_mitk_autoload_target_filename}")
+            message("_mitk_autoload_target_filepath: ${_mitk_autoload_target_filepath}")
+            message("_install_DESTINATION: ${_install_DESTINATION}")
             MITK_INSTALL(FILES ${_mitk_autoload_target_filepath})
             if(UNIX AND NOT APPLE)
               install(CODE "file(RPATH_REMOVE FILE \"\${CMAKE_INSTALL_PREFIX}/bin/${_mitk_autoload_directory}/${_mitk_autoload_target_filename}\")")

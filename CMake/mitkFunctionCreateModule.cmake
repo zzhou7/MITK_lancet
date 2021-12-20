@@ -461,6 +461,24 @@ function(mitk_create_module)
                     ${coverage_sources} ${CPP_FILES_GENERATED} ${Q${KITNAME}_GENERATED_CPP}
                     ${DOX_FILES} ${UI_FILES} ${QRC_FILES})
         set_property(TARGET ${MODULE_TARGET} PROPERTY FOLDER "${MITK_ROOT_FOLDER}/Modules")
+        set_property(TARGET ${MODULE_TARGET} PROPERTY FOLDER "${MITK_ROOT_FOLDER}/Modules")
+        # Set PUBLIC_HEADER for install use
+        message("Set PUBLIC_HEADER for install use")
+        get_target_property(_module_source_dir ${MODULE_TARGET} SOURCE_DIR)
+        message("Glob .h form ${_module_source_dir}")
+        file(GLOB_RECURSE _headers ${_module_source_dir} *.h)
+        if(DEFINED _headers)
+          message("FOUND HEADERS: ${_headers}")
+          set_property(TARGET ${MODULE_TARGET} PROPERTY PUBLIC_HEADER ${_headers})
+        endif()
+        
+        
+        #set_target_properties(${MODULE_TARGET} PROPERTIES PUBLIC_HEADER ${_headers})
+        # if(H_FILES)
+        #   foreach(_h_file ${H_FILES})
+        #     set_target_properties(${MODULE_TARGET} PROPERTIES H_FILES ${_h_file})
+        #   endforeach() 
+        #endif()
         set(_us_module_name ${MODULE_TARGET})
       endif()
 
