@@ -31,7 +31,7 @@ if(_mitk_executable_targets)
               LIBRARY DESTINATION lib
               RUNTIME DESTINATION bin
               PUBLIC_HEADER DESTINATION include
-              #PRIVATE_HEADER DESTINATION include
+              PRIVATE_HEADER DESTINATION include
               )
       # get_target_property(_module_h_files ${_mitk_module_target} H_FILES)
       # MITK_INSTALL(FILES ${_module_h_files})

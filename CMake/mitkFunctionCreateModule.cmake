@@ -463,12 +463,12 @@ function(mitk_create_module)
         set_property(TARGET ${MODULE_TARGET} PROPERTY FOLDER "${MITK_ROOT_FOLDER}/Modules")
         set_property(TARGET ${MODULE_TARGET} PROPERTY FOLDER "${MITK_ROOT_FOLDER}/Modules")
         # Set PUBLIC_HEADER for install use
-        message("Set PUBLIC_HEADER for install use")
+        #message("Set PUBLIC_HEADER for install use")
         get_target_property(_module_source_dir ${MODULE_TARGET} SOURCE_DIR)
-        message("Glob .h form ${_module_source_dir}")
-        file(GLOB_RECURSE _headers ${_module_source_dir} *.h)
+        #message("Glob .h form ${_module_source_dir}")
+        file(GLOB_RECURSE _headers ${_module_source_dir} *.h *.txx *.tpp)
         if(DEFINED _headers)
-          message("FOUND HEADERS: ${_headers}")
+          #message("FOUND HEADERS: ${_headers}")
           set_property(TARGET ${MODULE_TARGET} PROPERTY PUBLIC_HEADER ${_headers})
         endif()
         
@@ -592,8 +592,14 @@ function(mitk_create_module)
         endif()
         generate_export_header(${MODULE_NAME}
           ${_export_macro_names}
-          EXPORT_FILE_NAME ${MODULE_NAME}Exports.h
+          EXPORT_FILE_NAME ${MODULE_NAME}Exports.h		 
         )
+		##-----------------add export headers------------------------##
+		get_filename_component(EXPORTH_DIR ${CMAKE_CURRENT_BINARY_DIR} DIRECTORY)
+		#file(GLOB _h ${CMAKE_CURRENT_BINARY_DIR} *.h)
+		message("Glob .h from ${CMAKE_CURRENT_BINARY_DIR}")
+		message("FOUND HEADERS?: ${CMAKE_CURRENT_BINARY_DIR}/${MODULE_NAME}Exports.h")
+		set_property(TARGET ${MODULE_TARGET} PROPERTY PRIVATE_HEADER ${CMAKE_CURRENT_BINARY_DIR}/${MODULE_NAME}Exports.h)
       endif()
 
       target_include_directories(${MODULE_TARGET} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
