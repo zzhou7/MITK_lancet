@@ -595,10 +595,10 @@ function(mitk_create_module)
           EXPORT_FILE_NAME ${MODULE_NAME}Exports.h		 
         )
 		##-----------------add export headers------------------------##
-		get_filename_component(EXPORTH_DIR ${CMAKE_CURRENT_BINARY_DIR} DIRECTORY)
+		#get_filename_component(EXPORTH_DIR ${CMAKE_CURRENT_BINARY_DIR} DIRECTORY)
 		#file(GLOB _h ${CMAKE_CURRENT_BINARY_DIR} *.h)
-		message("Glob .h from ${CMAKE_CURRENT_BINARY_DIR}")
-		message("FOUND HEADERS?: ${CMAKE_CURRENT_BINARY_DIR}/${MODULE_NAME}Exports.h")
+		#message("Glob .h from ${CMAKE_CURRENT_BINARY_DIR}")
+		#message("FOUND HEADERS?: ${CMAKE_CURRENT_BINARY_DIR}/${MODULE_NAME}Exports.h")
 		set_property(TARGET ${MODULE_TARGET} PROPERTY PRIVATE_HEADER ${CMAKE_CURRENT_BINARY_DIR}/${MODULE_NAME}Exports.h)
       endif()
 

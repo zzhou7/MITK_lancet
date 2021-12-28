@@ -1480,6 +1480,77 @@ if(MITK_BUILD_EXAMPLES)
   add_subdirectory(Examples)
 endif()
 
+
+
+#----------------------------- MITK_VTK9.1.0 missing componnets ---------------------------
+
+#-----------------------------------------------------------------------------
+# zzhou: 	- Copy ep (bin, include, lib) from MITK_sb/ep to CleanInstall/MITK-superbuild/ep
+#-----------------------------------------------------------------------------
+get_filename_component(EXPORT_DIR ${MITK_BINARY_DIR} DIRECTORY)
+file(GLOB bin_ep ${EXPORT_DIR}/ep/bin)
+file(COPY ${bin_ep} DESTINATION "${CMAKE_INSTALL_PREFIX}/ep/")
+file(GLOB lib_ep ${EXPORT_DIR}/ep/lib)
+file(COPY ${lib_ep} DESTINATION "${CMAKE_INSTALL_PREFIX}/ep/")
+file(GLOB include_ep ${EXPORT_DIR}/ep/include)
+file(COPY ${include_ep} DESTINATION "${CMAKE_INSTALL_PREFIX}/ep/")
+
+
+#-----------------------------------------------------------------------------
+# zzhou: .h .txx .tpp of CppMicroServices
+#-----------------------------------------------------------------------------
+file(GLOB h_CppMicroServices_0 ${MITK_BINARY_DIR}/Modules/CppMicroServices/include/*.h ${MITK_BINARY_DIR}/Modules/CppMicroServicesinclude/*.txx ${MITK_BINARY_DIR}/Modules/CppMicroServices/include/*.tpp)
+file(COPY ${h_CppMicroServices_0} DESTINATION "${CMAKE_INSTALL_PREFIX}/include")
+file(GLOB_RECURSE h_CppMicroServices_1 ${MITK_SOURCE_DIR}/Modules/CppMicroServices/core/src/*.h ${MITK_SOURCE_DIR}/Modules/CppMicroServices/core/src/*.txx ${MITK_SOURCE_DIR}/Modules/CppMicroServices/core/src/*.tpp)
+file(COPY ${h_CppMicroServices_1} DESTINATION "${CMAKE_INSTALL_PREFIX}/include")
+file(GLOB h_CppMicroServices_2 ${MITK_SOURCE_DIR}/Modules/CppMicroServices/core/include/*.h ${MITK_SOURCE_DIR}/Modules/CppMicroServices/core/include/*.txx ${MITK_SOURCE_DIR}/Modules/CppMicroServices/core/include/*.tpp)
+file(COPY ${h_CppMicroServices_2} DESTINATION "${CMAKE_INSTALL_PREFIX}/include")
+
+#-----------------------------------------------------------------------------
+# zzhou: .lib of staubliapi
+#-----------------------------------------------------------------------------
+file(GLOB lib_robotapi ${MITK_SOURCE_DIR}/Plugins/org.mitk.lancet.robot/src/api/staubliapi/*.lib)
+file(COPY ${lib_robotapi} DESTINATION "${CMAKE_INSTALL_PREFIX}/lib")
+
+
+#-----------------------------------------------------------------------------
+# zzhou: .h  from D:\MITK_sb\MITK-build
+#-----------------------------------------------------------------------------
+file(GLOB h_MITK_build ${MITK_BINARY_DIR}/*.h)
+file(COPY ${h_MITK_build} DESTINATION "${CMAKE_INSTALL_PREFIX}/include")
+
+
+#-----------------------------------------------------------------------------
+# zzhou: .h  from D:\MITK_sb\MITK-build\Utilities\mbilog
+#-----------------------------------------------------------------------------
+file(GLOB h_mbilog ${MITK_BINARY_DIR}/Utilities/mbilog/*.h)
+file(COPY ${h_mbilog} DESTINATION "${CMAKE_INSTALL_PREFIX}/include")
+
+
+#-----------------------------------------------------------------------------
+# zzhou: CppMicroServices.lib from D:\MITK_sb\MITK-build\lib\Release
+#-----------------------------------------------------------------------------
+file(GLOB lib_MITK ${MITK_BINARY_DIR}/lib/Release/CppMicroServices.lib)
+file(COPY ${lib_MITK} DESTINATION "${CMAKE_INSTALL_PREFIX}/lib")
+
+
+#-----------------------------------------------------------------------------
+# zzhou: .lib from D:\MITK_sb\ep\src\CTK-build\CTK-build\bin\Release
+#-----------------------------------------------------------------------------
+#get_filename_component(EXPORT_DIR ${MITK_BINARY_DIR} DIRECTORY)
+file(GLOB lib_CTK ${EXPORT_DIR}/ep/src/CTK-build/CTK-build/bin/Release/*.lib)
+file(COPY ${lib_CTK} DESTINATION "${CMAKE_INSTALL_PREFIX}/lib")
+
+
+#-----------------------------------------------------------------------------
+# zzhou: ui_XXX.h from QtWidgets & QtWidgetsExt
+#-----------------------------------------------------------------------------
+file(GLOB h_ui_0 ${MITK_BINARY_DIR}/Modules/QtWidgets/*.h)
+file(COPY ${h_ui_0} DESTINATION "${CMAKE_INSTALL_PREFIX}/include")
+file(GLOB h_ui_1 ${MITK_BINARY_DIR}/Modules/QtWidgetsExt/*.h)
+file(COPY ${h_ui_1} DESTINATION "${CMAKE_INSTALL_PREFIX}/include")
+
+
 #-----------------------------------------------------------------------------
 # Print configuration summary
 #-----------------------------------------------------------------------------
