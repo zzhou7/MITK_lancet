@@ -1497,13 +1497,22 @@ file(COPY ${include_ep} DESTINATION "${CMAKE_INSTALL_PREFIX}/ep/")
 
 
 #-----------------------------------------------------------------------------
+# zzhou: 	- Copy ctkXXX.h from MITK_sb\ep\src to CleanInstall\MITK_superbuild\include\ctk
+#-----------------------------------------------------------------------------
+file(GLOB_RECURSE ctk_headers ${EXPORT_DIR}/ep/src/CTK/*.h ${EXPORT_DIR}/ep/src/CTK-build/*.h)
+message("ctk .h form ${ctk_headers}")
+file(COPY ${ctk_headers} DESTINATION "${CMAKE_INSTALL_PREFIX}/include/ctk")
+
+
+
+#-----------------------------------------------------------------------------
 # zzhou: .h .txx .tpp of CppMicroServices
 #-----------------------------------------------------------------------------
 file(GLOB h_CppMicroServices_0 ${MITK_BINARY_DIR}/Modules/CppMicroServices/include/*.h ${MITK_BINARY_DIR}/Modules/CppMicroServicesinclude/*.txx ${MITK_BINARY_DIR}/Modules/CppMicroServices/include/*.tpp)
 file(COPY ${h_CppMicroServices_0} DESTINATION "${CMAKE_INSTALL_PREFIX}/include")
 file(GLOB_RECURSE h_CppMicroServices_1 ${MITK_SOURCE_DIR}/Modules/CppMicroServices/core/src/*.h ${MITK_SOURCE_DIR}/Modules/CppMicroServices/core/src/*.txx ${MITK_SOURCE_DIR}/Modules/CppMicroServices/core/src/*.tpp)
 file(COPY ${h_CppMicroServices_1} DESTINATION "${CMAKE_INSTALL_PREFIX}/include")
-file(GLOB h_CppMicroServices_2 ${MITK_SOURCE_DIR}/Modules/CppMicroServices/core/include/*.h ${MITK_SOURCE_DIR}/Modules/CppMicroServices/core/include/*.txx ${MITK_SOURCE_DIR}/Modules/CppMicroServices/core/include/*.tpp)
+file(GLOB h_CppMicroServices_2 ${MITK_BINARY_DIR}/Modules/CppMicroServices/core/include/*.h ${MITK_SOURCE_DIR}/Modules/CppMicroServices/core/include/*.txx ${MITK_SOURCE_DIR}/Modules/CppMicroServices/core/include/*.tpp)
 file(COPY ${h_CppMicroServices_2} DESTINATION "${CMAKE_INSTALL_PREFIX}/include")
 
 #-----------------------------------------------------------------------------
