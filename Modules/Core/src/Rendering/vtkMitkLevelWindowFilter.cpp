@@ -38,6 +38,7 @@ vtkMitkLevelWindowFilter::vtkMitkLevelWindowFilter()
   : m_LookupTable(nullptr), m_OpacityFunction(nullptr), m_MinOpacity(0.0), m_MaxOpacity(255.0)
 {
   // MITK_INFO << "mitk level/window filter uses " << GetNumberOfThreads() << " thread(s)";
+  vtkThreadedImageAlgorithm::SetEnableSMP(false);
 }
 
 vtkMitkLevelWindowFilter::~vtkMitkLevelWindowFilter()

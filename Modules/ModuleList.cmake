@@ -82,4 +82,6 @@ set(MITK_MODULES
   TKAGapAssessment
   DRR
   SurfaceRegistration
+  DRRSidonJacobsRayTracing
+  TwoProjectionRegistration
 )

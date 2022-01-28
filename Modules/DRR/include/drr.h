@@ -9,10 +9,9 @@ class MITKDRR_EXPORT DrrFilter:public mitk::ImageToImageFilter
 {
 public:
 	mitkClassMacro(DrrFilter, ImageToImageFilter);
-	itkFactorylessNewMacro(Self)
-	itkCloneMacro(Self)
+  itkFactorylessNewMacro(Self) itkCloneMacro(Self)
 
- 
+    
 	itkSetMacro(tx, double)
 	itkSetMacro(ty, double)
 	itkSetMacro(tz, double)
