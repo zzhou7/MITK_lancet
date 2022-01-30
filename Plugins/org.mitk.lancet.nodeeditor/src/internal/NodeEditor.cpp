@@ -92,29 +92,49 @@ Below are Headers for DRR testing
 //---
 #include "mitkSurfaceToImageFilter.h"
 
-// void NodeEditor::Polystl2Image()
+// void NodeEditor::ConvertPolyDataToImage()
 // {
-//   auto stlPolymesh = dynamic_cast<mitk::Surface *>(m_inputCT->GetData());
+//   auto stlPolymesh = dynamic_cast<mitk::Surface *>(m_RegistrationCtImageDataNode->GetData());
 //   vtkNew<vtkImageData> whiteImage;
 //   double bounds[6];
 //   stlPolymesh;
 // }
 
-void NodeEditor::Polystl2Image()
+inline void NodeEditor::DrrCtImageChanged(QmitkSingleNodeSelectionWidget::NodeList /*nodes*/)
 {
-  auto image_to_crop = dynamic_cast<mitk::Image *>(m_inputDRR->GetData());
-  auto stlPolymesh = dynamic_cast<mitk::Surface *>(m_inputCT->GetData());
-  mitk::Point3D c_image = image_to_crop->GetGeometry()->GetCenter();
-  mitk::Point3D c_mesh = stlPolymesh->GetGeometry()->GetOrigin();
+  m_DrrCtImageDataNode = m_Controls.widget_DRR->GetSelectedNode();
+}
+
+inline void NodeEditor::RegistrationCtImageChanged(QmitkSingleNodeSelectionWidget::NodeList /*nodes*/)
+{
+  m_RegistrationCtImageDataNode = m_Controls.widget_inputCT_regis->GetSelectedNode();
+}
+
+inline void NodeEditor::InputDrrImageChanged_1(QmitkSingleNodeSelectionWidget::NodeList /*nodes*/)
+{
+  m_InputDrrImageDataNode_1 = m_Controls.widget_inputDRR1_regis->GetSelectedNode();
+}
+
+inline void NodeEditor::InputDrrImageChanged_2(QmitkSingleNodeSelectionWidget::NodeList /*nodes*/)
+{
+  m_InputDrrImageDataNode_2 = m_Controls.widget_inputDRR2_regis->GetSelectedNode();
+}
+
+void NodeEditor::ConvertPolyDataToImage()
+{
+  auto imageToCrop = dynamic_cast<mitk::Image *>(m_DrrCtImageDataNode->GetData());
+  auto objectSurface = dynamic_cast<mitk::Surface *>(m_RegistrationCtImageDataNode->GetData());
+  mitk::Point3D c_image = imageToCrop->GetGeometry()->GetCenter();
+  mitk::Point3D c_mesh = objectSurface->GetGeometry()->GetOrigin();
   double p[3]{c_mesh[0] - c_image[0], c_mesh[1] - c_image[1], c_mesh[2] - c_image[2]};
-  move(p, image_to_crop);
+  TranslateImage(p, imageToCrop);
   // stlPolymesh->SetOrigin(c_k);
   
   mitk::Image::Pointer res = mitk::Image::New();
   // stencil
   mitk::SurfaceToImageFilter::Pointer surface_to_image = mitk::SurfaceToImageFilter::New();
-  surface_to_image->SetImage(image_to_crop);
-  surface_to_image->SetInput(stlPolymesh);
+  surface_to_image->SetImage(imageToCrop);
+  surface_to_image->SetInput(objectSurface);
   surface_to_image->SetReverseStencil(false);
   surface_to_image->Update();
   
@@ -122,7 +142,7 @@ void NodeEditor::Polystl2Image()
   auto boundingBox = mitk::GeometryData::New();
   // InitializeWithSurfaceGeometry
   auto boundingGeometry = mitk::Geometry3D::New();
-  auto geometry = stlPolymesh->GetGeometry();
+  auto geometry = objectSurface->GetGeometry();
   boundingGeometry->SetBounds(geometry->GetBounds());
   boundingGeometry->SetOrigin(geometry->GetOrigin());
   boundingGeometry->SetSpacing(geometry->GetSpacing());
@@ -157,7 +177,7 @@ void NodeEditor::Polystl2Image()
 }
 
 
-void NodeEditor::setDefault()
+void NodeEditor::SetUiDefault()
 {
   m_Controls.ledit_gantryRot->setText("0.0");
   m_Controls.camTrans_0->setText("0.0");
@@ -180,25 +200,25 @@ void NodeEditor::setDefault()
   
 }
 
-void NodeEditor::drrCustom()
+void NodeEditor::Drr()
 {
-  drrGenerateVisual();
-  drrGenerateData();
+  DrrVisualization();
+  DrrGenerateData();
 }
 
-void NodeEditor::drrGenerateData()
+void NodeEditor::DrrGenerateData()
 {
-  if (m_inputDRR == nullptr)
+  if (m_DrrCtImageDataNode == nullptr)
   {
-    MITK_ERROR << "m_inputDRR null";
+    MITK_ERROR << "m_DrrCtImageDataNode null";
     return;
   }
   // the original input image node will be named "unnamed", and you have to rename it because it really does not have a
   // name!!
   // auto image =
   // GetDataStorage()->GetNamedObject<mitk::Image>((m_Controls.inputFilename->text()).toLocal8Bit().data());
-  auto image = dynamic_cast<mitk::Image *>(m_inputDRR->GetData());
-  // auto sliced = dynamic_cast<mitk::SlicedData *>(m_inputDRR->GetData());
+  auto image = dynamic_cast<mitk::Image *>(m_DrrCtImageDataNode->GetData());
+  // auto sliced = dynamic_cast<mitk::SlicedData *>(m_DrrCtImageDataNode->GetData());
 
   // auto image = dynamic_cast<mitk::Image *>(sliced);
   // the original input image node will be named "unnamed", and you have to rename it because it really does not have a
@@ -266,18 +286,18 @@ void NodeEditor::drrGenerateData()
   newnode->SetData(drrFilter->GetOutput());
   GetDataStorage()->Add(newnode);
 }
-void NodeEditor::drrGenerateVisual()
+void NodeEditor::DrrVisualization()
 {
-  if (m_inputDRR == nullptr)
+  if (m_DrrCtImageDataNode == nullptr)
   {
-    MITK_ERROR << "m_inputDRR null";
+    MITK_ERROR << "m_DrrCtImageDataNode null";
     return;
   }
   // the original input image node will be named "unnamed", and you have to rename it because it really does not have a
   // name!!
   //auto image = GetDataStorage()->GetNamedObject<mitk::Image>((m_Controls.inputFilename->text()).toLocal8Bit().data());
-  auto image = dynamic_cast<mitk::Image*>(m_inputDRR->GetData());
-  //auto sliced = dynamic_cast<mitk::SlicedData *>(m_inputDRR->GetData());
+  auto image = dynamic_cast<mitk::Image *>(m_DrrCtImageDataNode->GetData());
+  //auto sliced = dynamic_cast<mitk::SlicedData *>(m_DrrCtImageDataNode->GetData());
   
  // auto image = dynamic_cast<mitk::Image *>(sliced);
   //the original input image node will be named "unnamed", and you have to rename it because it really does not have a name!!
@@ -349,19 +369,19 @@ void NodeEditor::drrGenerateVisual()
 
 
   mitk::Image::Pointer image_trans = drrFilter->GetOutput();
-  mitk::Point3D c_k = m_inputDRR->GetData()->GetGeometry()->GetCenter();
+  mitk::Point3D c_k = m_DrrCtImageDataNode->GetData()->GetGeometry()->GetCenter();
 
   double c_v[3]{c_k[0], c_k[1], c_k[2]};
 
   // rotate 90 degrees to fit the DRR geometry
   double x_axis[3]{1, 0, 0};
   double isoc[3]{0, 0, -scd};
-  rotate(isoc, x_axis, -90, image_trans);
+  RotateImage(isoc, x_axis, -90, image_trans);
 
   // move the center of the image to the isocenter in the sample coordinates
   double p[3]{c_v[0]+cx, c_v[1]+cy  ,c_v[2]+cy + scd }; // translation vector
   // mitk::Point3D direciton{p};
-  move(p, image_trans);
+  TranslateImage(p, image_trans);
 
   
   double isocw[3]{c_v[0] + cx, c_v[1] + cy, c_v[2] + cz };
@@ -374,11 +394,11 @@ void NodeEditor::drrGenerateVisual()
 
   // move the image by some -y for better visualization
   double p_1[3]{0, scd, 0};
-  move(p_1, image_trans);
+  TranslateImage(p_1, image_trans);
 
   // gantry rotation offset
   double z_axis[3]{0, 0, 1};
-  rotate(isocw, z_axis, rprojection, image_trans);
+  RotateImage(isocw, z_axis, rprojection, image_trans);
 
   // mitk::RenderingManager::GetInstance()->RequestUpdateAll();
   
@@ -395,13 +415,13 @@ void NodeEditor::drrGenerateVisual()
   mitk::CastToItkImage(image, m_movedCTimage);
   mitk::CastToMitkImage(m_movedCTimage, image_tmp);
   double Z_axis[3]{0, 0, 1};
-  rotate(isoc, Z_axis, rz, image_tmp);
+  RotateImage(isoc, Z_axis, rz, image_tmp);
   double Y_axis[3]{0, 1, 0};
-  rotate(isoc, Y_axis, ry, image_tmp);
+  RotateImage(isoc, Y_axis, ry, image_tmp);
   double X_axis[3]{1, 0, 0};
-  rotate(isoc, X_axis, rz, image_tmp);
+  RotateImage(isoc, X_axis, rz, image_tmp);
   double p_tmp[3]{tx, ty, tz};
-  move(p_tmp, image_tmp);
+  TranslateImage(p_tmp, image_tmp);
 
   auto movedCT_node = mitk::DataNode::New();
   QString movedCT_Suffix = "_sample";
@@ -424,37 +444,37 @@ void NodeEditor::drrGenerateVisual()
 
 
 
-void NodeEditor::move(double d[3], mitk::Image *image_visual)
+void NodeEditor::TranslateImage(double direction[3], mitk::Image *mitkImage)
 {
-  if (image_visual != nullptr)
+  if (mitkImage != nullptr)
   {
-    mitk::Point3D direciton{d};
-    auto *doOp = new mitk::PointOperation(mitk::OpMOVE, 0, direciton, 0);
+    mitk::Point3D translationDir{direction};
+    auto *pointOperation = new mitk::PointOperation(mitk::OpMOVE, 0, translationDir, 0);
     // execute the Operation
     // here no undo is stored, because the movement-steps aren't interesting.
-    // only the start and the end is interisting to store for undo.
-    image_visual->GetGeometry()->ExecuteOperation(doOp);
+    // only the start and the end is of interest to be stored for undo.
+    mitkImage->GetGeometry()->ExecuteOperation(pointOperation);
     
     
-    delete doOp;
+    delete pointOperation;
     // updateStemCenter();
 
     mitk::RenderingManager::GetInstance()->RequestUpdateAll();
   }
 }
 
-void NodeEditor::rotate(double center[3], double axis[3], double degree, mitk::Image *image_visual)
+void NodeEditor::RotateImage(double center[3], double axis[3], double degree, mitk::Image *mitkImage)
 {
-  if (image_visual != nullptr)
+  if (mitkImage != nullptr)
   {
     mitk::Point3D rotateCenter{center};
     mitk::Vector3D rotateAxis{axis};
-    auto *doOp = new mitk::RotationOperation(mitk::OpROTATE, rotateCenter, rotateAxis, degree);
+    auto *rotateOperation = new mitk::RotationOperation(mitk::OpROTATE, rotateCenter, rotateAxis, degree);
     // execute the Operation
     // here no undo is stored, because the movement-steps aren't interesting.
-    // only the start and the end is interisting to store for undo.
-    image_visual->GetGeometry()->ExecuteOperation(doOp);
-    delete doOp;
+    // only the start and the end is of interest to be stored for undo.
+    mitkImage->GetGeometry()->ExecuteOperation(rotateOperation);
+    delete rotateOperation;
     // updateStemCenter();
     mitk::RenderingManager::GetInstance()->RequestUpdateAll();
   }
@@ -469,17 +489,18 @@ Above is the Code for DRR
 
 
 //-------------------------------- ↓  registration part  ↓---------------------------------------
-void NodeEditor::twoProjectRegister() 
+void NodeEditor::Register() 
 {
-  if (m_inputCT == nullptr || m_inputDRR1 == nullptr || m_inputDRR2 == nullptr)
+  if (m_RegistrationCtImageDataNode == nullptr || m_InputDrrImageDataNode_1 == nullptr ||
+      m_InputDrrImageDataNode_2 == nullptr)
   {
     MITK_ERROR << "Input nodes are not ready";
     return;
   }
 
-  auto ctimage = dynamic_cast<mitk::Image *>(m_inputCT->GetData());
-  auto DRR1 = dynamic_cast<mitk::Image *>(m_inputDRR1->GetData());
-  auto DRR2 = dynamic_cast<mitk::Image *>(m_inputDRR2->GetData());
+  auto ctimage = dynamic_cast<mitk::Image *>(m_RegistrationCtImageDataNode->GetData());
+  auto DRR1 = dynamic_cast<mitk::Image *>(m_InputDrrImageDataNode_1->GetData());
+  auto DRR2 = dynamic_cast<mitk::Image *>(m_InputDrrImageDataNode_2->GetData());
 
 
   if (ctimage == nullptr || DRR1 == nullptr || DRR2 == nullptr)
@@ -613,29 +634,29 @@ void NodeEditor::CreateQtPartControl(QWidget *parent)
 
 
   //drr
-  connect(m_Controls.btn_drrTest, &QPushButton::clicked, this, &NodeEditor::setDefault);
-  connect(m_Controls.btn_drrCustom,&QPushButton::clicked, this, &NodeEditor::drrCustom);
+  connect(m_Controls.btn_drrTest, &QPushButton::clicked, this, &NodeEditor::SetUiDefault);
+  connect(m_Controls.btn_drrCustom, &QPushButton::clicked, this, &NodeEditor::Drr);
   connect(m_Controls.widget_DRR,
           &QmitkSingleNodeSelectionWidget::CurrentSelectionChanged,
           this,
-          &NodeEditor::inputDRRChanged);
+          &NodeEditor::DrrCtImageChanged);
 
   //twoProjectionRegistration
-  connect(m_Controls.btn_reg, &QPushButton::clicked, this, &NodeEditor::twoProjectRegister);
+  connect(m_Controls.btn_reg, &QPushButton::clicked, this, &NodeEditor::Register);
   connect(m_Controls.widget_inputCT_regis,
           &QmitkSingleNodeSelectionWidget::CurrentSelectionChanged,
           this,
-          &NodeEditor::inputCTChanged);
+          &NodeEditor::RegistrationCtImageChanged);
   connect(m_Controls.widget_inputDRR1_regis,
           &QmitkSingleNodeSelectionWidget::CurrentSelectionChanged,
           this,
-          &NodeEditor::inputDRR1Changed);
+          &NodeEditor::InputDrrImageChanged_1);
   connect(m_Controls.widget_inputDRR2_regis,
           &QmitkSingleNodeSelectionWidget::CurrentSelectionChanged,
           this,
-          &NodeEditor::inputDRR2Changed);
+          &NodeEditor::InputDrrImageChanged_2);
   //stl polydata to imagedata
-  connect(m_Controls.btn_stlImage, &QPushButton::clicked, this, &NodeEditor::Polystl2Image);
+  connect(m_Controls.btn_stlImage, &QPushButton::clicked, this, &NodeEditor::ConvertPolyDataToImage);
   // connect(m_Controls.widget_stl,
   //         &QmitkSingleNodeSelectionWidget::CurrentSelectionChanged,
   //         this,
@@ -644,11 +665,7 @@ void NodeEditor::CreateQtPartControl(QWidget *parent)
 
 }
 
-void NodeEditor::OnSelectionChanged(berry::IWorkbenchPart::Pointer /*source*/,
-                                                const QList<mitk::DataNode::Pointer> &nodes)
-{
 
-}
 
 //-------------------------------- ↑  QT part  ↑---------------------------------------
 
