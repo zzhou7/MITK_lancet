@@ -120,10 +120,20 @@ inline void NodeEditor::InputDrrImageChanged_2(QmitkSingleNodeSelectionWidget::N
   m_InputDrrImageDataNode_2 = m_Controls.widget_inputDRR2_regis->GetSelectedNode();
 }
 
+inline void NodeEditor::InputImageToCropChanged(QmitkSingleNodeSelectionWidget::NodeList /*nodes*/)
+{
+  m_InputImageToCropDataNode = m_Controls.widget_CropImage->GetSelectedNode();
+}
+
+inline void NodeEditor::InputSurfaceChanged(QmitkSingleNodeSelectionWidget::NodeList /*nodes*/)
+{
+  m_InputSurfaceDataNode = m_Controls.widget_Poly->GetSelectedNode();
+}
+
 void NodeEditor::ConvertPolyDataToImage()
 {
-  auto imageToCrop = dynamic_cast<mitk::Image *>(m_DrrCtImageDataNode->GetData());
-  auto objectSurface = dynamic_cast<mitk::Surface *>(m_RegistrationCtImageDataNode->GetData());
+  auto imageToCrop = dynamic_cast<mitk::Image *>(m_InputImageToCropDataNode->GetData());
+  auto objectSurface = dynamic_cast<mitk::Surface *>(m_InputSurfaceDataNode->GetData());
   mitk::Point3D imageCenter = imageToCrop->GetGeometry()->GetCenter();
   mitk::Point3D surfaceCenter = objectSurface->GetGeometry()->GetOrigin();
   double p[3]{surfaceCenter[0] - imageCenter[0], surfaceCenter[1] - imageCenter[1], surfaceCenter[2] - imageCenter[2]};
@@ -626,6 +636,8 @@ void NodeEditor::CreateQtPartControl(QWidget *parent)
   // Set Node Selection Widget
   
   InitNodeSelector(m_Controls.widget_DRR);
+  InitNodeSelector(m_Controls.widget_Poly);
+  InitNodeSelector(m_Controls.widget_CropImage);
   InitNodeSelector(m_Controls.widget_inputCT_regis);
   InitNodeSelector(m_Controls.widget_inputDRR1_regis);
   InitNodeSelector(m_Controls.widget_inputDRR2_regis);
@@ -640,6 +652,18 @@ void NodeEditor::CreateQtPartControl(QWidget *parent)
           &QmitkSingleNodeSelectionWidget::CurrentSelectionChanged,
           this,
           &NodeEditor::DrrCtImageChanged);
+
+
+  connect(m_Controls.widget_CropImage,
+          &QmitkSingleNodeSelectionWidget::CurrentSelectionChanged,
+          this,
+          &NodeEditor::InputImageToCropChanged);
+
+  connect(m_Controls.widget_Poly,
+          &QmitkSingleNodeSelectionWidget::CurrentSelectionChanged,
+          this,
+          &NodeEditor::InputSurfaceChanged);
+
 
   //twoProjectionRegistration
   connect(m_Controls.btn_reg, &QPushButton::clicked, this, &NodeEditor::Register);
