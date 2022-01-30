@@ -124,19 +124,19 @@ void NodeEditor::ConvertPolyDataToImage()
 {
   auto imageToCrop = dynamic_cast<mitk::Image *>(m_DrrCtImageDataNode->GetData());
   auto objectSurface = dynamic_cast<mitk::Surface *>(m_RegistrationCtImageDataNode->GetData());
-  mitk::Point3D c_image = imageToCrop->GetGeometry()->GetCenter();
-  mitk::Point3D c_mesh = objectSurface->GetGeometry()->GetOrigin();
-  double p[3]{c_mesh[0] - c_image[0], c_mesh[1] - c_image[1], c_mesh[2] - c_image[2]};
+  mitk::Point3D imageCenter = imageToCrop->GetGeometry()->GetCenter();
+  mitk::Point3D surfaceCenter = objectSurface->GetGeometry()->GetOrigin();
+  double p[3]{surfaceCenter[0] - imageCenter[0], surfaceCenter[1] - imageCenter[1], surfaceCenter[2] - imageCenter[2]};
   TranslateImage(p, imageToCrop);
-  // stlPolymesh->SetOrigin(c_k);
   
-  mitk::Image::Pointer res = mitk::Image::New();
+  
+  mitk::Image::Pointer convertedImage = mitk::Image::New();
   // stencil
-  mitk::SurfaceToImageFilter::Pointer surface_to_image = mitk::SurfaceToImageFilter::New();
-  surface_to_image->SetImage(imageToCrop);
-  surface_to_image->SetInput(objectSurface);
-  surface_to_image->SetReverseStencil(false);
-  surface_to_image->Update();
+  mitk::SurfaceToImageFilter::Pointer surfaceToImageFilter = mitk::SurfaceToImageFilter::New();
+  surfaceToImageFilter->SetImage(imageToCrop);
+  surfaceToImageFilter->SetInput(objectSurface);
+  surfaceToImageFilter->SetReverseStencil(false);
+  surfaceToImageFilter->Update();
   
     // boundingBox
   auto boundingBox = mitk::GeometryData::New();
@@ -152,27 +152,27 @@ void NodeEditor::ConvertPolyDataToImage()
   
   auto cutter = mitk::BoundingShapeCropper::New();
   cutter->SetGeometry(boundingBox);
-  cutter->SetInput(surface_to_image->GetOutput());
+  cutter->SetInput(surfaceToImageFilter->GetOutput());
   cutter->Update();
-  res = cutter->GetOutput()->Clone();
+  convertedImage = cutter->GetOutput()->Clone();
   
-  QString renameSuffix = "_regPlate";
+  QString renameSuffix = "_converted";
   QString outputFilename = m_Controls.outputFilename->text();
-  auto node = GetDataStorage()->GetNamedNode(outputFilename.toLocal8Bit().data());
-  auto newnode = mitk::DataNode::New();
+  auto existingNode = GetDataStorage()->GetNamedNode((outputFilename).toLocal8Bit().data());
+  auto newNode = mitk::DataNode::New();
   // in case the output name already exists
-  if (node == nullptr)
+  if (existingNode == nullptr)
   {
-    newnode->SetName(outputFilename.toLocal8Bit().data());
+    newNode->SetName(outputFilename.toLocal8Bit().data());
   }
   else
   {
-    newnode->SetName(outputFilename.append(renameSuffix).toLocal8Bit().data());
+    newNode->SetName(outputFilename.append(renameSuffix).toLocal8Bit().data());
     m_Controls.outputFilename->setText(outputFilename);
   }
   // add new node
-  newnode->SetData(res);
-  GetDataStorage()->Add(newnode);
+  newNode->SetData(convertedImage);
+  GetDataStorage()->Add(newNode);
 
 }
 
