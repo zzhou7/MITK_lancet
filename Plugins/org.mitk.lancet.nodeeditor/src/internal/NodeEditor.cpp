@@ -102,7 +102,7 @@ Below are Headers for DRR testing
 
 inline void NodeEditor::DrrCtImageChanged(QmitkSingleNodeSelectionWidget::NodeList /*nodes*/)
 {
-  m_DrrCtImageDataNode = m_Controls.widget_DRR->GetSelectedNode();
+  m_DrrCtImageDataNode = m_Controls.drrCtImageSingleNodeSelectionWidget->GetSelectedNode();
 }
 
 inline void NodeEditor::RegistrationCtImageChanged(QmitkSingleNodeSelectionWidget::NodeList /*nodes*/)
@@ -167,7 +167,7 @@ void NodeEditor::ConvertPolyDataToImage()
   convertedImage = cutter->GetOutput()->Clone();
   
   QString renameSuffix = "_converted";
-  QString outputFilename = m_Controls.outputFilename->text();
+  QString outputFilename = m_Controls.drrOutputFilenameLineEdit->text();
   auto existingNode = GetDataStorage()->GetNamedNode((outputFilename).toLocal8Bit().data());
   auto newNode = mitk::DataNode::New();
   // in case the output name already exists
@@ -178,7 +178,7 @@ void NodeEditor::ConvertPolyDataToImage()
   else
   {
     newNode->SetName(outputFilename.append(renameSuffix).toLocal8Bit().data());
-    m_Controls.outputFilename->setText(outputFilename);
+    m_Controls.drrOutputFilenameLineEdit->setText(outputFilename);
   }
   // add new node
   newNode->SetData(convertedImage);
@@ -189,24 +189,24 @@ void NodeEditor::ConvertPolyDataToImage()
 
 void NodeEditor::SetUiDefault()
 {
-  m_Controls.ledit_gantryRot->setText("0.0");
-  m_Controls.camTrans_0->setText("0.0");
-  m_Controls.camTrans_1->setText("0.0");
-  m_Controls.camTrans_2->setText("0.0");
-  m_Controls.rot_0->setText("0");
-  m_Controls.rot_1->setText("0.0");
-  m_Controls.rot_2->setText("0.0");
-  m_Controls.rotCenter_0->setText("0.0");
-  m_Controls.rotCenter_1->setText("0.0");
-  m_Controls.rotCenter_2->setText("0.0");
-  m_Controls.thres->setText("0.0");
-  m_Controls.sid->setText("1000");
-  m_Controls.outputRes_0->setText("1.0");
-  m_Controls.outputRes_1->setText("1.0");
-  m_Controls.norm_0->setText("0.0");
-  m_Controls.norm_1->setText("0.0");
-  m_Controls.outputSize_0->setText("512");
-  m_Controls.outputSize_1->setText("512");
+  m_Controls.gantryRotationLineEdit->setText("0.0");
+  m_Controls.sampleTranslationXLineEdit->setText("0.0");
+  m_Controls.sampleTranslationYLineEdit->setText("0.0");
+  m_Controls.sampleTranslationZLineEdit->setText("0.0");
+  m_Controls.sampleRotationXLineEdit->setText("0");
+  m_Controls.sampleRotationYLineEdit->setText("0.0");
+  m_Controls.sampleRotationZLineEdit->setText("0.0");
+  m_Controls.isocenterOffsetXLineEdit->setText("0.0");
+  m_Controls.isocenterOffsetYLineEdit->setText("0.0");
+  m_Controls.isocenterOffsetZLineEdit->setText("0.0");
+  m_Controls.drrThresholdLineEdit->setText("0.0");
+  m_Controls.drrSourceToIsoDistanceLineEdit->setText("1000");
+  m_Controls.drrOutputResolutionXLineEdit->setText("1.0");
+  m_Controls.drrOutputResolutionYLineEdit->setText("1.0");
+  m_Controls.centralAxisOffsetXLineEdit->setText("0.0");
+  m_Controls.centralAxisOffsetYLineEdit->setText("0.0");
+  m_Controls.drrOutputSizeXLineEdit->setText("512");
+  m_Controls.drrOutputSizeYLineEdit->setText("512");
   
 }
 
@@ -243,24 +243,24 @@ void NodeEditor::DrrGenerateData()
 
   drrFilter->SetInput(image);
 
-  double rprojection = (m_Controls.ledit_gantryRot->text()).toDouble();
-  double tx = (m_Controls.camTrans_0->text()).toDouble();
-  double ty = (m_Controls.camTrans_1->text()).toDouble();
-  double tz = (m_Controls.camTrans_2->text()).toDouble();
-  double rx = (m_Controls.rot_0->text()).toDouble();
-  double ry = (m_Controls.rot_1->text()).toDouble();
-  double rz = (m_Controls.rot_2->text()).toDouble();
-  double cx = (m_Controls.rotCenter_0->text()).toDouble();
-  double cy = (m_Controls.rotCenter_1->text()).toDouble();
-  double cz = (m_Controls.rotCenter_2->text()).toDouble();
-  double threshold = (m_Controls.thres->text()).toDouble();
-  double scd = (m_Controls.sid->text()).toDouble();
-  double sx = (m_Controls.outputRes_0->text()).toDouble();
-  double sy = (m_Controls.outputRes_0->text()).toDouble();
-  double o2Dx = (m_Controls.norm_0->text()).toDouble();
-  double o2Dy = (m_Controls.norm_1->text()).toDouble();
-  int dx = (m_Controls.outputSize_0->text()).toInt();
-  int dy = (m_Controls.outputSize_1->text()).toInt();
+  double rprojection = (m_Controls.gantryRotationLineEdit->text()).toDouble();
+  double tx = (m_Controls.sampleTranslationXLineEdit->text()).toDouble();
+  double ty = (m_Controls.sampleTranslationYLineEdit->text()).toDouble();
+  double tz = (m_Controls.sampleTranslationZLineEdit->text()).toDouble();
+  double rx = (m_Controls.sampleRotationXLineEdit->text()).toDouble();
+  double ry = (m_Controls.sampleRotationYLineEdit->text()).toDouble();
+  double rz = (m_Controls.sampleRotationZLineEdit->text()).toDouble();
+  double cx = (m_Controls.isocenterOffsetXLineEdit->text()).toDouble();
+  double cy = (m_Controls.isocenterOffsetYLineEdit->text()).toDouble();
+  double cz = (m_Controls.isocenterOffsetZLineEdit->text()).toDouble();
+  double threshold = (m_Controls.drrThresholdLineEdit->text()).toDouble();
+  double scd = (m_Controls.drrSourceToIsoDistanceLineEdit->text()).toDouble();
+  double sx = (m_Controls.drrOutputResolutionXLineEdit->text()).toDouble();
+  double sy = (m_Controls.drrOutputResolutionYLineEdit->text()).toDouble();
+  double o2Dx = (m_Controls.centralAxisOffsetXLineEdit->text()).toDouble();
+  double o2Dy = (m_Controls.centralAxisOffsetYLineEdit->text()).toDouble();
+  int dx = (m_Controls.drrOutputSizeXLineEdit->text()).toInt();
+  int dy = (m_Controls.drrOutputSizeYLineEdit->text()).toInt();
 
   drrFilter->Setrprojection(rprojection);
   drrFilter->SetObjTranslate(tx, ty, tz);
@@ -279,7 +279,7 @@ void NodeEditor::DrrGenerateData()
   drrFilter->Update();
 
   QString renameSuffix = "_new";
-  QString outputFilename = m_Controls.outputFilename->text();
+  QString outputFilename = m_Controls.drrOutputFilenameLineEdit->text();
   auto node = GetDataStorage()->GetNamedNode(outputFilename.toLocal8Bit().data());
   auto newnode = mitk::DataNode::New();
   // in case the output name already exists
@@ -290,7 +290,7 @@ void NodeEditor::DrrGenerateData()
   else
   {
     newnode->SetName(outputFilename.append(renameSuffix).toLocal8Bit().data());
-    m_Controls.outputFilename->setText(outputFilename);
+    m_Controls.drrOutputFilenameLineEdit->setText(outputFilename);
   }
   // add new node
   newnode->SetData(drrFilter->GetOutput());
@@ -323,24 +323,24 @@ void NodeEditor::DrrVisualization()
   
   drrFilter->SetInput(image);
 
-  double rprojection = (m_Controls.ledit_gantryRot->text()).toDouble();
-  double tx = (m_Controls.camTrans_0->text()).toDouble();
-  double ty = (m_Controls.camTrans_1->text()).toDouble();
-  double tz = (m_Controls.camTrans_2->text()).toDouble();
-  double rx = (m_Controls.rot_0->text()).toDouble();
-  double ry = (m_Controls.rot_1->text()).toDouble();
-  double rz = (m_Controls.rot_2->text()).toDouble();
-  double cx = (m_Controls.rotCenter_0->text()).toDouble();
-  double cy = (m_Controls.rotCenter_1->text()).toDouble();
-  double cz = (m_Controls.rotCenter_2->text()).toDouble();
-  double threshold = (m_Controls.thres->text()).toDouble();
-  double scd = (m_Controls.sid->text()).toDouble();
-  double sx = (m_Controls.outputRes_0->text()).toDouble();
-  double sy = (m_Controls.outputRes_0->text()).toDouble();
-  double o2Dx = (m_Controls.norm_0->text()).toDouble();
-  double o2Dy = (m_Controls.norm_1->text()).toDouble();
-  int dx = (m_Controls.outputSize_0->text()).toInt();
-  int dy = (m_Controls.outputSize_1->text()).toInt();
+  double rprojection = (m_Controls.gantryRotationLineEdit->text()).toDouble();
+  double tx = (m_Controls.sampleTranslationXLineEdit->text()).toDouble();
+  double ty = (m_Controls.sampleTranslationYLineEdit->text()).toDouble();
+  double tz = (m_Controls.sampleTranslationZLineEdit->text()).toDouble();
+  double rx = (m_Controls.sampleRotationXLineEdit->text()).toDouble();
+  double ry = (m_Controls.sampleRotationYLineEdit->text()).toDouble();
+  double rz = (m_Controls.sampleRotationZLineEdit->text()).toDouble();
+  double cx = (m_Controls.isocenterOffsetXLineEdit->text()).toDouble();
+  double cy = (m_Controls.isocenterOffsetYLineEdit->text()).toDouble();
+  double cz = (m_Controls.isocenterOffsetZLineEdit->text()).toDouble();
+  double threshold = (m_Controls.drrThresholdLineEdit->text()).toDouble();
+  double scd = (m_Controls.drrSourceToIsoDistanceLineEdit->text()).toDouble();
+  double sx = (m_Controls.drrOutputResolutionXLineEdit->text()).toDouble();
+  double sy = (m_Controls.drrOutputResolutionYLineEdit->text()).toDouble();
+  double o2Dx = (m_Controls.centralAxisOffsetXLineEdit->text()).toDouble();
+  double o2Dy = (m_Controls.centralAxisOffsetYLineEdit->text()).toDouble();
+  int dx = (m_Controls.drrOutputSizeXLineEdit->text()).toInt();
+  int dy = (m_Controls.drrOutputSizeYLineEdit->text()).toInt();
 
   drrFilter->Setrprojection(rprojection);
   drrFilter->SetObjTranslate(tx, ty, tz);
@@ -360,7 +360,7 @@ void NodeEditor::DrrVisualization()
 
   
   QString renameSuffix = "_new";
-  QString outputFilename = m_Controls.outputFilename->text();
+  QString outputFilename = m_Controls.drrOutputFilenameLineEdit->text();
   auto node = GetDataStorage()->GetNamedNode(outputFilename.toLocal8Bit().data());
   auto newnode = mitk::DataNode::New();
   // in case the output name already exists
@@ -371,7 +371,7 @@ void NodeEditor::DrrVisualization()
   else
   {    
     newnode->SetName(outputFilename.append(renameSuffix).toLocal8Bit().data());
-    m_Controls.outputFilename->setText(outputFilename);
+    m_Controls.drrOutputFilenameLineEdit->setText(outputFilename);
   }
 
 
@@ -398,9 +398,9 @@ void NodeEditor::DrrVisualization()
 
   
 
-  m_Controls.ledit_isox->setText(QString::number(isocw[0]));
-  m_Controls.ledit_isoy->setText(QString::number(isocw[1]));
-  m_Controls.ledit_isoz->setText(QString::number(isocw[2]));
+  m_Controls.isocenterXLineEdit->setText(QString::number(isocw[0]));
+  m_Controls.isocenterYLineEdit->setText(QString::number(isocw[1]));
+  m_Controls.isocenterZLineEdit->setText(QString::number(isocw[2]));
 
   // move the image by some -y for better visualization
   double p_1[3]{0, scd, 0};
@@ -418,7 +418,8 @@ void NodeEditor::DrrVisualization()
   geo_node->SetData(image_trans);
   GetDataStorage()->Add(geo_node);
 
-  if (m_Controls.rdb_moveCT->isChecked()){
+  if (m_Controls.generateMovedCtRadioButton->isChecked())
+  {
   // add a node that contains the moved CT image
   itk::Image<short, 3>::Pointer m_movedCTimage;
   mitk::Image::Pointer image_tmp;
@@ -446,9 +447,9 @@ void NodeEditor::DrrVisualization()
   // double xsourcew[3]{c_v[0] + cx, c_v[1] + cy - scd, c_v[2] + cz};
   
 
-  m_Controls.ledit_srcx->setText(QString::number(c_v[0]));
-  m_Controls.ledit_srcy->setText(QString::number(c_v[1]));
-  m_Controls.ledit_srcz->setText(QString::number(c_v[2]));
+  m_Controls.raySourceXLineEdit->setText(QString::number(c_v[0]));
+  m_Controls.raySourceYLineEdit->setText(QString::number(c_v[1]));
+  m_Controls.raySourceZLineEdit->setText(QString::number(c_v[2]));
 }
 
 
@@ -529,17 +530,17 @@ void NodeEditor::Register()
 
   double angleDRR1 = (m_Controls.ledit_angleDRR1->text()).toDouble();
   double angleDRR2 = (m_Controls.ledit_angleDRR2->text()).toDouble();
-  double tx = (m_Controls.ledit_tx_reg->text()).toDouble();
-  double ty = (m_Controls.ledit_tx_reg->text()).toDouble();
-  double tz = (m_Controls.ledit_tx_reg->text()).toDouble();
-  double cx = (m_Controls.ledit_cx_reg->text()).toDouble();
-  double cy = (m_Controls.ledit_cy_reg->text()).toDouble();
-  double cz = (m_Controls.ledit_cz_reg->text()).toDouble();
-  double rx = (m_Controls.ledit_rx_reg->text()).toDouble();
-  double ry = (m_Controls.ledit_ry_reg->text()).toDouble();
-  double rz = (m_Controls.ledit_rz_reg->text()).toDouble();
+  double tx = (m_Controls.initialTranslationXLineEdit->text()).toDouble();
+  double ty = (m_Controls.initialTranslationYLineEdit->text()).toDouble();
+  double tz = (m_Controls.initialTranslationZLineEdit->text()).toDouble();
+  double cx = (m_Controls.registrationIsoOffsetXLineEdit->text()).toDouble();
+  double cy = (m_Controls.registrationIsoOffsetYLineEdit->text()).toDouble();
+  double cz = (m_Controls.registrationIsoOffsetZLineEdit->text()).toDouble();
+  double rx = (m_Controls.initialRotationXLineEdit->text()).toDouble();
+  double ry = (m_Controls.initialRotationYLineEdit->text()).toDouble();
+  double rz = (m_Controls.initialRotationZLineEdit->text()).toDouble();
   double threshold = (m_Controls.ledit_thres_reg->text()).toDouble();
-  double scd = (m_Controls.ledit_scd->text()).toDouble();
+  double scd = (m_Controls.registrationSourceToIsoDistanceLineEdit->text()).toDouble();
   double sx_1 = (m_Controls.ledit_DRR1res_x->text()).toDouble();
   double sy_1= (m_Controls.ledit_DRR1res_y->text()).toDouble();
   double sx_2 = (m_Controls.ledit_DRR2res_x->text()).toDouble();
@@ -635,7 +636,7 @@ void NodeEditor::CreateQtPartControl(QWidget *parent)
 
   // Set Node Selection Widget
   
-  InitNodeSelector(m_Controls.widget_DRR);
+  InitNodeSelector(m_Controls.drrCtImageSingleNodeSelectionWidget);
   InitNodeSelector(m_Controls.widget_Poly);
   InitNodeSelector(m_Controls.widget_CropImage);
   InitNodeSelector(m_Controls.widget_inputCT_regis);
@@ -646,9 +647,9 @@ void NodeEditor::CreateQtPartControl(QWidget *parent)
 
 
   //drr
-  connect(m_Controls.btn_drrTest, &QPushButton::clicked, this, &NodeEditor::SetUiDefault);
-  connect(m_Controls.btn_drrCustom, &QPushButton::clicked, this, &NodeEditor::Drr);
-  connect(m_Controls.widget_DRR,
+  connect(m_Controls.recoverDefaultValuesPushButton, &QPushButton::clicked, this, &NodeEditor::SetUiDefault);
+  connect(m_Controls.generateDrrPushButton, &QPushButton::clicked, this, &NodeEditor::Drr);
+  connect(m_Controls.drrCtImageSingleNodeSelectionWidget,
           &QmitkSingleNodeSelectionWidget::CurrentSelectionChanged,
           this,
           &NodeEditor::DrrCtImageChanged);
@@ -680,7 +681,7 @@ void NodeEditor::CreateQtPartControl(QWidget *parent)
           this,
           &NodeEditor::InputDrrImageChanged_2);
   //stl polydata to imagedata
-  connect(m_Controls.btn_stlImage, &QPushButton::clicked, this, &NodeEditor::ConvertPolyDataToImage);
+  connect(m_Controls.surfaceToImagePushButton, &QPushButton::clicked, this, &NodeEditor::ConvertPolyDataToImage);
   // connect(m_Controls.widget_stl,
   //         &QmitkSingleNodeSelectionWidget::CurrentSelectionChanged,
   //         this,
