@@ -136,8 +136,8 @@ void NodeEditor::ConvertPolyDataToImage()
   auto objectSurface = dynamic_cast<mitk::Surface *>(m_InputSurfaceDataNode->GetData());
   mitk::Point3D imageCenter = imageToCrop->GetGeometry()->GetCenter();
   mitk::Point3D surfaceCenter = objectSurface->GetGeometry()->GetOrigin();
-  double p[3]{surfaceCenter[0] - imageCenter[0], surfaceCenter[1] - imageCenter[1], surfaceCenter[2] - imageCenter[2]};
-  TranslateImage(p, imageToCrop);
+  double direction[3]{surfaceCenter[0] - imageCenter[0], surfaceCenter[1] - imageCenter[1], surfaceCenter[2] - imageCenter[2]};
+  TranslateImage(direction, imageToCrop);
   
   
   mitk::Image::Pointer convertedImage = mitk::Image::New();
