@@ -107,17 +107,17 @@ inline void NodeEditor::DrrCtImageChanged(QmitkSingleNodeSelectionWidget::NodeLi
 
 inline void NodeEditor::RegistrationCtImageChanged(QmitkSingleNodeSelectionWidget::NodeList /*nodes*/)
 {
-  m_RegistrationCtImageDataNode = m_Controls.widget_inputCT_regis->GetSelectedNode();
+  m_RegistrationCtImageDataNode = m_Controls.registrationCtSingleNodeSelectionWidget->GetSelectedNode();
 }
 
 inline void NodeEditor::InputDrrImageChanged_1(QmitkSingleNodeSelectionWidget::NodeList /*nodes*/)
 {
-  m_InputDrrImageDataNode_1 = m_Controls.widget_inputDRR1_regis->GetSelectedNode();
+  m_InputDrrImageDataNode_1 = m_Controls.registrationDrr1SingleNodeSelectionWidget->GetSelectedNode();
 }
 
 inline void NodeEditor::InputDrrImageChanged_2(QmitkSingleNodeSelectionWidget::NodeList /*nodes*/)
 {
-  m_InputDrrImageDataNode_2 = m_Controls.widget_inputDRR2_regis->GetSelectedNode();
+  m_InputDrrImageDataNode_2 = m_Controls.registrationDrr2SingleNodeSelectionWidget->GetSelectedNode();
 }
 
 inline void NodeEditor::InputImageToCropChanged(QmitkSingleNodeSelectionWidget::NodeList /*nodes*/)
@@ -528,8 +528,8 @@ void NodeEditor::Register()
 
   
 
-  double angleDRR1 = (m_Controls.ledit_angleDRR1->text()).toDouble();
-  double angleDRR2 = (m_Controls.ledit_angleDRR2->text()).toDouble();
+  double angleDRR1 = (m_Controls.angleDrr1LineEdit->text()).toDouble();
+  double angleDRR2 = (m_Controls.angleDrr2LineEdit->text()).toDouble();
   double tx = (m_Controls.initialTranslationXLineEdit->text()).toDouble();
   double ty = (m_Controls.initialTranslationYLineEdit->text()).toDouble();
   double tz = (m_Controls.initialTranslationZLineEdit->text()).toDouble();
@@ -539,16 +539,16 @@ void NodeEditor::Register()
   double rx = (m_Controls.initialRotationXLineEdit->text()).toDouble();
   double ry = (m_Controls.initialRotationYLineEdit->text()).toDouble();
   double rz = (m_Controls.initialRotationZLineEdit->text()).toDouble();
-  double threshold = (m_Controls.ledit_thres_reg->text()).toDouble();
+  double threshold = (m_Controls.registrationThresholdLineEdit->text()).toDouble();
   double scd = (m_Controls.registrationSourceToIsoDistanceLineEdit->text()).toDouble();
-  double sx_1 = (m_Controls.ledit_DRR1res_x->text()).toDouble();
-  double sy_1= (m_Controls.ledit_DRR1res_y->text()).toDouble();
-  double sx_2 = (m_Controls.ledit_DRR2res_x->text()).toDouble();
-  double sy_2 = (m_Controls.ledit_DRR2res_y->text()).toDouble();
-  double o2Dx_1 = (m_Controls.ledit_2dcxDRR1_x_reg->text()).toDouble();
-  double o2Dy_1 = (m_Controls.ledit_2dcxDRR1_y_reg->text()).toDouble();
-  double o2Dx_2 = (m_Controls.ledit_2dcxDRR2_x_reg->text()).toDouble();
-  double o2Dy_2 = (m_Controls.ledit_2dcxDRR2_y_reg->text()).toDouble();
+  double sx_1 = (m_Controls.drr1ResolutionXLineEdit->text()).toDouble();
+  double sy_1 = (m_Controls.drr1ResolutionYLineEdit->text()).toDouble();
+  double sx_2 = (m_Controls.drr2ResolutionXLineEdit->text()).toDouble();
+  double sy_2 = (m_Controls.drr2ResolutionYLineEdit->text()).toDouble();
+  double o2Dx_1 = (m_Controls.drr1CentralAxisOffsetXLineEdit->text()).toDouble();
+  double o2Dy_1 = (m_Controls.drr1CentralAxisOffsetYLineEdit->text()).toDouble();
+  double o2Dx_2 = (m_Controls.drr2CentralAxisOffsetXLineEdit->text()).toDouble();
+  double o2Dy_2 = (m_Controls.drr2CentralAxisOffsetYLineEdit->text()).toDouble();
 
   if (sx_1 == 0 || sy_1 || sx_2 == 0 || sy_2==0)
   {
@@ -579,13 +579,13 @@ void NodeEditor::Register()
 
   registrator->twoprojection_registration();
 
-  m_Controls.ledit_RX->setText(QString::number(registrator->GetRX()));
-  m_Controls.ledit_RY->setText(QString::number(registrator->GetRY()));
-  m_Controls.ledit_RZ->setText(QString::number(registrator->GetRZ()));
+  m_Controls.registrationRotationXLineEdit->setText(QString::number(registrator->GetRX()));
+  m_Controls.registrationRotationYLineEdit->setText(QString::number(registrator->GetRY()));
+  m_Controls.registrationRotationZLineEdit->setText(QString::number(registrator->GetRZ()));
 
-  m_Controls.ledit_TX->setText(QString::number(registrator->GetTX()));
-  m_Controls.ledit_TY->setText(QString::number(registrator->GetTY()));
-  m_Controls.ledit_TZ->setText(QString::number(registrator->GetTZ()));
+  m_Controls.registrationTranslationXLineEdit->setText(QString::number(registrator->GetTX()));
+  m_Controls.registrationTranslationXLineEdit->setText(QString::number(registrator->GetTY()));
+  m_Controls.registrationTranslationXLineEdit->setText(QString::number(registrator->GetTZ()));
 }
 
 //-------------------------------- ↑  registration part  ↑---------------------------------------
@@ -639,9 +639,9 @@ void NodeEditor::CreateQtPartControl(QWidget *parent)
   InitNodeSelector(m_Controls.drrCtImageSingleNodeSelectionWidget);
   InitNodeSelector(m_Controls.widget_Poly);
   InitNodeSelector(m_Controls.widget_CropImage);
-  InitNodeSelector(m_Controls.widget_inputCT_regis);
-  InitNodeSelector(m_Controls.widget_inputDRR1_regis);
-  InitNodeSelector(m_Controls.widget_inputDRR2_regis);
+  InitNodeSelector(m_Controls.registrationCtSingleNodeSelectionWidget);
+  InitNodeSelector(m_Controls.registrationDrr1SingleNodeSelectionWidget);
+  InitNodeSelector(m_Controls.registrationDrr2SingleNodeSelectionWidget);
   // InitNodeSelector(m_Controls.widget_stl);
 
 
@@ -667,16 +667,16 @@ void NodeEditor::CreateQtPartControl(QWidget *parent)
 
 
   //twoProjectionRegistration
-  connect(m_Controls.btn_reg, &QPushButton::clicked, this, &NodeEditor::Register);
-  connect(m_Controls.widget_inputCT_regis,
+  connect(m_Controls.registerPushButton, &QPushButton::clicked, this, &NodeEditor::Register);
+  connect(m_Controls.registrationCtSingleNodeSelectionWidget,
           &QmitkSingleNodeSelectionWidget::CurrentSelectionChanged,
           this,
           &NodeEditor::RegistrationCtImageChanged);
-  connect(m_Controls.widget_inputDRR1_regis,
+  connect(m_Controls.registrationDrr1SingleNodeSelectionWidget,
           &QmitkSingleNodeSelectionWidget::CurrentSelectionChanged,
           this,
           &NodeEditor::InputDrrImageChanged_1);
-  connect(m_Controls.widget_inputDRR2_regis,
+  connect(m_Controls.registrationDrr2SingleNodeSelectionWidget,
           &QmitkSingleNodeSelectionWidget::CurrentSelectionChanged,
           this,
           &NodeEditor::InputDrrImageChanged_2);

@@ -23,7 +23,7 @@
    <item>
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>1</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="tab_5">
       <attribute name="title">
@@ -380,10 +380,6 @@
            </item>
           </layout>
          </item>
-        </layout>
-       </item>
-       <item>
-        <layout class="QHBoxLayout" name="horizontalLayout_16">
          <item>
           <widget class="QPushButton" name="recoverDefaultValuesPushButton">
            <property name="text">
@@ -391,6 +387,10 @@
            </property>
           </widget>
          </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_16">
          <item>
           <widget class="QRadioButton" name="generateMovedCtRadioButton">
            <property name="text">
@@ -529,7 +529,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QmitkSingleNodeSelectionWidget" name="widget_inputCT_regis" native="true"/>
+          <widget class="QmitkSingleNodeSelectionWidget" name="registrationCtSingleNodeSelectionWidget" native="true"/>
          </item>
         </layout>
        </item>
@@ -713,7 +713,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QmitkSingleNodeSelectionWidget" name="widget_inputDRR1_regis" native="true"/>
+          <widget class="QmitkSingleNodeSelectionWidget" name="registrationDrr1SingleNodeSelectionWidget" native="true"/>
          </item>
         </layout>
        </item>
@@ -734,7 +734,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QLineEdit" name="ledit_angleDRR1">
+          <widget class="QLineEdit" name="angleDrr1LineEdit">
            <property name="text">
             <string>0.0</string>
            </property>
@@ -752,7 +752,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QLineEdit" name="ledit_DRR1res_x">
+          <widget class="QLineEdit" name="drr1ResolutionXLineEdit">
            <property name="text">
             <string>1.0</string>
            </property>
@@ -766,7 +766,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QLineEdit" name="ledit_DRR1res_y">
+          <widget class="QLineEdit" name="drr1ResolutionYLineEdit">
            <property name="text">
             <string>1.0</string>
            </property>
@@ -784,7 +784,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QLineEdit" name="ledit_2dcxDRR1_x_reg">
+          <widget class="QLineEdit" name="drr1CentralAxisOffsetXLineEdit">
            <property name="text">
             <string>0.0</string>
            </property>
@@ -798,7 +798,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QLineEdit" name="ledit_2dcxDRR1_y_reg">
+          <widget class="QLineEdit" name="drr1CentralAxisOffsetYLineEdit">
            <property name="text">
             <string>0.0</string>
            </property>
@@ -823,7 +823,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QmitkSingleNodeSelectionWidget" name="widget_inputDRR2_regis" native="true"/>
+          <widget class="QmitkSingleNodeSelectionWidget" name="registrationDrr2SingleNodeSelectionWidget" native="true"/>
          </item>
         </layout>
        </item>
@@ -844,7 +844,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QLineEdit" name="ledit_angleDRR2">
+          <widget class="QLineEdit" name="angleDrr2LineEdit">
            <property name="text">
             <string>90.0</string>
            </property>
@@ -862,7 +862,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QLineEdit" name="ledit_DRR2res_x">
+          <widget class="QLineEdit" name="drr2ResolutionXLineEdit">
            <property name="text">
             <string>1.0</string>
            </property>
@@ -876,7 +876,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QLineEdit" name="ledit_DRR2res_y">
+          <widget class="QLineEdit" name="drr2ResolutionYLineEdit">
            <property name="text">
             <string>1.0</string>
            </property>
@@ -894,7 +894,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QLineEdit" name="ledit_2dcxDRR2_x_reg">
+          <widget class="QLineEdit" name="drr2CentralAxisOffsetXLineEdit">
            <property name="text">
             <string>0.0</string>
            </property>
@@ -908,7 +908,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QLineEdit" name="ledit_2dcxDRR2_y_reg">
+          <widget class="QLineEdit" name="drr2CentralAxisOffsetYLineEdit">
            <property name="text">
             <string>0.0</string>
            </property>
@@ -940,7 +940,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QLineEdit" name="ledit_thres_reg">
+          <widget class="QLineEdit" name="registrationThresholdLineEdit">
            <property name="text">
             <string>0.0</string>
            </property>
@@ -949,7 +949,7 @@
         </layout>
        </item>
        <item>
-        <widget class="QPushButton" name="btn_reg">
+        <widget class="QPushButton" name="registerPushButton">
          <property name="text">
           <string>Register</string>
          </property>
@@ -960,12 +960,12 @@
          <item>
           <widget class="QLabel" name="label_57">
            <property name="text">
-            <string>Resulted rotation (X,Y,Z):</string>
+            <string>Resulted translation (X,Y,Z):</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QLineEdit" name="ledit_RX">
+          <widget class="QLineEdit" name="registrationTranslationXLineEdit">
            <property name="text">
             <string>0.0</string>
            </property>
@@ -979,7 +979,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QLineEdit" name="ledit_RY">
+          <widget class="QLineEdit" name="registrationTranslationYLineEdit">
            <property name="text">
             <string>0.0</string>
            </property>
@@ -993,7 +993,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QLineEdit" name="ledit_RZ">
+          <widget class="QLineEdit" name="registrationTranslationZLineEdit">
            <property name="text">
             <string>0.0</string>
            </property>
@@ -1006,12 +1006,12 @@
          <item>
           <widget class="QLabel" name="label_60">
            <property name="text">
-            <string>Resulted translation (X,Y,Z):</string>
+            <string>Resulted rotation (X,Y,Z):</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QLineEdit" name="ledit_TX">
+          <widget class="QLineEdit" name="registrationRotationXLineEdit">
            <property name="text">
             <string>0.0</string>
            </property>
@@ -1025,7 +1025,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QLineEdit" name="ledit_TY">
+          <widget class="QLineEdit" name="registrationRotationYLineEdit">
            <property name="text">
             <string>0.0</string>
            </property>
@@ -1039,7 +1039,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QLineEdit" name="ledit_TZ">
+          <widget class="QLineEdit" name="registrationRotationZLineEdit">
            <property name="text">
             <string>0.0</string>
            </property>
