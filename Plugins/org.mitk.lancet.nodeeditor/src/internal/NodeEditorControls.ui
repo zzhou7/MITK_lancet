@@ -392,7 +392,14 @@
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout_16">
          <item>
-          <widget class="QRadioButton" name="generateMovedCtRadioButton">
+          <widget class="QCheckBox" name="generateRaySourceCheckBox">
+           <property name="text">
+            <string>Generate ray source and isocenter</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="generateMovedCtCheckBox">
            <property name="text">
             <string>Generate moved CT volume</string>
            </property>

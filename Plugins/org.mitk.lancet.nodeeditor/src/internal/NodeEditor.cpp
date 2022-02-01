@@ -418,7 +418,7 @@ void NodeEditor::DrrVisualization()
   geo_node->SetData(image_trans);
   GetDataStorage()->Add(geo_node);
 
-  if (m_Controls.generateMovedCtRadioButton->isChecked())
+  if (m_Controls.generateMovedCtCheckBox->isChecked())
   {
   // add a node that contains the moved CT image
   itk::Image<short, 3>::Pointer m_movedCTimage;
@@ -450,6 +450,29 @@ void NodeEditor::DrrVisualization()
   m_Controls.raySourceXLineEdit->setText(QString::number(c_v[0]));
   m_Controls.raySourceYLineEdit->setText(QString::number(c_v[1]));
   m_Controls.raySourceZLineEdit->setText(QString::number(c_v[2]));
+
+  if (m_Controls.generateRaySourceCheckBox->isChecked())
+  {    
+    mitk::Point3D point3D_raySource;
+    point3D_raySource[0] = c_v[0];
+    point3D_raySource[1] = c_v[1];
+    point3D_raySource[2] = c_v[2];
+
+    mitk::Point3D point3D_isocenter;
+    point3D_isocenter[0] = isocw[0];
+    point3D_isocenter[1] = isocw[1];
+    point3D_isocenter[2] = isocw[2];
+
+    auto pointSet_raySource = mitk::PointSet::New();
+    pointSet_raySource->InsertPoint(point3D_raySource);
+    pointSet_raySource->InsertPoint(point3D_isocenter);
+
+    auto raySourceDataNode = mitk::DataNode::New();
+    QString movedCT_Suffix = "_raySource";
+    raySourceDataNode->SetName((outputFilename+movedCT_Suffix).toLocal8Bit().data());
+    raySourceDataNode->SetData(pointSet_raySource);
+    GetDataStorage()->Add(raySourceDataNode);
+  }
 }
 
 
