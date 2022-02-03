@@ -72,6 +72,13 @@ protected:
   void TranslateImage(double direction[3], mitk::Image *mitkImage);
   void RotateImage(double center[3], double axis[3], double degree, mitk::Image *mitkImage);
 
+  // Evaluate the registration result
+  void EvaluateRegistration();
+  mitk::DataNode *m_RawCtImageDataNode{nullptr};
+  mitk::DataNode *m_EvaluationPointsDataNode{nullptr};
+  void RawCtImageChanged(QmitkSingleNodeSelectionWidget::NodeList /*nodes*/);
+  void EvaluationPointsChanged(QmitkSingleNodeSelectionWidget::NodeList /*nodes*/);
+
   // Convert stl polydata surface to image data
   void ConvertPolyDataToImage();
   mitk::DataNode *m_InputSurfaceDataNode{nullptr};

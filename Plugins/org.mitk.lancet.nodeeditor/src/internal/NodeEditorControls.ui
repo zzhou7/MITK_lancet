@@ -23,7 +23,7 @@
    <item>
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>0</number>
+      <number>2</number>
      </property>
      <widget class="QWidget" name="tab_5">
       <attribute name="title">
@@ -505,6 +505,9 @@
           </widget>
          </item>
         </layout>
+       </item>
+       <item>
+        <widget class="QTextBrowser" name="drrTextBrowser"/>
        </item>
        <item>
         <spacer name="verticalSpacer">
@@ -1055,10 +1058,64 @@
         </layout>
        </item>
        <item>
-        <widget class="QTextBrowser" name="textBrowser_trans_info"/>
+        <widget class="QTextBrowser" name="registerTextBrowser"/>
        </item>
        <item>
         <spacer name="verticalSpacer_2">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tab_8">
+      <attribute name="title">
+       <string>Evaluate registation result</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_5">
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_33">
+         <item>
+          <widget class="QLabel" name="label_67">
+           <property name="text">
+            <string>Original CT image: </string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QmitkSingleNodeSelectionWidget" name="rawCtImageSingleNodeSelectionWidget" native="true"/>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_68">
+           <property name="text">
+            <string>Evaluation points:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QmitkSingleNodeSelectionWidget" name="evaluationPointsSingleNodeSelectionWidget" native="true"/>
+         </item>
+         <item>
+          <widget class="QPushButton" name="evaluateRegisterPushButton">
+           <property name="text">
+            <string>Evaluate</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <widget class="QTextBrowser" name="evaluationTextBrowser"/>
+       </item>
+       <item>
+        <spacer name="verticalSpacer_4">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
          </property>

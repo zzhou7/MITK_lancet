@@ -130,6 +130,92 @@ inline void NodeEditor::InputSurfaceChanged(QmitkSingleNodeSelectionWidget::Node
   m_InputSurfaceDataNode = m_Controls.widget_Poly->GetSelectedNode();
 }
 
+void NodeEditor::RawCtImageChanged(QmitkSingleNodeSelectionWidget::NodeList /*nodes*/)
+{
+  m_RawCtImageDataNode = m_Controls.rawCtImageSingleNodeSelectionWidget->GetSelectedNode();
+}
+
+void NodeEditor::EvaluationPointsChanged(QmitkSingleNodeSelectionWidget::NodeList /*nodes*/)
+{
+  m_EvaluationPointsDataNode = m_Controls.evaluationPointsSingleNodeSelectionWidget->GetSelectedNode();
+}
+
+void NodeEditor::EvaluateRegistration()
+{
+  auto image_raw_ct = dynamic_cast<mitk::Image *>(m_RawCtImageDataNode->GetData());
+  auto pointset_evaluation_points = dynamic_cast<mitk::PointSet *>(m_EvaluationPointsDataNode->GetData());
+  auto pointset_copy = mitk::PointSet::New();
+  for (unsigned n = 0; n < pointset_evaluation_points->GetPointSetSeriesSize(); n++)
+  {
+    pointset_copy->InsertPoint(pointset_evaluation_points->GetPoint(n));
+  }
+
+  mitk::Point3D ct_center = image_raw_ct->GetGeometry()->GetCenter();
+
+  double rotation_x = (m_Controls.sampleRotationXLineEdit->text()).toDouble() -
+                      (m_Controls.registrationRotationXLineEdit->text()).toDouble();
+  double rotation_y = (m_Controls.sampleRotationYLineEdit->text()).toDouble() -
+                      (m_Controls.registrationRotationYLineEdit->text()).toDouble();
+  double rotation_z = (m_Controls.sampleRotationZLineEdit->text()).toDouble() -
+                      (m_Controls.registrationRotationZLineEdit->text()).toDouble();
+
+  double translation_x = (m_Controls.sampleTranslationXLineEdit->text()).toDouble() -
+                         (m_Controls.registrationTranslationXLineEdit->text()).toDouble();
+  double translation_y = (m_Controls.sampleTranslationYLineEdit->text()).toDouble() -
+                         (m_Controls.registrationTranslationYLineEdit->text()).toDouble();
+  double translation_z = (m_Controls.sampleTranslationZLineEdit->text()).toDouble() -
+                         (m_Controls.registrationTranslationZLineEdit->text()).toDouble(); //ZYX
+
+  double x_axis[3] = {1, 0, 0};
+  double y_axis[3] = {0, 1, 0};
+  double z_axis[3] = {0, 0, 1};
+
+  mitk::Point3D rotateCenter{ct_center};
+  mitk::Vector3D axis_z{z_axis};
+  auto *rotate_operation_1 = new mitk::RotationOperation(mitk::OpROTATE, rotateCenter, axis_z, rotation_z);
+  pointset_evaluation_points->GetGeometry()->ExecuteOperation(rotate_operation_1);
+  mitk::Vector3D axis_y{y_axis};
+  auto *rotate_operation_2 = new mitk::RotationOperation(mitk::OpROTATE, rotateCenter, axis_y, rotation_y);
+  pointset_evaluation_points->GetGeometry()->ExecuteOperation(rotate_operation_2);
+  mitk::Vector3D axis_x{x_axis};
+  auto *rotate_operation_3 = new mitk::RotationOperation(mitk::OpROTATE, rotateCenter, axis_x, rotation_x);
+  pointset_evaluation_points->GetGeometry()->ExecuteOperation(rotate_operation_3);
+  delete rotate_operation_1;
+  delete rotate_operation_2;
+  delete rotate_operation_3;
+  // mitk::Vector3D rotateAxis{axis};
+  // auto *rotateOperation = new mitk::RotationOperation(mitk::OpROTATE, rotateCenter, rotateAxis, degree);
+  // // execute the Operation
+  // // here no undo is stored, because the movement-steps aren't interesting.
+  // // only the start and the end is of interest to be stored for undo.
+  // mitkImage->GetGeometry()->ExecuteOperation(rotateOperation);
+
+  // delete rotateOperation;
+  // updateStemCenter();
+  // mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+
+  double direction[3] = {translation_x, translation_y, translation_z};
+  mitk::Point3D translationDir{direction};
+  auto *pointOperation = new mitk::PointOperation(mitk::OpMOVE, 0, translationDir, 0);
+  pointset_evaluation_points->GetGeometry()->ExecuteOperation(pointOperation);
+  delete pointOperation;
+  mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+
+  // mitk::Point3D translationDir{direction};
+  // auto *pointOperation = new mitk::PointOperation(mitk::OpMOVE, 0, translationDir, 0);
+  // // execute the Operation
+  // // here no undo is stored, because the movement-steps aren't interesting.
+  // // only the start and the end is of interest to be stored for undo.
+  // mitkImage->GetGeometry()->ExecuteOperation(pointOperation);
+  //
+  // delete pointOperation;
+  // updateStemCenter();
+
+  // mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+
+}
+
+
 void NodeEditor::ConvertPolyDataToImage()
 {
   auto imageToCrop = dynamic_cast<mitk::Image *>(m_InputImageToCropDataNode->GetData());
@@ -236,7 +322,7 @@ void NodeEditor::DrrGenerateData()
   if (image == nullptr)
   {
     MITK_ERROR << "Can't Run DRR: Image null";
-    m_Controls.textBrowser_trans_info->append("Error: Input image node is empty");
+    m_Controls.drrTextBrowser->append("Error: Input image node is empty");
     return;
   }
   itk::SmartPointer<DRRSidonJacobsRayTracingFilter> drrFilter = DRRSidonJacobsRayTracingFilter::New();
@@ -314,7 +400,7 @@ void NodeEditor::DrrVisualization()
   if (image == nullptr)
   {
     MITK_ERROR << "Can't Run DRR: Image null";
-    m_Controls.textBrowser_trans_info->append("Error: Input image node is empty");
+    m_Controls.drrTextBrowser->append("Error: Input image node is empty");
     return;
   }
   itk::SmartPointer<DRRSidonJacobsRayTracingFilter> drrFilter = DRRSidonJacobsRayTracingFilter::New();
@@ -501,13 +587,14 @@ void NodeEditor::RotateImage(double center[3], double axis[3], double degree, mi
 {
   if (mitkImage != nullptr)
   {
-    mitk::Point3D rotateCenter{center};
+    mitk::Point3D rotateCenter{center}; 
     mitk::Vector3D rotateAxis{axis};
     auto *rotateOperation = new mitk::RotationOperation(mitk::OpROTATE, rotateCenter, rotateAxis, degree);
     // execute the Operation
     // here no undo is stored, because the movement-steps aren't interesting.
     // only the start and the end is of interest to be stored for undo.
     mitkImage->GetGeometry()->ExecuteOperation(rotateOperation);
+    
     delete rotateOperation;
     // updateStemCenter();
     mitk::RenderingManager::GetInstance()->RequestUpdateAll();
@@ -540,7 +627,7 @@ void NodeEditor::Register()
   if (ctimage == nullptr || DRR1 == nullptr || DRR2 == nullptr)
   {
     MITK_ERROR << "Can't Run twoProjectionRegistration: Input images are empty";
-    m_Controls.textBrowser_trans_info->append("Error: Input image node is empty");
+    m_Controls.registerTextBrowser->append("Error: Input image node is empty");
     return;
   }
   itk::SmartPointer<TwoProjectionRegistration> registrator = TwoProjectionRegistration::New();
@@ -607,8 +694,8 @@ void NodeEditor::Register()
   m_Controls.registrationRotationZLineEdit->setText(QString::number(registrator->GetRZ()));
 
   m_Controls.registrationTranslationXLineEdit->setText(QString::number(registrator->GetTX()));
-  m_Controls.registrationTranslationXLineEdit->setText(QString::number(registrator->GetTY()));
-  m_Controls.registrationTranslationXLineEdit->setText(QString::number(registrator->GetTZ()));
+  m_Controls.registrationTranslationYLineEdit->setText(QString::number(registrator->GetTY()));
+  m_Controls.registrationTranslationZLineEdit->setText(QString::number(registrator->GetTZ()));
 }
 
 //-------------------------------- ↑  registration part  ↑---------------------------------------
@@ -665,8 +752,18 @@ void NodeEditor::CreateQtPartControl(QWidget *parent)
   InitNodeSelector(m_Controls.registrationCtSingleNodeSelectionWidget);
   InitNodeSelector(m_Controls.registrationDrr1SingleNodeSelectionWidget);
   InitNodeSelector(m_Controls.registrationDrr2SingleNodeSelectionWidget);
-  // InitNodeSelector(m_Controls.widget_stl);
-
+  InitNodeSelector(m_Controls.rawCtImageSingleNodeSelectionWidget);
+  InitNodeSelector(m_Controls.evaluationPointsSingleNodeSelectionWidget);
+   
+  connect(m_Controls.rawCtImageSingleNodeSelectionWidget,
+          &QmitkSingleNodeSelectionWidget::CurrentSelectionChanged,
+          this,
+          &NodeEditor::RawCtImageChanged);
+  connect(m_Controls.evaluationPointsSingleNodeSelectionWidget,
+          &QmitkSingleNodeSelectionWidget::CurrentSelectionChanged,
+          this,
+          &NodeEditor::EvaluationPointsChanged);
+  connect(m_Controls.evaluateRegisterPushButton, &QPushButton::clicked, this, &NodeEditor::EvaluateRegistration);
 
 
   //drr
