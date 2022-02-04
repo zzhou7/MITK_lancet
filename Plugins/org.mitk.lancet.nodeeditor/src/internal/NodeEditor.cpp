@@ -92,6 +92,8 @@ Below are Headers for DRR testing
 //---
 #include "mitkSurfaceToImageFilter.h"
 
+#include "basic.h"
+
 // void NodeEditor::ConvertPolyDataToImage()
 // {
 //   auto stlPolymesh = dynamic_cast<mitk::Surface *>(m_RegistrationCtImageDataNode->GetData());
@@ -145,7 +147,7 @@ void NodeEditor::EvaluateRegistration()
   auto image_raw_ct = dynamic_cast<mitk::Image *>(m_RawCtImageDataNode->GetData());
   auto pointset_evaluation_points = dynamic_cast<mitk::PointSet *>(m_EvaluationPointsDataNode->GetData());
   auto pointset_copy = mitk::PointSet::New();
-  for (unsigned n = 0; n < pointset_evaluation_points->GetPointSetSeriesSize(); n++)
+  for (unsigned n = 0; n < pointset_evaluation_points->GetSize(); n++)
   {
     pointset_copy->InsertPoint(pointset_evaluation_points->GetPoint(n));
   }
@@ -183,17 +185,7 @@ void NodeEditor::EvaluateRegistration()
   delete rotate_operation_1;
   delete rotate_operation_2;
   delete rotate_operation_3;
-  // mitk::Vector3D rotateAxis{axis};
-  // auto *rotateOperation = new mitk::RotationOperation(mitk::OpROTATE, rotateCenter, rotateAxis, degree);
-  // // execute the Operation
-  // // here no undo is stored, because the movement-steps aren't interesting.
-  // // only the start and the end is of interest to be stored for undo.
-  // mitkImage->GetGeometry()->ExecuteOperation(rotateOperation);
-
-  // delete rotateOperation;
-  // updateStemCenter();
-  // mitk::RenderingManager::GetInstance()->RequestUpdateAll();
-
+  
   double direction[3] = {translation_x, translation_y, translation_z};
   mitk::Point3D translationDir{direction};
   auto *pointOperation = new mitk::PointOperation(mitk::OpMOVE, 0, translationDir, 0);
@@ -201,17 +193,16 @@ void NodeEditor::EvaluateRegistration()
   delete pointOperation;
   mitk::RenderingManager::GetInstance()->RequestUpdateAll();
 
-  // mitk::Point3D translationDir{direction};
-  // auto *pointOperation = new mitk::PointOperation(mitk::OpMOVE, 0, translationDir, 0);
-  // // execute the Operation
-  // // here no undo is stored, because the movement-steps aren't interesting.
-  // // only the start and the end is of interest to be stored for undo.
-  // mitkImage->GetGeometry()->ExecuteOperation(pointOperation);
-  //
-  // delete pointOperation;
-  // updateStemCenter();
-
-  // mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+  for (unsigned n = 0; n < pointset_evaluation_points->GetSize(); n++)
+  {
+    mitk::Point3D point_copy = pointset_copy->GetPoint(n);
+    mitk::Point3D point_moved = pointset_evaluation_points->GetPoint(n);
+    double p1[3]{point_copy[0], point_copy[1], point_copy[2]};
+    double p2[3]{point_moved[0], point_moved[1], point_moved[2]};
+    double distance = lancetAlgorithm::DistanceOfTwoPoints(p1, p2);
+    m_Controls.evaluationTextBrowser->append("Deviation of point " + QString::number(n) + " is " +
+                                             QString::number(distance));
+  }
 
 }
 
