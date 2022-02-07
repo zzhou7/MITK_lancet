@@ -144,61 +144,83 @@ void NodeEditor::EvaluationPointsChanged(QmitkSingleNodeSelectionWidget::NodeLis
 
 void NodeEditor::EvaluateRegistration()
 {
-  auto image_raw_ct = dynamic_cast<mitk::Image *>(m_RawCtImageDataNode->GetData());
-  auto pointset_evaluation_points = dynamic_cast<mitk::PointSet *>(m_EvaluationPointsDataNode->GetData());
-  auto pointset_copy = mitk::PointSet::New();
-  for (unsigned n = 0; n < pointset_evaluation_points->GetSize(); n++)
+  auto image_original_ct = dynamic_cast<mitk::Image *>(m_RawCtImageDataNode->GetData());
+  auto pointset_register_points = dynamic_cast<mitk::PointSet *>(m_EvaluationPointsDataNode->GetData());
+  auto pointset_real_points = mitk::PointSet::New();
+  for (unsigned n = 0; n < pointset_register_points->GetSize(); n++)
   {
-    pointset_copy->InsertPoint(pointset_evaluation_points->GetPoint(n));
+    pointset_real_points->InsertPoint(pointset_register_points->GetPoint(n));
   }
 
-  mitk::Point3D ct_center = image_raw_ct->GetGeometry()->GetCenter();
-
-  double rotation_x = (m_Controls.sampleRotationXLineEdit->text()).toDouble() -
-                      (m_Controls.registrationRotationXLineEdit->text()).toDouble();
-  double rotation_y = (m_Controls.sampleRotationYLineEdit->text()).toDouble() -
-                      (m_Controls.registrationRotationYLineEdit->text()).toDouble();
-  double rotation_z = (m_Controls.sampleRotationZLineEdit->text()).toDouble() -
-                      (m_Controls.registrationRotationZLineEdit->text()).toDouble();
-
-  double translation_x = (m_Controls.sampleTranslationXLineEdit->text()).toDouble() -
-                         (m_Controls.registrationTranslationXLineEdit->text()).toDouble();
-  double translation_y = (m_Controls.sampleTranslationYLineEdit->text()).toDouble() -
-                         (m_Controls.registrationTranslationYLineEdit->text()).toDouble();
-  double translation_z = (m_Controls.sampleTranslationZLineEdit->text()).toDouble() -
-                         (m_Controls.registrationTranslationZLineEdit->text()).toDouble(); //ZYX
+  mitk::Point3D ct_center = image_original_ct->GetGeometry()->GetCenter();
 
   double x_axis[3] = {1, 0, 0};
   double y_axis[3] = {0, 1, 0};
   double z_axis[3] = {0, 0, 1};
-
-  mitk::Point3D rotateCenter{ct_center};
   mitk::Vector3D axis_z{z_axis};
-  auto *rotate_operation_1 = new mitk::RotationOperation(mitk::OpROTATE, rotateCenter, axis_z, rotation_z);
-  pointset_evaluation_points->GetGeometry()->ExecuteOperation(rotate_operation_1);
   mitk::Vector3D axis_y{y_axis};
-  auto *rotate_operation_2 = new mitk::RotationOperation(mitk::OpROTATE, rotateCenter, axis_y, rotation_y);
-  pointset_evaluation_points->GetGeometry()->ExecuteOperation(rotate_operation_2);
   mitk::Vector3D axis_x{x_axis};
-  auto *rotate_operation_3 = new mitk::RotationOperation(mitk::OpROTATE, rotateCenter, axis_x, rotation_x);
-  pointset_evaluation_points->GetGeometry()->ExecuteOperation(rotate_operation_3);
-  delete rotate_operation_1;
-  delete rotate_operation_2;
-  delete rotate_operation_3;
-  
-  double direction[3] = {translation_x, translation_y, translation_z};
-  mitk::Point3D translationDir{direction};
-  auto *pointOperation = new mitk::PointOperation(mitk::OpMOVE, 0, translationDir, 0);
-  pointset_evaluation_points->GetGeometry()->ExecuteOperation(pointOperation);
-  delete pointOperation;
+  mitk::Point3D rotateCenter{ct_center};
+
+  double rotation_x_real = (m_Controls.sampleRotationXLineEdit->text()).toDouble();
+  double rotation_y_real = (m_Controls.sampleRotationYLineEdit->text()).toDouble();
+  double rotation_z_real = (m_Controls.sampleRotationZLineEdit->text()).toDouble();
+
+  double translation_x_real = (m_Controls.sampleTranslationXLineEdit->text()).toDouble();
+  double translation_y_real = (m_Controls.sampleTranslationYLineEdit->text()).toDouble();
+  double translation_z_real = (m_Controls.sampleTranslationZLineEdit->text()).toDouble(); // ZYX
+
+  double rotation_x_register = (m_Controls.registrationRotationXLineEdit->text()).toDouble();
+  double rotation_y_register = (m_Controls.registrationRotationYLineEdit->text()).toDouble();
+  double rotation_z_register = (m_Controls.registrationRotationZLineEdit->text()).toDouble();
+
+  double translation_x_register = (m_Controls.registrationTranslationXLineEdit->text()).toDouble();
+  double translation_y_register = (m_Controls.registrationTranslationYLineEdit->text()).toDouble();
+  double translation_z_register = (m_Controls.registrationTranslationZLineEdit->text()).toDouble(); // ZYX
+
+  auto *rotate_operation_real_z = new mitk::RotationOperation(mitk::OpROTATE, rotateCenter, axis_z, rotation_z_real);
+  pointset_real_points->GetGeometry()->ExecuteOperation(rotate_operation_real_z);
+  auto *rotate_operation_real_y = new mitk::RotationOperation(mitk::OpROTATE, rotateCenter, axis_y, rotation_y_real);
+  pointset_real_points->GetGeometry()->ExecuteOperation(rotate_operation_real_y);
+  auto *rotate_operation_real_x = new mitk::RotationOperation(mitk::OpROTATE, rotateCenter, axis_x, rotation_x_real);
+  pointset_real_points->GetGeometry()->ExecuteOperation(rotate_operation_real_x);
+  delete rotate_operation_real_z;
+  delete rotate_operation_real_y;
+  delete rotate_operation_real_x;
+
+  auto *rotate_operation_register_z =
+    new mitk::RotationOperation(mitk::OpROTATE, rotateCenter, axis_z, rotation_z_register);
+  pointset_register_points->GetGeometry()->ExecuteOperation(rotate_operation_register_z);
+  auto *rotate_operation_register_y =
+    new mitk::RotationOperation(mitk::OpROTATE, rotateCenter, axis_y, rotation_y_register);
+  pointset_register_points->GetGeometry()->ExecuteOperation(rotate_operation_register_y);
+  auto *rotate_operation_register_x =
+    new mitk::RotationOperation(mitk::OpROTATE, rotateCenter, axis_x, rotation_x_register);
+  pointset_register_points->GetGeometry()->ExecuteOperation(rotate_operation_register_x);
+  delete rotate_operation_register_z;
+  delete rotate_operation_register_y;
+  delete rotate_operation_register_x;
+
+  double direction_real[3] = {translation_x_real, translation_y_real, translation_z_real};
+  mitk::Point3D translation_dir_real{direction_real};
+  auto *translation_real = new mitk::PointOperation(mitk::OpMOVE, 0, translation_dir_real, 0);
+  pointset_real_points->GetGeometry()->ExecuteOperation(translation_real);
+  delete translation_real;
   mitk::RenderingManager::GetInstance()->RequestUpdateAll();
 
-  for (unsigned n = 0; n < pointset_evaluation_points->GetSize(); n++)
+  double direction_register[3] = {translation_x_register, translation_y_register, translation_z_register};
+  mitk::Point3D translation_dir_register{direction_register};
+  auto *translation_register = new mitk::PointOperation(mitk::OpMOVE, 0, translation_dir_register, 0);
+  pointset_register_points->GetGeometry()->ExecuteOperation(translation_register);
+  delete translation_register;
+  mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+
+  for (unsigned n = 0; n < pointset_register_points->GetSize(); n++)
   {
-    mitk::Point3D point_copy = pointset_copy->GetPoint(n);
-    mitk::Point3D point_moved = pointset_evaluation_points->GetPoint(n);
-    double p1[3]{point_copy[0], point_copy[1], point_copy[2]};
-    double p2[3]{point_moved[0], point_moved[1], point_moved[2]};
+    mitk::Point3D points_register = pointset_register_points->GetPoint(n);
+    mitk::Point3D point_real = pointset_real_points->GetPoint(n);
+    double p1[3]{points_register[0], points_register[1], points_register[2]};
+    double p2[3]{point_real[0], point_real[1], point_real[2]};
     double distance = lancetAlgorithm::DistanceOfTwoPoints(p1, p2);
     m_Controls.evaluationTextBrowser->append("Deviation of point " + QString::number(n) + " is " +
                                              QString::number(distance));
@@ -503,11 +525,11 @@ void NodeEditor::DrrVisualization()
   mitk::CastToItkImage(image, m_movedCTimage);
   mitk::CastToMitkImage(m_movedCTimage, image_tmp);
   double Z_axis[3]{0, 0, 1};
-  RotateImage(isoc, Z_axis, rz, image_tmp);
+  RotateImage(isocw, Z_axis, rz, image_tmp);
   double Y_axis[3]{0, 1, 0};
-  RotateImage(isoc, Y_axis, ry, image_tmp);
+  RotateImage(isocw, Y_axis, ry, image_tmp);
   double X_axis[3]{1, 0, 0};
-  RotateImage(isoc, X_axis, rz, image_tmp);
+  RotateImage(isocw, X_axis, rz, image_tmp);
   double p_tmp[3]{tx, ty, tz};
   TranslateImage(p_tmp, image_tmp);
 
@@ -687,6 +709,32 @@ void NodeEditor::Register()
   m_Controls.registrationTranslationXLineEdit->setText(QString::number(registrator->GetTX()));
   m_Controls.registrationTranslationYLineEdit->setText(QString::number(registrator->GetTY()));
   m_Controls.registrationTranslationZLineEdit->setText(QString::number(registrator->GetTZ()));
+
+  // add a node containing the registration result
+  mitk::Point3D c_v = m_RegistrationCtImageDataNode->GetData()->GetGeometry()->GetCenter();
+  double isocw[3]{c_v[0] + cx, c_v[1] + cy, c_v[2] + cz};
+
+  itk::Image<short, 3>::Pointer m_movedCTimage;
+  mitk::Image::Pointer image_tmp;
+  mitk::CastToItkImage(ctimage, m_movedCTimage);
+  mitk::CastToMitkImage(m_movedCTimage, image_tmp);
+  double Z_axis[3]{0, 0, 1};
+  RotateImage(isocw, Z_axis, registrator->GetRZ(), image_tmp);
+  double Y_axis[3]{0, 1, 0};
+  RotateImage(isocw, Y_axis, registrator->GetRY(), image_tmp);
+  double X_axis[3]{1, 0, 0};
+  RotateImage(isocw, X_axis, registrator->GetRX(), image_tmp);
+  double p_tmp[3]{registrator->GetTX(), registrator->GetTY(), registrator->GetTZ()};
+  TranslateImage(p_tmp, image_tmp);
+
+  QString outputFilename = m_Controls.drrOutputFilenameLineEdit->text();
+  auto movedCT_node = mitk::DataNode::New();
+  QString movedCT_Suffix = "_register";
+  movedCT_node->SetName(outputFilename.append(movedCT_Suffix).toLocal8Bit().data());
+  movedCT_node->SetData(image_tmp);
+  GetDataStorage()->Add(movedCT_node);
+
+
 }
 
 //-------------------------------- ↑  registration part  ↑---------------------------------------
