@@ -81,6 +81,9 @@ protected:
 
   // Convert stl polydata surface to image data
   void ConvertPolyDataToImage();
+  void PolyDataToImageWithWhiteBackGround();
+  void GenerateWhiteImage();
+  void PolyDataToImageData();
   mitk::DataNode *m_InputSurfaceDataNode{nullptr};
   mitk::DataNode *m_InputImageToCropDataNode{nullptr};
   void InputSurfaceChanged(QmitkSingleNodeSelectionWidget::NodeList /*nodes*/);

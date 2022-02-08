@@ -407,7 +407,7 @@ void TwoProjectionRegistration::twoprojection_registration()
 
   optimizer->SetMaximumIteration(10);
   optimizer->SetMaximumLineIteration(4); // for Powell's method
-  optimizer->SetStepLength(4.0);
+  optimizer->SetStepLength(4);
   optimizer->SetStepTolerance(0.02);
   optimizer->SetValueTolerance(0.001);
 

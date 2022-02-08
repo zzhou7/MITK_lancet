@@ -78,7 +78,7 @@ Above are Headers for the Node Editor plugin
 Below are Headers for DRR testing
 ==============================================================*/
 #include "itkImage.h"
-#include "itkImageFileReader.h"
+// #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
 #include "itkResampleImageFilter.h"
 #include "itkCenteredEuler3DTransform.h"
@@ -89,18 +89,16 @@ Below are Headers for DRR testing
 
 #include "mitkImageCast.h"
 #include "itkRayCastInterpolateImageFunction.h"
-//---
-#include "mitkSurfaceToImageFilter.h"
+#include <boost/numeric/conversion/bounds.hpp>
 
-#include "basic.h"
 
-// void NodeEditor::ConvertPolyDataToImage()
-// {
-//   auto stlPolymesh = dynamic_cast<mitk::Surface *>(m_RegistrationCtImageDataNode->GetData());
-//   vtkNew<vtkImageData> whiteImage;
-//   double bounds[6];
-//   stlPolymesh;
-// }
+#include <vtkImageData.h>
+#include <vtkNew.h>
+#include <vtkPointData.h>
+#include <vtkPolyData.h>
+
+
+
 
 inline void NodeEditor::DrrCtImageChanged(QmitkSingleNodeSelectionWidget::NodeList /*nodes*/)
 {
@@ -233,6 +231,7 @@ void NodeEditor::ConvertPolyDataToImage()
 {
   auto imageToCrop = dynamic_cast<mitk::Image *>(m_InputImageToCropDataNode->GetData());
   auto objectSurface = dynamic_cast<mitk::Surface *>(m_InputSurfaceDataNode->GetData());
+  // imageToCrop->GetPixelType()
   mitk::Point3D imageCenter = imageToCrop->GetGeometry()->GetCenter();
   mitk::Point3D surfaceCenter = objectSurface->GetGeometry()->GetOrigin();
   double direction[3]{surfaceCenter[0] - imageCenter[0], surfaceCenter[1] - imageCenter[1], surfaceCenter[2] - imageCenter[2]};
@@ -244,9 +243,10 @@ void NodeEditor::ConvertPolyDataToImage()
   mitk::SurfaceToImageFilter::Pointer surfaceToImageFilter = mitk::SurfaceToImageFilter::New();
   surfaceToImageFilter->SetImage(imageToCrop);
   surfaceToImageFilter->SetInput(objectSurface);
-  surfaceToImageFilter->SetReverseStencil(false);
+  surfaceToImageFilter->SetReverseStencil(true);
+  surfaceToImageFilter->SetBackgroundValue(1000.0);
+  // surfaceToImageFilter->SetMakeOutputBinary(true);
   surfaceToImageFilter->Update();
-  
     // boundingBox
   auto boundingBox = mitk::GeometryData::New();
   // InitializeWithSurfaceGeometry
@@ -284,6 +284,179 @@ void NodeEditor::ConvertPolyDataToImage()
   GetDataStorage()->Add(newNode);
 
 }
+void NodeEditor::PolyDataToImageWithWhiteBackGround()
+{
+  // auto imageToCrop = dynamic_cast<mitk::Image *>(m_InputImageToCropDataNode->GetData());
+  auto objectSurface = dynamic_cast<mitk::Surface *>(m_InputSurfaceDataNode->GetData());
+
+  vtkNew<vtkImageData> whiteImage;
+  double imageBounds[6]{0};
+  double imageSpacing[3]{1, 1, 1};
+  whiteImage->SetSpacing(imageSpacing);
+
+  auto geometry = objectSurface->GetGeometry();
+  auto surfaceBounds = geometry->GetBounds();
+  for(int n =0; n<6;n++)
+  {
+    imageBounds[n] = surfaceBounds[n];
+  }
+
+  int dim[3];
+  for (int i = 0; i < 3; i++)
+  {
+    dim[i] = static_cast<int>(ceil((imageBounds[i * 2 + 1] - imageBounds[i * 2]) / imageSpacing[i]));
+  }
+  whiteImage->SetDimensions(dim);
+  whiteImage->SetExtent(0, dim[0] - 1, 0, dim[1] - 1, 0, dim[2] - 1);
+
+  double origin[3];
+  origin[0] = imageBounds[0] + imageSpacing[0] / 2;
+  origin[1] = imageBounds[2] + imageSpacing[1] / 2;
+  origin[2] = imageBounds[4] + imageSpacing[2] / 2;
+  whiteImage->SetOrigin(origin);
+  whiteImage->AllocateScalars(VTK_SHORT, 1);
+
+  // fill the image with foreground voxels:
+  short inval = 1024;
+  short outval = 0;
+  vtkIdType count = whiteImage->GetNumberOfPoints();
+  for (vtkIdType i = 0; i < count; ++i)
+  {
+    whiteImage->GetPointData()->GetScalars()->SetTuple1(i, inval);
+  }
+
+  auto imageToCrop = mitk::Image::New();
+  imageToCrop->Initialize(whiteImage);
+  imageToCrop->SetVolume(whiteImage->GetScalarPointer());
+
+  // imageToCrop->GetPixelType()
+  // mitk::Point3D imageCenter = imageToCrop->GetGeometry()->GetCenter();
+  // mitk::Point3D surfaceCenter = objectSurface->GetGeometry()->GetOrigin();
+  // double direction[3]{
+  //   surfaceCenter[0] - imageCenter[0], surfaceCenter[1] - imageCenter[1], surfaceCenter[2] - imageCenter[2]};
+  // TranslateImage(direction, imageToCrop);
+
+  // mitk::Image::Pointer convertedImage = mitk::Image::New();
+  // stencil
+  mitk::SurfaceToImageFilter::Pointer surfaceToImageFilter = mitk::SurfaceToImageFilter::New();
+  surfaceToImageFilter->SetImage(imageToCrop);
+  surfaceToImageFilter->SetInput(objectSurface);
+  surfaceToImageFilter->SetReverseStencil(false);
+  // surfaceToImageFilter->SetMakeOutputBinary(true);
+  surfaceToImageFilter->Update();
+
+  // // boundingBox
+  // auto boundingBox = mitk::GeometryData::New();
+  // // InitializeWithSurfaceGeometry
+  // auto boundingGeometry = mitk::Geometry3D::New();
+  // auto geometry = objectSurface->GetGeometry();
+  // boundingGeometry->SetBounds(geometry->GetBounds());
+  // boundingGeometry->SetOrigin(geometry->GetOrigin());
+  // boundingGeometry->SetSpacing(geometry->GetSpacing());
+  // boundingGeometry->SetIndexToWorldTransform(geometry->GetIndexToWorldTransform()->Clone());
+  // boundingGeometry->Modified();
+  // boundingBox->SetGeometry(boundingGeometry);
+  //
+  // auto cutter = mitk::BoundingShapeCropper::New();
+  // cutter->SetGeometry(boundingBox);
+  // cutter->SetInput(surfaceToImageFilter->GetOutput());
+  // cutter->Update();
+  // convertedImage = cutter->GetOutput()->Clone();
+
+  QString renameSuffix = "_converted";
+  QString outputFilename = m_Controls.drrOutputFilenameLineEdit->text();
+  auto existingNode = GetDataStorage()->GetNamedNode((outputFilename).toLocal8Bit().data());
+  auto newNode = mitk::DataNode::New();
+  // in case the output name already exists
+  if (existingNode == nullptr)
+  {
+    newNode->SetName(outputFilename.toLocal8Bit().data());
+  }
+  else
+  {
+    newNode->SetName(outputFilename.append(renameSuffix).toLocal8Bit().data());
+    m_Controls.drrOutputFilenameLineEdit->setText(outputFilename);
+  }
+  // add new node
+  newNode->SetData(surfaceToImageFilter->GetOutput());
+  GetDataStorage()->Add(newNode);
+};
+
+void NodeEditor::GenerateWhiteImage()
+{
+  auto objectSurface = dynamic_cast<mitk::Surface *>(m_InputSurfaceDataNode->GetData());
+
+  vtkNew<vtkImageData> whiteImage;
+  double imageBounds[6]{0};
+  double imageSpacing[3]{1, 1, 1};
+  whiteImage->SetSpacing(imageSpacing);
+
+  auto geometry = objectSurface->GetGeometry();
+  auto surfaceBounds = geometry->GetBounds();
+  for (int n = 0; n < 6; n++)
+  {
+    imageBounds[n] = surfaceBounds[n];
+  }
+
+  int dim[3];
+  for (int i = 0; i < 3; i++)
+  {
+    dim[i] = static_cast<int>(ceil((imageBounds[i * 2 + 1] - imageBounds[i * 2]) / imageSpacing[i]));
+  }
+  whiteImage->SetDimensions(dim);
+  whiteImage->SetExtent(0, dim[0] - 1, 0, dim[1] - 1, 0, dim[2] - 1);
+
+  double origin[3];
+  origin[0] = imageBounds[0] + imageSpacing[0] / 2;
+  origin[1] = imageBounds[2] + imageSpacing[1] / 2;
+  origin[2] = imageBounds[4] + imageSpacing[2] / 2;
+  whiteImage->SetOrigin(origin);
+  whiteImage->AllocateScalars(VTK_SHORT, 1);
+
+  // fill the image with foreground voxels:
+  short insideValue = 1024;
+  short outsideValue = 0;
+  vtkIdType count = whiteImage->GetNumberOfPoints();
+  for (vtkIdType i = 0; i < count; ++i)
+  {
+    whiteImage->GetPointData()->GetScalars()->SetTuple1(i, insideValue);
+  }
+
+  auto imageToCrop = mitk::Image::New();
+  imageToCrop->Initialize(whiteImage);
+  imageToCrop->SetVolume(whiteImage->GetScalarPointer());
+
+  //add a new node for the white image
+  auto newNode = mitk::DataNode::New();
+  newNode->SetName("White Image");
+  newNode->SetData(imageToCrop);
+  GetDataStorage()->Add(newNode);
+}
+void NodeEditor::PolyDataToImageData()
+{
+  auto imageToCrop = dynamic_cast<mitk::Image *>(m_InputImageToCropDataNode->GetData());
+  auto objectSurface = dynamic_cast<mitk::Surface *>(m_InputSurfaceDataNode->GetData());
+
+  mitk::Image::Pointer convertedImage = mitk::Image::New();
+  // stencil
+  mitk::SurfaceToImageFilter::Pointer surfaceToImageFilter = mitk::SurfaceToImageFilter::New();
+  surfaceToImageFilter->SetImage(imageToCrop);
+  surfaceToImageFilter->SetInput(objectSurface);
+  surfaceToImageFilter->SetReverseStencil(false);
+
+  surfaceToImageFilter->Update();
+  convertedImage = surfaceToImageFilter->GetOutput();
+ 
+  auto newNode = mitk::DataNode::New();
+
+    newNode->SetName("Generated CT image");
+
+  // add new node
+  newNode->SetData(convertedImage);
+  GetDataStorage()->Add(newNode);
+}
+
+
 
 
 void NodeEditor::SetUiDefault()
@@ -299,7 +472,7 @@ void NodeEditor::SetUiDefault()
   m_Controls.isocenterOffsetYLineEdit->setText("0.0");
   m_Controls.isocenterOffsetZLineEdit->setText("0.0");
   m_Controls.drrThresholdLineEdit->setText("0.0");
-  m_Controls.drrSourceToIsoDistanceLineEdit->setText("1000");
+  m_Controls.drrSourceToIsoDistanceLineEdit->setText("607");
   m_Controls.drrOutputResolutionXLineEdit->setText("1.0");
   m_Controls.drrOutputResolutionYLineEdit->setText("1.0");
   m_Controls.centralAxisOffsetXLineEdit->setText("0.0");
@@ -840,7 +1013,8 @@ void NodeEditor::CreateQtPartControl(QWidget *parent)
           this,
           &NodeEditor::InputDrrImageChanged_2);
   //stl polydata to imagedata
-  connect(m_Controls.surfaceToImagePushButton, &QPushButton::clicked, this, &NodeEditor::ConvertPolyDataToImage);
+  connect(m_Controls.surfaceToImagePushButton, &QPushButton::clicked, this, &NodeEditor::PolyDataToImageData);
+  connect(m_Controls.generateWhiteImagePushButton, &QPushButton::clicked, this, &NodeEditor::GenerateWhiteImage);
   // connect(m_Controls.widget_stl,
   //         &QmitkSingleNodeSelectionWidget::CurrentSelectionChanged,
   //         this,
