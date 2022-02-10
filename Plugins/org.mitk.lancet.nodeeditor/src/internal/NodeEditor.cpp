@@ -817,7 +817,7 @@ void NodeEditor::Register()
     return;
   }
   itk::SmartPointer<TwoProjectionRegistration> registrator = TwoProjectionRegistration::New();
-
+  registrator->SetswitchOffOptimizer(false);
   registrator->link_drr1_cast(DRR1);
   registrator->link_drr2_cast(DRR2);
   registrator->link_3d_cast(ctimage);
@@ -882,6 +882,9 @@ void NodeEditor::Register()
   m_Controls.registrationTranslationXLineEdit->setText(QString::number(registrator->GetTX()));
   m_Controls.registrationTranslationYLineEdit->setText(QString::number(registrator->GetTY()));
   m_Controls.registrationTranslationZLineEdit->setText(QString::number(registrator->GetTZ()));
+  m_Controls.registerTextBrowser->append("The metric is:");
+  m_Controls.registerTextBrowser->append(QString::number(registrator->Getmetric()));
+  m_Controls.registerTextBrowser->append("(The closer to -1 the better)");
 
   // add a node containing the registration result
   mitk::Point3D c_v = m_RegistrationCtImageDataNode->GetData()->GetGeometry()->GetCenter();
@@ -900,14 +903,121 @@ void NodeEditor::Register()
   double p_tmp[3]{registrator->GetTX(), registrator->GetTY(), registrator->GetTZ()};
   TranslateImage(p_tmp, image_tmp);
 
-  QString outputFilename = m_Controls.drrOutputFilenameLineEdit->text();
+  // QString outputFilename = m_Controls.drrOutputFilenameLineEdit->text();
   auto movedCT_node = mitk::DataNode::New();
-  QString movedCT_Suffix = "_register";
-  movedCT_node->SetName(outputFilename.append(movedCT_Suffix).toLocal8Bit().data());
+  // QString movedCT_Suffix = "_register";
+  // movedCT_node->SetName(outputFilename.append(movedCT_Suffix).toLocal8Bit().data());
+  movedCT_node->SetName("Registered image");
   movedCT_node->SetData(image_tmp);
   GetDataStorage()->Add(movedCT_node);
+}
 
+void NodeEditor::InitialMetric()
+{
+  if (m_RegistrationCtImageDataNode == nullptr || m_InputDrrImageDataNode_1 == nullptr ||
+      m_InputDrrImageDataNode_2 == nullptr)
+  {
+    MITK_ERROR << "Input nodes are not ready";
+    return;
+  }
 
+  auto ctimage = dynamic_cast<mitk::Image *>(m_RegistrationCtImageDataNode->GetData());
+  auto DRR1 = dynamic_cast<mitk::Image *>(m_InputDrrImageDataNode_1->GetData());
+  auto DRR2 = dynamic_cast<mitk::Image *>(m_InputDrrImageDataNode_2->GetData());
+
+  if (ctimage == nullptr || DRR1 == nullptr || DRR2 == nullptr)
+  {
+    MITK_ERROR << "Can't Run twoProjectionRegistration: Input images are empty";
+    m_Controls.registerTextBrowser->append("Error: Input image node is empty");
+    return;
+  }
+  itk::SmartPointer<TwoProjectionRegistration> metricCalculator = TwoProjectionRegistration::New();
+  metricCalculator->SetswitchOffOptimizer(true);
+  metricCalculator->link_drr1_cast(DRR1);
+  metricCalculator->link_drr2_cast(DRR2);
+  metricCalculator->link_3d_cast(ctimage);
+
+  double angleDRR1 = (m_Controls.angleDrr1LineEdit->text()).toDouble();
+  double angleDRR2 = (m_Controls.angleDrr2LineEdit->text()).toDouble();
+  double tx = (m_Controls.initialTranslationXLineEdit->text()).toDouble();
+  double ty = (m_Controls.initialTranslationYLineEdit->text()).toDouble();
+  double tz = (m_Controls.initialTranslationZLineEdit->text()).toDouble();
+  double cx = (m_Controls.registrationIsoOffsetXLineEdit->text()).toDouble();
+  double cy = (m_Controls.registrationIsoOffsetYLineEdit->text()).toDouble();
+  double cz = (m_Controls.registrationIsoOffsetZLineEdit->text()).toDouble();
+  double rx = (m_Controls.initialRotationXLineEdit->text()).toDouble();
+  double ry = (m_Controls.initialRotationYLineEdit->text()).toDouble();
+  double rz = (m_Controls.initialRotationZLineEdit->text()).toDouble();
+  double threshold = (m_Controls.registrationThresholdLineEdit->text()).toDouble();
+  double scd = (m_Controls.registrationSourceToIsoDistanceLineEdit->text()).toDouble();
+  double sx_1 = (m_Controls.drr1ResolutionXLineEdit->text()).toDouble();
+  double sy_1 = (m_Controls.drr1ResolutionYLineEdit->text()).toDouble();
+  double sx_2 = (m_Controls.drr2ResolutionXLineEdit->text()).toDouble();
+  double sy_2 = (m_Controls.drr2ResolutionYLineEdit->text()).toDouble();
+  double o2Dx_1 = (m_Controls.drr1CentralAxisOffsetXLineEdit->text()).toDouble();
+  double o2Dy_1 = (m_Controls.drr1CentralAxisOffsetYLineEdit->text()).toDouble();
+  double o2Dx_2 = (m_Controls.drr2CentralAxisOffsetXLineEdit->text()).toDouble();
+  double o2Dy_2 = (m_Controls.drr2CentralAxisOffsetYLineEdit->text()).toDouble();
+
+  if (sx_1 == 0 || sy_1 || sx_2 == 0 || sy_2 == 0)
+  {
+    std::cout << "FLAG!" << std::endl;
+  }
+
+  metricCalculator->SetangleDRR1(angleDRR1);
+  metricCalculator->SetangleDRR2(angleDRR2);
+  metricCalculator->Settx(tx);
+  metricCalculator->Setty(ty);
+  metricCalculator->Settz(tz);
+  metricCalculator->Setcx(cx);
+  metricCalculator->Setcy(cy);
+  metricCalculator->Setcz(cz);
+  metricCalculator->Setrx(rx);
+  metricCalculator->Setry(ry);
+  metricCalculator->Setrz(rz);
+  metricCalculator->Setthreshold(threshold);
+  metricCalculator->Setscd(scd);
+  metricCalculator->Setsx_1(sx_1);
+  metricCalculator->Setsy_1(sy_1);
+  metricCalculator->Setsx_2(sx_2);
+  metricCalculator->Setsy_2(sy_2);
+  metricCalculator->Seto2Dx_1(o2Dx_1);
+  metricCalculator->Seto2Dy_1(o2Dy_1);
+  metricCalculator->Seto2Dx_2(o2Dx_2);
+  metricCalculator->Seto2Dy_2(o2Dy_2);
+
+  metricCalculator->twoprojection_registration();
+
+  m_Controls.registerTextBrowser->append("The metric is:");
+  m_Controls.registerTextBrowser->append(QString::number(metricCalculator->Getmetric()));
+  m_Controls.registerTextBrowser->append("(The closer to -1 the better)");
+
+  // add a node containing the registration result
+  mitk::Point3D c_v = m_RegistrationCtImageDataNode->GetData()->GetGeometry()->GetCenter();
+  double isocw[3]{c_v[0] + cx, c_v[1] + cy, c_v[2] + cz};
+
+  itk::Image<short, 3>::Pointer m_movedCTimage;
+  mitk::Image::Pointer image_tmp;
+  mitk::CastToItkImage(ctimage, m_movedCTimage);
+  mitk::CastToMitkImage(m_movedCTimage, image_tmp);
+  double Z_axis[3]{0, 0, 1};
+  RotateImage(isocw, Z_axis, (m_Controls.initialRotationZLineEdit->text()).toDouble(), image_tmp);
+  double Y_axis[3]{0, 1, 0};
+  RotateImage(isocw, Y_axis, (m_Controls.initialRotationYLineEdit->text()).toDouble(), image_tmp);
+  double X_axis[3]{1, 0, 0};
+  RotateImage(isocw, X_axis, (m_Controls.initialRotationXLineEdit->text()).toDouble(), image_tmp);
+  double p_tmp[3]{(m_Controls.initialTranslationXLineEdit->text()).toDouble(),
+                  (m_Controls.initialTranslationYLineEdit->text()).toDouble(),
+                  (m_Controls.initialTranslationZLineEdit->text()).toDouble()};
+  TranslateImage(p_tmp, image_tmp);
+
+  // QString outputFilename = m_Controls.drrOutputFilenameLineEdit->text();
+  auto movedCT_node = mitk::DataNode::New();
+  // QString movedCT_Suffix = "_register";
+  // movedCT_node->SetName(outputFilename.append(movedCT_Suffix).toLocal8Bit().data());
+  movedCT_node->SetName("Initial image");
+  movedCT_node->SetData(image_tmp);
+  GetDataStorage()->Add(movedCT_node);
 }
 
 //-------------------------------- ↑  registration part  ↑---------------------------------------
@@ -1000,6 +1110,7 @@ void NodeEditor::CreateQtPartControl(QWidget *parent)
 
   //twoProjectionRegistration
   connect(m_Controls.registerPushButton, &QPushButton::clicked, this, &NodeEditor::Register);
+  connect(m_Controls.initialMetricPushButton, &QPushButton::clicked, this, &NodeEditor::InitialMetric);
   connect(m_Controls.registrationCtSingleNodeSelectionWidget,
           &QmitkSingleNodeSelectionWidget::CurrentSelectionChanged,
           this,

@@ -23,7 +23,7 @@
    <item>
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="tab_5">
       <attribute name="title">
@@ -426,7 +426,7 @@
          <item>
           <widget class="QLineEdit" name="raySourceXLineEdit">
            <property name="text">
-            <string>0.0</string>
+            <string>0</string>
            </property>
           </widget>
          </item>
@@ -440,7 +440,7 @@
          <item>
           <widget class="QLineEdit" name="raySourceYLineEdit">
            <property name="text">
-            <string>0.0</string>
+            <string>0</string>
            </property>
           </widget>
          </item>
@@ -454,7 +454,7 @@
          <item>
           <widget class="QLineEdit" name="raySourceZLineEdit">
            <property name="text">
-            <string>0.0</string>
+            <string>0</string>
            </property>
           </widget>
          </item>
@@ -472,7 +472,7 @@
          <item>
           <widget class="QLineEdit" name="isocenterXLineEdit">
            <property name="text">
-            <string>0.0</string>
+            <string>0</string>
            </property>
           </widget>
          </item>
@@ -486,7 +486,7 @@
          <item>
           <widget class="QLineEdit" name="isocenterYLineEdit">
            <property name="text">
-            <string>0.0</string>
+            <string>0</string>
            </property>
           </widget>
          </item>
@@ -500,7 +500,7 @@
          <item>
           <widget class="QLineEdit" name="isocenterZLineEdit">
            <property name="text">
-            <string>0.0</string>
+            <string>0</string>
            </property>
           </widget>
          </item>
@@ -959,6 +959,13 @@
         </layout>
        </item>
        <item>
+        <widget class="QPushButton" name="initialMetricPushButton">
+         <property name="text">
+          <string>Calculate the initial metric</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QPushButton" name="registerPushButton">
          <property name="text">
           <string>Register</string>
@@ -1059,19 +1066,6 @@
        </item>
        <item>
         <widget class="QTextBrowser" name="registerTextBrowser"/>
-       </item>
-       <item>
-        <spacer name="verticalSpacer_2">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>40</height>
-          </size>
-         </property>
-        </spacer>
        </item>
       </layout>
      </widget>

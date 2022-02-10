@@ -405,11 +405,22 @@ void TwoProjectionRegistration::twoprojection_registration()
   // optimizer->SetMaximize( true );  // for GradientDifferenceTwoImageToOneImageMetric
   optimizer->SetMaximize(false); // for NCC Normalized Cross Correlation
 
-  optimizer->SetMaximumIteration(10);
-  optimizer->SetMaximumLineIteration(4); // for Powell's method
-  optimizer->SetStepLength(4);
-  optimizer->SetStepTolerance(0.02);
-  optimizer->SetValueTolerance(0.001);
+  if (m_switchOffOptimizer)
+  {
+    optimizer->SetMaximumIteration(0);
+    optimizer->SetMaximumLineIteration(0); 
+    optimizer->SetStepLength(0);           
+    optimizer->SetStepTolerance(10); 
+    optimizer->SetValueTolerance(1); 
+  }else
+  {
+    optimizer->SetMaximumIteration(10);
+    optimizer->SetMaximumLineIteration(4); // for Powell's method
+    optimizer->SetStepLength(4);
+    optimizer->SetStepTolerance(0.02);
+    optimizer->SetValueTolerance(0.001);
+  }
+  
 
   // The optimizer weightings are set such that one degree equates to
   // one millimeter.
@@ -479,7 +490,7 @@ void TwoProjectionRegistration::twoprojection_registration()
   const int numberOfIterations = optimizer->GetCurrentIteration();
 
   const double bestValue = optimizer->GetValue();
-
+  m_metric = bestValue;
   std::cout << "Result = " << std::endl;
   std::cout << " Rotation Along X = " << RotationAlongX << " deg" << std::endl;
   std::cout << " Rotation Along Y = " << RotationAlongY << " deg" << std::endl;

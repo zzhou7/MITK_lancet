@@ -12,6 +12,9 @@ public:
   mitkClassMacroItkParent(TwoProjectionRegistration, itk::Object);
   itkNewMacro(Self);
 
+  // A switch to turn on/off the optimizer, if off, the register becomes a pure metric calculator at the current point
+  itkSetMacro(switchOffOptimizer, bool);
+  itkGetMacro(metric, float);
   // Projection angle of DRR 1 and DRR 2
   itkSetMacro(angleDRR1, float);
   itkSetMacro(angleDRR2, float);
@@ -101,6 +104,9 @@ private:
   itk::Image<float, 3>::Pointer m_image3Df;   // input CT with float pixel type
   itk::Image<float, 3>::Pointer m_image_tmp1; // DRR 1
   itk::Image<float, 3>::Pointer m_image_tmp2; // DRR 2
+
+  bool m_switchOffOptimizer{false};
+  float m_metric{0};
 
   // DRR 1 projection angle
   float m_angleDRR1{0.0};
