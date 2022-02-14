@@ -198,7 +198,7 @@ void DRRSidonJacobsRayTracingFilter::ItkImageProcessing(const itk::Image<TPixel,
     typedef itk::SiddonJacobsRayCastInterpolateImageFunction<InputImageType, double> InterpolatorType; // MODIFIED
 
     typename InterpolatorType::Pointer interpolator = InterpolatorType::New(); // MODIFIED
-    interpolator->SetTransform(transform); // MODIFIED
+    interpolator->SetTransformInput(transform);                                // MODIFIED
    
     // Set angle between projection central axis and -z axis
     interpolator->SetProjectionAngle(dtr * m_rprojection);  //MODIFIED

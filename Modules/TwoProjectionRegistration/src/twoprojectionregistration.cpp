@@ -380,7 +380,7 @@ void TwoProjectionRegistration::twoprojection_registration()
   interpolator1->SetProjectionAngle(dtr * m_angleDRR1);
   interpolator1->SetFocalPointToIsocenterDistance(m_scd);
   interpolator1->SetThreshold(m_threshold);
-  interpolator1->SetTransform(transform);
+  interpolator1->SetTransformInput(transform);
 
   interpolator1->Initialize();
 
@@ -388,7 +388,7 @@ void TwoProjectionRegistration::twoprojection_registration()
   interpolator2->SetProjectionAngle(dtr * m_angleDRR2);
   interpolator2->SetFocalPointToIsocenterDistance(m_scd);
   interpolator2->SetThreshold(m_threshold);
-  interpolator2->SetTransform(transform);
+  interpolator2->SetTransformInput(transform);
 
   interpolator2->Initialize();
 

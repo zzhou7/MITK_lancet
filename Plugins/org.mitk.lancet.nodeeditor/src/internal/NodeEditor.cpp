@@ -1015,7 +1015,7 @@ void NodeEditor::InitialMetric()
   auto movedCT_node = mitk::DataNode::New();
   // QString movedCT_Suffix = "_register";
   // movedCT_node->SetName(outputFilename.append(movedCT_Suffix).toLocal8Bit().data());
-  movedCT_node->SetName("Initial image");
+  movedCT_node->SetName("Guessed image geometry");
   movedCT_node->SetData(image_tmp);
   GetDataStorage()->Add(movedCT_node);
 }
