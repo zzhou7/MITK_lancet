@@ -966,6 +966,13 @@
         </widget>
        </item>
        <item>
+        <widget class="QPushButton" name="evolutionSearchPushButton">
+         <property name="text">
+          <string>Evolution serach</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QPushButton" name="registerPushButton">
          <property name="text">
           <string>Register</string>

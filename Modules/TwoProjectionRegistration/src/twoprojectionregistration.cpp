@@ -389,6 +389,7 @@ void TwoProjectionRegistration::twoprojection_registration()
   interpolator2->SetFocalPointToIsocenterDistance(m_scd);
   interpolator2->SetThreshold(m_threshold);
   interpolator2->SetTransformInput(transform);
+  // interpolator2->SetAddExtraTransform(true);
 
   interpolator2->Initialize();
 

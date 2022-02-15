@@ -62,6 +62,7 @@ protected:
   // TwoProjection registration 
   void Register();
   void InitialMetric();
+  void EvolutionSearch();
   mitk::DataNode *m_RegistrationCtImageDataNode{nullptr};
   mitk::DataNode *m_InputDrrImageDataNode_1{nullptr};
   mitk::DataNode *m_InputDrrImageDataNode_2{nullptr};

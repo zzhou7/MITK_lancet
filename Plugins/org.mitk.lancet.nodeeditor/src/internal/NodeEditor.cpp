@@ -15,7 +15,10 @@ Below are Headers for the Node Editor plugin
 ==============================================================*/
 #include <sstream>
 
+#include <algorithm>
 #include <cmath>
+#include <cstdlib>
+#include <time.h>
 // Blueberry
 #include <berryISelectionService.h>
 #include <berryIWorkbenchWindow.h>
@@ -60,12 +63,12 @@ Below are Headers for the Node Editor plugin
 #include <vtkPlane.h>
 #include <vtkSTLReader.h>
 
+#include <drr.h>
+#include <drrsidonjacobsraytracing.h>
 #include <eigen3/Eigen/Eigen>
 #include <mitkPadImageFilter.h>
-#include <drr.h>
 #include <nodebinder.h>
 #include <surfaceregistraion.h>
-#include <drrsidonjacobsraytracing.h>
 
 // registration header
 #include <twoprojectionregistration.h>
@@ -79,26 +82,22 @@ Below are Headers for DRR testing
 ==============================================================*/
 #include "itkImage.h"
 // #include "itkImageFileReader.h"
-#include "itkImageFileWriter.h"
-#include "itkResampleImageFilter.h"
 #include "itkCenteredEuler3DTransform.h"
-#include "itkNearestNeighborInterpolateImageFunction.h"
+#include "itkImageFileWriter.h"
 #include "itkImageRegionIteratorWithIndex.h"
+#include "itkNearestNeighborInterpolateImageFunction.h"
+#include "itkResampleImageFilter.h"
 #include "itkRescaleIntensityImageFilter.h"
 //---
 
-#include "mitkImageCast.h"
 #include "itkRayCastInterpolateImageFunction.h"
+#include "mitkImageCast.h"
 #include <boost/numeric/conversion/bounds.hpp>
-
 
 #include <vtkImageData.h>
 #include <vtkNew.h>
 #include <vtkPointData.h>
 #include <vtkPolyData.h>
-
-
-
 
 inline void NodeEditor::DrrCtImageChanged(QmitkSingleNodeSelectionWidget::NodeList /*nodes*/)
 {
@@ -223,9 +222,7 @@ void NodeEditor::EvaluateRegistration()
     m_Controls.evaluationTextBrowser->append("Deviation of point " + QString::number(n) + " is " +
                                              QString::number(distance));
   }
-
 }
-
 
 void NodeEditor::ConvertPolyDataToImage()
 {
@@ -234,10 +231,10 @@ void NodeEditor::ConvertPolyDataToImage()
   // imageToCrop->GetPixelType()
   mitk::Point3D imageCenter = imageToCrop->GetGeometry()->GetCenter();
   mitk::Point3D surfaceCenter = objectSurface->GetGeometry()->GetOrigin();
-  double direction[3]{surfaceCenter[0] - imageCenter[0], surfaceCenter[1] - imageCenter[1], surfaceCenter[2] - imageCenter[2]};
+  double direction[3]{
+    surfaceCenter[0] - imageCenter[0], surfaceCenter[1] - imageCenter[1], surfaceCenter[2] - imageCenter[2]};
   TranslateImage(direction, imageToCrop);
-  
-  
+
   mitk::Image::Pointer convertedImage = mitk::Image::New();
   // stencil
   mitk::SurfaceToImageFilter::Pointer surfaceToImageFilter = mitk::SurfaceToImageFilter::New();
@@ -247,7 +244,7 @@ void NodeEditor::ConvertPolyDataToImage()
   surfaceToImageFilter->SetBackgroundValue(1000.0);
   // surfaceToImageFilter->SetMakeOutputBinary(true);
   surfaceToImageFilter->Update();
-    // boundingBox
+  // boundingBox
   auto boundingBox = mitk::GeometryData::New();
   // InitializeWithSurfaceGeometry
   auto boundingGeometry = mitk::Geometry3D::New();
@@ -258,13 +255,13 @@ void NodeEditor::ConvertPolyDataToImage()
   boundingGeometry->SetIndexToWorldTransform(geometry->GetIndexToWorldTransform()->Clone());
   boundingGeometry->Modified();
   boundingBox->SetGeometry(boundingGeometry);
-  
+
   auto cutter = mitk::BoundingShapeCropper::New();
   cutter->SetGeometry(boundingBox);
   cutter->SetInput(surfaceToImageFilter->GetOutput());
   cutter->Update();
   convertedImage = cutter->GetOutput()->Clone();
-  
+
   QString renameSuffix = "_converted";
   QString outputFilename = m_Controls.drrOutputFilenameLineEdit->text();
   auto existingNode = GetDataStorage()->GetNamedNode((outputFilename).toLocal8Bit().data());
@@ -282,7 +279,6 @@ void NodeEditor::ConvertPolyDataToImage()
   // add new node
   newNode->SetData(convertedImage);
   GetDataStorage()->Add(newNode);
-
 }
 void NodeEditor::PolyDataToImageWithWhiteBackGround()
 {
@@ -296,7 +292,7 @@ void NodeEditor::PolyDataToImageWithWhiteBackGround()
 
   auto geometry = objectSurface->GetGeometry();
   auto surfaceBounds = geometry->GetBounds();
-  for(int n =0; n<6;n++)
+  for (int n = 0; n < 6; n++)
   {
     imageBounds[n] = surfaceBounds[n];
   }
@@ -426,7 +422,7 @@ void NodeEditor::GenerateWhiteImage()
   imageToCrop->Initialize(whiteImage);
   imageToCrop->SetVolume(whiteImage->GetScalarPointer());
 
-  //add a new node for the white image
+  // add a new node for the white image
   auto newNode = mitk::DataNode::New();
   newNode->SetName("White Image");
   newNode->SetData(imageToCrop);
@@ -446,18 +442,15 @@ void NodeEditor::PolyDataToImageData()
 
   surfaceToImageFilter->Update();
   convertedImage = surfaceToImageFilter->GetOutput();
- 
+
   auto newNode = mitk::DataNode::New();
 
-    newNode->SetName("Generated CT image");
+  newNode->SetName("Generated CT image");
 
   // add new node
   newNode->SetData(convertedImage);
   GetDataStorage()->Add(newNode);
 }
-
-
-
 
 void NodeEditor::SetUiDefault()
 {
@@ -479,7 +472,6 @@ void NodeEditor::SetUiDefault()
   m_Controls.centralAxisOffsetYLineEdit->setText("0.0");
   m_Controls.drrOutputSizeXLineEdit->setText("512");
   m_Controls.drrOutputSizeYLineEdit->setText("512");
-  
 }
 
 void NodeEditor::Drr()
@@ -577,12 +569,14 @@ void NodeEditor::DrrVisualization()
   }
   // the original input image node will be named "unnamed", and you have to rename it because it really does not have a
   // name!!
-  //auto image = GetDataStorage()->GetNamedObject<mitk::Image>((m_Controls.inputFilename->text()).toLocal8Bit().data());
+  // auto image =
+  // GetDataStorage()->GetNamedObject<mitk::Image>((m_Controls.inputFilename->text()).toLocal8Bit().data());
   auto image = dynamic_cast<mitk::Image *>(m_DrrCtImageDataNode->GetData());
-  //auto sliced = dynamic_cast<mitk::SlicedData *>(m_DrrCtImageDataNode->GetData());
-  
- // auto image = dynamic_cast<mitk::Image *>(sliced);
-  //the original input image node will be named "unnamed", and you have to rename it because it really does not have a name!!
+  // auto sliced = dynamic_cast<mitk::SlicedData *>(m_DrrCtImageDataNode->GetData());
+
+  // auto image = dynamic_cast<mitk::Image *>(sliced);
+  // the original input image node will be named "unnamed", and you have to rename it because it really does not have a
+  // name!!
   if (image == nullptr)
   {
     MITK_ERROR << "Can't Run DRR: Image null";
@@ -591,8 +585,6 @@ void NodeEditor::DrrVisualization()
   }
   itk::SmartPointer<DRRSidonJacobsRayTracingFilter> drrFilter = DRRSidonJacobsRayTracingFilter::New();
 
-
-  
   drrFilter->SetInput(image);
 
   double rprojection = (m_Controls.gantryRotationLineEdit->text()).toDouble();
@@ -630,25 +622,22 @@ void NodeEditor::DrrVisualization()
   drrFilter->Seto2Dy(o2Dy);
   drrFilter->Update();
 
-  
   QString renameSuffix = "_new";
   QString outputFilename = m_Controls.drrOutputFilenameLineEdit->text();
   auto node = GetDataStorage()->GetNamedNode(outputFilename.toLocal8Bit().data());
   auto newnode = mitk::DataNode::New();
   // in case the output name already exists
   if (node == nullptr)
-  {    
+  {
     newnode->SetName(outputFilename.toLocal8Bit().data());
   }
   else
-  {    
+  {
     newnode->SetName(outputFilename.append(renameSuffix).toLocal8Bit().data());
     m_Controls.drrOutputFilenameLineEdit->setText(outputFilename);
   }
 
-
-  //add new node for DRR geometry visualization
-
+  // add new node for DRR geometry visualization
 
   mitk::Image::Pointer image_trans = drrFilter->GetOutput();
   mitk::Point3D c_k = m_DrrCtImageDataNode->GetData()->GetGeometry()->GetCenter();
@@ -661,14 +650,11 @@ void NodeEditor::DrrVisualization()
   RotateImage(isoc, x_axis, -90, image_trans);
 
   // move the center of the image to the isocenter in the sample coordinates
-  double p[3]{c_v[0]+cx, c_v[1]+cy  ,c_v[2]+cy + scd }; // translation vector
+  double p[3]{c_v[0] + cx, c_v[1] + cy, c_v[2] + cy + scd}; // translation vector
   // mitk::Point3D direciton{p};
   TranslateImage(p, image_trans);
 
-  
-  double isocw[3]{c_v[0] + cx, c_v[1] + cy, c_v[2] + cz };
-
-  
+  double isocw[3]{c_v[0] + cx, c_v[1] + cy, c_v[2] + cz};
 
   m_Controls.isocenterXLineEdit->setText(QString::number(isocw[0]));
   m_Controls.isocenterYLineEdit->setText(QString::number(isocw[1]));
@@ -683,7 +669,7 @@ void NodeEditor::DrrVisualization()
   RotateImage(isocw, z_axis, rprojection, image_trans);
 
   // mitk::RenderingManager::GetInstance()->RequestUpdateAll();
-  
+
   auto geo_node = mitk::DataNode::New();
   QString geo_Suffix = "_visual";
   geo_node->SetName(outputFilename.append(geo_Suffix).toLocal8Bit().data());
@@ -692,39 +678,38 @@ void NodeEditor::DrrVisualization()
 
   if (m_Controls.generateMovedCtCheckBox->isChecked())
   {
-  // add a node that contains the moved CT image
-  itk::Image<short, 3>::Pointer m_movedCTimage;
-  mitk::Image::Pointer image_tmp;
-  mitk::CastToItkImage(image, m_movedCTimage);
-  mitk::CastToMitkImage(m_movedCTimage, image_tmp);
-  double Z_axis[3]{0, 0, 1};
-  RotateImage(isocw, Z_axis, rz, image_tmp);
-  double Y_axis[3]{0, 1, 0};
-  RotateImage(isocw, Y_axis, ry, image_tmp);
-  double X_axis[3]{1, 0, 0};
-  RotateImage(isocw, X_axis, rz, image_tmp);
-  double p_tmp[3]{tx, ty, tz};
-  TranslateImage(p_tmp, image_tmp);
+    // add a node that contains the moved CT image
+    itk::Image<short, 3>::Pointer m_movedCTimage;
+    mitk::Image::Pointer image_tmp;
+    mitk::CastToItkImage(image, m_movedCTimage);
+    mitk::CastToMitkImage(m_movedCTimage, image_tmp);
+    double Z_axis[3]{0, 0, 1};
+    RotateImage(isocw, Z_axis, rz, image_tmp);
+    double Y_axis[3]{0, 1, 0};
+    RotateImage(isocw, Y_axis, ry, image_tmp);
+    double X_axis[3]{1, 0, 0};
+    RotateImage(isocw, X_axis, rx, image_tmp);
+    double p_tmp[3]{tx, ty, tz};
+    TranslateImage(p_tmp, image_tmp);
 
-  auto movedCT_node = mitk::DataNode::New();
-  QString movedCT_Suffix = "_sample";
-  movedCT_node->SetName(outputFilename.append(movedCT_Suffix).toLocal8Bit().data());
-  movedCT_node->SetData(image_tmp);
-  GetDataStorage()->Add(movedCT_node);
+    auto movedCT_node = mitk::DataNode::New();
+    QString movedCT_Suffix = "_sample";
+    movedCT_node->SetName(outputFilename.append(movedCT_Suffix).toLocal8Bit().data());
+    movedCT_node->SetData(image_tmp);
+    GetDataStorage()->Add(movedCT_node);
   }
 
-  c_v[0] =(c_v[0] + cx)+ scd * sin(rprojection*3.1415926/180);
+  c_v[0] = (c_v[0] + cx) + scd * sin(rprojection * 3.1415926 / 180);
   c_v[1] = (c_v[1] + cy) - scd * cos(rprojection * 3.1415926 / 180);
   c_v[2] = c_v[2] + cz;
   // double xsourcew[3]{c_v[0] + cx, c_v[1] + cy - scd, c_v[2] + cz};
-  
 
   m_Controls.raySourceXLineEdit->setText(QString::number(c_v[0]));
   m_Controls.raySourceYLineEdit->setText(QString::number(c_v[1]));
   m_Controls.raySourceZLineEdit->setText(QString::number(c_v[2]));
 
   if (m_Controls.generateRaySourceCheckBox->isChecked())
-  {    
+  {
     mitk::Point3D point3D_raySource;
     point3D_raySource[0] = c_v[0];
     point3D_raySource[1] = c_v[1];
@@ -741,14 +726,11 @@ void NodeEditor::DrrVisualization()
 
     auto raySourceDataNode = mitk::DataNode::New();
     QString movedCT_Suffix = "_raySource";
-    raySourceDataNode->SetName((outputFilename+movedCT_Suffix).toLocal8Bit().data());
+    raySourceDataNode->SetName((outputFilename + movedCT_Suffix).toLocal8Bit().data());
     raySourceDataNode->SetData(pointSet_raySource);
     GetDataStorage()->Add(raySourceDataNode);
   }
 }
-
-
-
 
 void NodeEditor::TranslateImage(double direction[3], mitk::Image *mitkImage)
 {
@@ -760,8 +742,7 @@ void NodeEditor::TranslateImage(double direction[3], mitk::Image *mitkImage)
     // here no undo is stored, because the movement-steps aren't interesting.
     // only the start and the end is of interest to be stored for undo.
     mitkImage->GetGeometry()->ExecuteOperation(pointOperation);
-    
-    
+
     delete pointOperation;
     // updateStemCenter();
 
@@ -773,30 +754,26 @@ void NodeEditor::RotateImage(double center[3], double axis[3], double degree, mi
 {
   if (mitkImage != nullptr)
   {
-    mitk::Point3D rotateCenter{center}; 
+    mitk::Point3D rotateCenter{center};
     mitk::Vector3D rotateAxis{axis};
     auto *rotateOperation = new mitk::RotationOperation(mitk::OpROTATE, rotateCenter, rotateAxis, degree);
     // execute the Operation
     // here no undo is stored, because the movement-steps aren't interesting.
     // only the start and the end is of interest to be stored for undo.
     mitkImage->GetGeometry()->ExecuteOperation(rotateOperation);
-    
+
     delete rotateOperation;
     // updateStemCenter();
     mitk::RenderingManager::GetInstance()->RequestUpdateAll();
   }
 }
 
-
-
-
 /*=============================================================
 Above is the Code for DRR
 ==============================================================*/
 
-
 //-------------------------------- ↓  registration part  ↓---------------------------------------
-void NodeEditor::Register() 
+void NodeEditor::Register()
 {
   if (m_RegistrationCtImageDataNode == nullptr || m_InputDrrImageDataNode_1 == nullptr ||
       m_InputDrrImageDataNode_2 == nullptr)
@@ -809,7 +786,6 @@ void NodeEditor::Register()
   auto DRR1 = dynamic_cast<mitk::Image *>(m_InputDrrImageDataNode_1->GetData());
   auto DRR2 = dynamic_cast<mitk::Image *>(m_InputDrrImageDataNode_2->GetData());
 
-
   if (ctimage == nullptr || DRR1 == nullptr || DRR2 == nullptr)
   {
     MITK_ERROR << "Can't Run twoProjectionRegistration: Input images are empty";
@@ -821,8 +797,6 @@ void NodeEditor::Register()
   registrator->link_drr1_cast(DRR1);
   registrator->link_drr2_cast(DRR2);
   registrator->link_3d_cast(ctimage);
-
-  
 
   double angleDRR1 = (m_Controls.angleDrr1LineEdit->text()).toDouble();
   double angleDRR2 = (m_Controls.angleDrr2LineEdit->text()).toDouble();
@@ -846,7 +820,7 @@ void NodeEditor::Register()
   double o2Dx_2 = (m_Controls.drr2CentralAxisOffsetXLineEdit->text()).toDouble();
   double o2Dy_2 = (m_Controls.drr2CentralAxisOffsetYLineEdit->text()).toDouble();
 
-  if (sx_1 == 0 || sy_1 || sx_2 == 0 || sy_2==0)
+  if (sx_1 == 0 || sy_1 || sx_2 == 0 || sy_2 == 0)
   {
     std::cout << "FLAG!" << std::endl;
   }
@@ -1020,9 +994,180 @@ void NodeEditor::InitialMetric()
   GetDataStorage()->Add(movedCT_node);
 }
 
+void NodeEditor::EvolutionSearch()
+{
+  // use the metric of the original Powell's method but replace the optimizer
+
+  if (m_RegistrationCtImageDataNode == nullptr || m_InputDrrImageDataNode_1 == nullptr ||
+      m_InputDrrImageDataNode_2 == nullptr)
+  {
+    MITK_ERROR << "Input nodes are not ready";
+    return;
+  }
+
+  auto ctimage = dynamic_cast<mitk::Image *>(m_RegistrationCtImageDataNode->GetData());
+  auto DRR1 = dynamic_cast<mitk::Image *>(m_InputDrrImageDataNode_1->GetData());
+  auto DRR2 = dynamic_cast<mitk::Image *>(m_InputDrrImageDataNode_2->GetData());
+
+  if (ctimage == nullptr || DRR1 == nullptr || DRR2 == nullptr)
+  {
+    MITK_ERROR << "Can't Run twoProjectionRegistration: Input images are empty";
+    m_Controls.registerTextBrowser->append("Error: Input image node is empty");
+    return;
+  }
+  itk::SmartPointer<TwoProjectionRegistration> metricCalculator = TwoProjectionRegistration::New();
+  metricCalculator->SetswitchOffOptimizer(true);
+  metricCalculator->link_drr1_cast(DRR1);
+  metricCalculator->link_drr2_cast(DRR2);
+  metricCalculator->link_3d_cast(ctimage);
+
+  double angleDRR1 = (m_Controls.angleDrr1LineEdit->text()).toDouble();
+  double angleDRR2 = (m_Controls.angleDrr2LineEdit->text()).toDouble();
+  double tx = (m_Controls.initialTranslationXLineEdit->text()).toDouble();
+  double ty = (m_Controls.initialTranslationYLineEdit->text()).toDouble();
+  double tz = (m_Controls.initialTranslationZLineEdit->text()).toDouble();
+  double cx = (m_Controls.registrationIsoOffsetXLineEdit->text()).toDouble();
+  double cy = (m_Controls.registrationIsoOffsetYLineEdit->text()).toDouble();
+  double cz = (m_Controls.registrationIsoOffsetZLineEdit->text()).toDouble();
+  double rx = (m_Controls.initialRotationXLineEdit->text()).toDouble();
+  double ry = (m_Controls.initialRotationYLineEdit->text()).toDouble();
+  double rz = (m_Controls.initialRotationZLineEdit->text()).toDouble();
+  double threshold = (m_Controls.registrationThresholdLineEdit->text()).toDouble();
+  double scd = (m_Controls.registrationSourceToIsoDistanceLineEdit->text()).toDouble();
+  double sx_1 = (m_Controls.drr1ResolutionXLineEdit->text()).toDouble();
+  double sy_1 = (m_Controls.drr1ResolutionYLineEdit->text()).toDouble();
+  double sx_2 = (m_Controls.drr2ResolutionXLineEdit->text()).toDouble();
+  double sy_2 = (m_Controls.drr2ResolutionYLineEdit->text()).toDouble();
+  double o2Dx_1 = (m_Controls.drr1CentralAxisOffsetXLineEdit->text()).toDouble();
+  double o2Dy_1 = (m_Controls.drr1CentralAxisOffsetYLineEdit->text()).toDouble();
+  double o2Dx_2 = (m_Controls.drr2CentralAxisOffsetXLineEdit->text()).toDouble();
+  double o2Dy_2 = (m_Controls.drr2CentralAxisOffsetYLineEdit->text()).toDouble();
+
+  if (sx_1 == 0 || sy_1 || sx_2 == 0 || sy_2 == 0)
+  {
+    std::cout << "FLAG!" << std::endl;
+  }
+
+  metricCalculator->SetangleDRR1(angleDRR1);
+  metricCalculator->SetangleDRR2(angleDRR2);
+  metricCalculator->Settx(tx);
+  metricCalculator->Setty(ty);
+  metricCalculator->Settz(tz);
+  metricCalculator->Setcx(cx);
+  metricCalculator->Setcy(cy);
+  metricCalculator->Setcz(cz);
+  metricCalculator->Setrx(rx);
+  metricCalculator->Setry(ry);
+  metricCalculator->Setrz(rz);
+  metricCalculator->Setthreshold(threshold);
+  metricCalculator->Setscd(scd);
+  metricCalculator->Setsx_1(sx_1);
+  metricCalculator->Setsy_1(sy_1);
+  metricCalculator->Setsx_2(sx_2);
+  metricCalculator->Setsy_2(sy_2);
+  metricCalculator->Seto2Dx_1(o2Dx_1);
+  metricCalculator->Seto2Dy_1(o2Dy_1);
+  metricCalculator->Seto2Dx_2(o2Dx_2);
+  metricCalculator->Seto2Dy_2(o2Dy_2);
+
+  metricCalculator->twoprojection_registration();
+
+  const int element_size = 100;
+  const unsigned loop_counter = 2;
+  const double shrinkage = 0.7;
+  double searchRange = 20;
+  double current_point[6]{tx, ty, tz, rx, ry, rz};
+  double last_min = 1;
+
+  double tx_range[element_size]{0};
+  double ty_range[element_size]{0};
+  double tz_range[element_size]{0};
+  double rx_range[element_size]{0};
+  double ry_range[element_size]{0};
+  double rz_range[element_size]{0};
+  double metric_range[element_size]{0};
+  double metric_range_copy[element_size]{0};
+  // const double dtr = (atan(1.0) * 4.0) / 180.0;
+
+  for (unsigned n = 0; n < loop_counter; n++)
+  {
+    searchRange = searchRange * pow(shrinkage,n);
+
+    int element_counter = 0;
+    std::srand((unsigned)time(NULL));
+    for (unsigned m = 0; m < element_size; m++)
+    {
+      // std::srand((unsigned)time(NULL));
+      tx_range[element_counter] = static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / (2 * searchRange))) +
+                                  current_point[0] - searchRange;
+      // std::srand((unsigned)time(NULL));
+      ty_range[element_counter] = static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / (2 * searchRange))) +
+                                  current_point[1] - searchRange;
+      // std::srand((unsigned)time(NULL));
+      tz_range[element_counter] = static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / (2 * searchRange))) +
+                                  current_point[2] - searchRange;
+
+      // std::srand((unsigned)time(NULL));
+      rx_range[element_counter] = static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / (2 * searchRange))) +
+                                  current_point[3] - searchRange;
+      // std::srand((unsigned)time(NULL));
+      ry_range[element_counter] = static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / (2 * searchRange))) +
+                                  current_point[4] - searchRange;
+      // std::srand((unsigned)time(NULL));
+      rz_range[element_counter] = static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / (2 * searchRange))) +
+                                  current_point[5] - searchRange;
+
+      metricCalculator->Settx(tx_range[element_counter]);
+      metricCalculator->Setty(ty_range[element_counter]);
+      metricCalculator->Settz(tz_range[element_counter]);
+      metricCalculator->Setrx(rx_range[element_counter]);
+      metricCalculator->Setry(ry_range[element_counter]);
+      metricCalculator->Setrz(rz_range[element_counter]);
+      metricCalculator->twoprojection_registration();
+
+      metric_range[element_counter] = metricCalculator->Getmetric();
+      metric_range_copy[element_counter] = metricCalculator->Getmetric();
+      // m_Controls.registerTextBrowser->append("The metric is:");
+      m_Controls.registerTextBrowser->append("Current metric is: " + QString::number(metricCalculator->Getmetric()));
+      m_Controls.registerTextBrowser->append("Search range: " + QString::number(searchRange));
+      element_counter = element_counter + 1;
+
+    }
+
+    std::sort(metric_range, metric_range + element_size);
+    double current_min = metric_range[0];
+    
+
+    int search_counter = 0;
+    for (unsigned i = 0; i < element_size; i++)
+    {
+      if (fabs(metric_range_copy[search_counter]-current_min) < 0.00001 && last_min > current_min)
+      {
+        
+        current_point[0] = tx_range[search_counter];
+        current_point[1] = ty_range[search_counter];
+        current_point[2] = tz_range[search_counter];
+        current_point[3] = rx_range[search_counter];
+        current_point[4] = ry_range[search_counter];
+        current_point[5] = rz_range[search_counter];
+        m_Controls.registerTextBrowser->append("The current min metric is:");
+        m_Controls.registerTextBrowser->append(QString::number(current_min));
+        m_Controls.registerTextBrowser->append(QString::number(current_point[0]) + " " +
+                                               QString::number(current_point[1]) + " " +
+                                               QString::number(current_point[2]) + " " +
+                                               QString::number(current_point[3]) + " " +
+                                               QString::number(current_point[4]) + " " + 
+                                               QString::number(current_point[5]));
+        last_min = current_min;
+        break;
+      }
+      search_counter = search_counter + 1;
+    }
+  }
+  
+}
+
 //-------------------------------- ↑  registration part  ↑---------------------------------------
-
-
 
 //-------------------------------- ↓  QT part  ↓---------------------------------------
 
@@ -1059,15 +1204,14 @@ void NodeEditor::InitNodeSelector(QmitkSingleNodeSelectionWidget *widget)
   widget->SetPopUpTitel(QString("Select node"));
 }
 
-
 void NodeEditor::CreateQtPartControl(QWidget *parent)
 {
   // create GUI widgets from the Qt Designer's .ui file
   m_Controls.setupUi(parent);
-  //connect(m_Controls.buttonPerformImageProcessing, &QPushButton::clicked, this, &NodeEditor::DoImageProcessing);
+  // connect(m_Controls.buttonPerformImageProcessing, &QPushButton::clicked, this, &NodeEditor::DoImageProcessing);
 
   // Set Node Selection Widget
-  
+
   InitNodeSelector(m_Controls.drrCtImageSingleNodeSelectionWidget);
   InitNodeSelector(m_Controls.widget_Poly);
   InitNodeSelector(m_Controls.widget_CropImage);
@@ -1076,7 +1220,7 @@ void NodeEditor::CreateQtPartControl(QWidget *parent)
   InitNodeSelector(m_Controls.registrationDrr2SingleNodeSelectionWidget);
   InitNodeSelector(m_Controls.rawCtImageSingleNodeSelectionWidget);
   InitNodeSelector(m_Controls.evaluationPointsSingleNodeSelectionWidget);
-   
+
   connect(m_Controls.rawCtImageSingleNodeSelectionWidget,
           &QmitkSingleNodeSelectionWidget::CurrentSelectionChanged,
           this,
@@ -1087,15 +1231,13 @@ void NodeEditor::CreateQtPartControl(QWidget *parent)
           &NodeEditor::EvaluationPointsChanged);
   connect(m_Controls.evaluateRegisterPushButton, &QPushButton::clicked, this, &NodeEditor::EvaluateRegistration);
 
-
-  //drr
+  // drr
   connect(m_Controls.recoverDefaultValuesPushButton, &QPushButton::clicked, this, &NodeEditor::SetUiDefault);
   connect(m_Controls.generateDrrPushButton, &QPushButton::clicked, this, &NodeEditor::Drr);
   connect(m_Controls.drrCtImageSingleNodeSelectionWidget,
           &QmitkSingleNodeSelectionWidget::CurrentSelectionChanged,
           this,
           &NodeEditor::DrrCtImageChanged);
-
 
   connect(m_Controls.widget_CropImage,
           &QmitkSingleNodeSelectionWidget::CurrentSelectionChanged,
@@ -1107,10 +1249,10 @@ void NodeEditor::CreateQtPartControl(QWidget *parent)
           this,
           &NodeEditor::InputSurfaceChanged);
 
-
-  //twoProjectionRegistration
+  // twoProjectionRegistration
   connect(m_Controls.registerPushButton, &QPushButton::clicked, this, &NodeEditor::Register);
   connect(m_Controls.initialMetricPushButton, &QPushButton::clicked, this, &NodeEditor::InitialMetric);
+  connect(m_Controls.evolutionSearchPushButton, &QPushButton::clicked, this, &NodeEditor::EvolutionSearch);
   connect(m_Controls.registrationCtSingleNodeSelectionWidget,
           &QmitkSingleNodeSelectionWidget::CurrentSelectionChanged,
           this,
@@ -1123,19 +1265,13 @@ void NodeEditor::CreateQtPartControl(QWidget *parent)
           &QmitkSingleNodeSelectionWidget::CurrentSelectionChanged,
           this,
           &NodeEditor::InputDrrImageChanged_2);
-  //stl polydata to imagedata
+  // stl polydata to imagedata
   connect(m_Controls.surfaceToImagePushButton, &QPushButton::clicked, this, &NodeEditor::PolyDataToImageData);
   connect(m_Controls.generateWhiteImagePushButton, &QPushButton::clicked, this, &NodeEditor::GenerateWhiteImage);
   // connect(m_Controls.widget_stl,
   //         &QmitkSingleNodeSelectionWidget::CurrentSelectionChanged,
   //         this,
   //         &NodeEditor::inputstldataChanged);
-  
-
 }
 
-
-
 //-------------------------------- ↑  QT part  ↑---------------------------------------
-
-
