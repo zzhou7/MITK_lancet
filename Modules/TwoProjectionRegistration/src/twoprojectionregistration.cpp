@@ -185,7 +185,7 @@ void TwoProjectionRegistration::twoprojection_registration()
   metric->ComputeGradientOff();
   metric->SetSubtractMean(true);
 
-  registration->SetMetric(metric);
+  // registration->SetMetric(metric);
   registration->SetOptimizer(optimizer);
   registration->SetTransform(transform);
   registration->SetInterpolator1(interpolator1);
@@ -278,6 +278,22 @@ void TwoProjectionRegistration::twoprojection_registration()
   // constant for converting degrees to radians
   const double dtr = (atan(1.0) * 4.0) / 180.0;
   transform->SetRotation(dtr * m_rx, dtr * m_ry, dtr * m_rz);
+
+  metric->SetTranslationX(m_tx);
+  metric->SetTranslationY(m_ty);
+  metric->SetTranslationZ(m_tz);
+  metric->SetRotationX(dtr * m_rx);
+  metric->SetRotationY(dtr * m_ry);
+  metric->SetRotationZ(dtr * m_rz);
+  if (m_registerTranslation == false)
+  {
+    metric->SetOptimizeTranslation(false);
+  }
+  if (m_registerRotation == false)
+  {
+    metric->SetOptimizeRotation(false);
+  }
+  registration->SetMetric(metric);
 
   // The centre of rotation is set by default to the centre of the 3D
   // volume but can be offset from this position using a command

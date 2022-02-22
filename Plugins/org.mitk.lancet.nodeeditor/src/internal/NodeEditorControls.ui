@@ -19,11 +19,11 @@
   <property name="windowTitle">
    <string>QmitkTemplate</string>
   </property>
-  <layout class="QHBoxLayout" name="horizontalLayout_7">
+  <layout class="QVBoxLayout" name="verticalLayout_6">
    <item>
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>1</number>
+      <number>4</number>
      </property>
      <widget class="QWidget" name="tab_5">
       <attribute name="title">
@@ -968,16 +968,34 @@
        <item>
         <widget class="QPushButton" name="evolutionSearchPushButton">
          <property name="text">
-          <string>Evolution serach</string>
+          <string>Translation-rotation-coupled evolution serach</string>
          </property>
         </widget>
        </item>
        <item>
         <widget class="QPushButton" name="registerPushButton">
          <property name="text">
-          <string>Register</string>
+          <string>Translation-rotation-coupled register</string>
          </property>
         </widget>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_7">
+         <item>
+          <widget class="QPushButton" name="translationRegisterPushButton">
+           <property name="text">
+            <string>Translation register</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="rotationRegisterPushButton">
+           <property name="text">
+            <string>Rotation register</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </item>
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout_31">
@@ -1175,6 +1193,40 @@
        </item>
        <item>
         <spacer name="verticalSpacer_3">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tab">
+      <attribute name="title">
+       <string>Add annotation</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_7">
+       <item>
+        <widget class="QLabel" name="label_69">
+         <property name="text">
+          <string>Test annotation</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="addAnnotationPushButton">
+         <property name="text">
+          <string>Add annotation</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer_2">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
          </property>

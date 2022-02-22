@@ -61,6 +61,8 @@ protected:
   
   // TwoProjection registration 
   void Register();
+  void TranslationRegister();
+  void RotationRegister();
   void InitialMetric();
   void EvolutionSearch();
   mitk::DataNode *m_RegistrationCtImageDataNode{nullptr};
@@ -91,6 +93,8 @@ protected:
   void InputSurfaceChanged(QmitkSingleNodeSelectionWidget::NodeList /*nodes*/);
   void InputImageToCropChanged(QmitkSingleNodeSelectionWidget::NodeList /*nodes*/);
 
+  // Add annotation
+  void AddAnnotation();
 };
 
 #endif // NodeEditor_h

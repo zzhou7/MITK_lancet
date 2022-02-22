@@ -15,6 +15,12 @@ public:
   // A switch to turn on/off the optimizer, if off, the register becomes a pure metric calculator at the current point
   itkSetMacro(switchOffOptimizer, bool);
   itkGetMacro(metric, float);
+
+  // to decouple translation and rotation registration
+  itkSetMacro(registerTranslation, bool);
+  itkSetMacro(registerRotation, bool);
+
+
   // Projection angle of DRR 1 and DRR 2
   itkSetMacro(angleDRR1, float);
   itkSetMacro(angleDRR2, float);
@@ -105,8 +111,13 @@ private:
   itk::Image<float, 3>::Pointer m_image_tmp1; // DRR 1
   itk::Image<float, 3>::Pointer m_image_tmp2; // DRR 2
 
+  // for the purpose of initial metric calculation purpose
   bool m_switchOffOptimizer{false};
   float m_metric{0};
+
+  // to decouple translation and rotation registration
+  bool m_registerTranslation{true};
+  bool m_registerRotation{true};
 
   // DRR 1 projection angle
   float m_angleDRR1{0.0};
