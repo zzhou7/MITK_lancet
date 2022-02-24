@@ -93,6 +93,10 @@ protected:
   void InputSurfaceChanged(QmitkSingleNodeSelectionWidget::NodeList /*nodes*/);
   void InputImageToCropChanged(QmitkSingleNodeSelectionWidget::NodeList /*nodes*/);
 
+  // add annotation to the vertebra
+  void InputSingleVertebraChanged(QmitkSingleNodeSelectionWidget::NodeList /*nodes*/);
+  mitk::DataNode *m_SingleVertebraDataNode{nullptr};
+
   // Add annotation
   void AddAnnotation();
 };

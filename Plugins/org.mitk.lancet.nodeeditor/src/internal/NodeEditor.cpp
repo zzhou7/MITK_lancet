@@ -147,6 +147,12 @@ void NodeEditor::EvaluationPointsChanged(QmitkSingleNodeSelectionWidget::NodeLis
   m_EvaluationPointsDataNode = m_Controls.evaluationPointsSingleNodeSelectionWidget->GetSelectedNode();
 }
 
+void NodeEditor::InputSingleVertebraChanged(QmitkSingleNodeSelectionWidget::NodeList)
+{
+  m_SingleVertebraDataNode = m_Controls.vertebraSingleNodeSelectionWidget->GetSelectedNode();
+}
+
+
 void NodeEditor::EvaluateRegistration()
 {
   auto image_original_ct = dynamic_cast<mitk::Image *>(m_RawCtImageDataNode->GetData());
@@ -1002,7 +1008,7 @@ void NodeEditor::RotationRegister()
   RotateImage(isocw, Y_axis, registrator->GetRY(), image_tmp);
   double X_axis[3]{1, 0, 0};
   RotateImage(isocw, X_axis, registrator->GetRX(), image_tmp);
-  double p_tmp[3]{registrator->GetTX(), registrator->GetTY(), registrator->GetTZ()};
+  double p_tmp[3]{tx, ty, tz};
   TranslateImage(p_tmp, image_tmp);
 
   // QString outputFilename = m_Controls.drrOutputFilenameLineEdit->text();
@@ -1116,11 +1122,11 @@ void NodeEditor::TranslationRegister()
   mitk::CastToItkImage(ctimage, m_movedCTimage);
   mitk::CastToMitkImage(m_movedCTimage, image_tmp);
   double Z_axis[3]{0, 0, 1};
-  RotateImage(isocw, Z_axis, registrator->GetRZ(), image_tmp);
+  RotateImage(isocw, Z_axis, rz, image_tmp);
   double Y_axis[3]{0, 1, 0};
-  RotateImage(isocw, Y_axis, registrator->GetRY(), image_tmp);
+  RotateImage(isocw, Y_axis, ry, image_tmp);
   double X_axis[3]{1, 0, 0};
-  RotateImage(isocw, X_axis, registrator->GetRX(), image_tmp);
+  RotateImage(isocw, X_axis, rx, image_tmp);
   double p_tmp[3]{registrator->GetTX(), registrator->GetTY(), registrator->GetTZ()};
   TranslateImage(p_tmp, image_tmp);
 
@@ -1418,23 +1424,6 @@ void NodeEditor::EvolutionSearch()
 
 void NodeEditor::AddAnnotation()
 {
-  // // Create a textAnnotation2D
-  // mitk::TextAnnotation2D::Pointer textAnnotation = mitk::TextAnnotation2D::New();
-  // textAnnotation->SetText("Test!"); // set UTF-8 encoded text to render
-  // textAnnotation->SetFontSize(40);
-  // textAnnotation->SetColor(1, 0, 0); // Set text color to red
-  // textAnnotation->SetOpacity(1);
-  // // The position of the Annotation can be set to a fixed coordinate on the display.
-  // mitk::Point2D pos;
-  // pos[0] = 10;
-  // pos[1] = 20;
-  // textAnnotation->SetPosition2D(pos);
-  // std::string rendererID = GetRenderWindowPart()->GetActiveQmitkRenderWindow()->GetRenderer()->GetName();
-  // MITK_ERROR << rendererID;
-  // // The LayoutAnnotationRenderer can place the TextAnnotation2D at some defined corner positions
-  // mitk::LayoutAnnotationRenderer::AddAnnotation(
-  //   textAnnotation, "3d", mitk::LayoutAnnotationRenderer::TopLeft, 5, 5, 1);
-
   mitk::PointSet::Pointer pointset = mitk::PointSet::New();
   // This vector is used to define an offset for the annotations, in order to show them with a margin to the actual
   // coordinate.
@@ -1449,9 +1438,14 @@ void NodeEditor::AddAnnotation()
     // To each point, a TextAnnotation3D is created
     mitk::TextAnnotation3D::Pointer textAnnotation3D = mitk::TextAnnotation3D::New();
     mitk::Point3D point;
-    point[0] = 0;
-    point[1] = 0;
-    point[2] = 0;
+    // point[0] = 0;
+    // point[1] = 0;
+    // point[2] = 0;
+    auto vertebraSurface = dynamic_cast<mitk::Surface *>(m_SingleVertebraDataNode->GetData());
+    auto boundingGeometry = mitk::Geometry3D::New();
+    // auto geometry = vertebraSurface->GetGeometry();
+    point = vertebraSurface->GetGeometry()->GetCenter();
+
     pointset->InsertPoint(0, point);
     textAnnotation3D->SetText("A Point");
     // The Position is set to the point coordinate to create an annotation to the point in the PointSet.
@@ -1461,23 +1455,21 @@ void NodeEditor::AddAnnotation()
     annotationReferences.push_back(textAnnotation3D);
     // mitk::ManualPlacementAnnotationRenderer::AddAnnotation(textAnnotation3D, rendererID);
      auto name = GetRenderWindowPart()->GetQmitkRenderWindow("3d")->GetRenderer()->GetName();
+
     // auto name = GetRenderWindowPart()->GetQmitkRenderWindow("3d")->get
     MITK_ERROR << name;
-    // mitk::ManualPlacementAnnotationRenderer::AddAnnotation(textAnnotation3D, name);
+    mitk::ManualPlacementAnnotationRenderer::AddAnnotation(textAnnotation3D, name);
+    textAnnotation3D->Update(GetRenderWindowPart()->GetQmitkRenderWindow("3d")->GetRenderer());
+    // GetRenderWindowPart()->GetQmitkRenderWindow("3d")->RequestUpdate();
+    // RequestRenderWindowUpdate();
   
   auto datanode = mitk::DataNode::New();
    
   datanode->SetData(pointset);
+  datanode->SetName((m_Controls.vertebraNameLineEdit->text().append(" center")).toLocal8Bit().data());
   datanode->SetFloatProperty("pointsize", 3);
-  datanode->SetProperty("label", mitk::StringProperty::New("L"));
+  datanode->SetProperty("label", mitk::StringProperty::New((m_Controls.vertebraNameLineEdit->text()).toLocal8Bit().data()));
   GetDataStorage()->Add(datanode);
-  // // Get the MicroserviceID of the registered textAnnotation
-  // std::string serviceID = textAnnotation3D->GetMicroserviceID();
-  // MITK_ERROR << serviceID;
-  // // // The AnnotationUtils can retrieve any registered annotations by their microservice ID
-  // mitk::Annotation *annotation = mitk::AnnotationUtils::GetAnnotation(serviceID);
-  // // // This way, it is possible to change the properties of Annotations without knowing their implementation
-  // annotation->SetText("changed text!");
 }
 
 
@@ -1533,6 +1525,7 @@ void NodeEditor::CreateQtPartControl(QWidget *parent)
   InitNodeSelector(m_Controls.registrationDrr2SingleNodeSelectionWidget);
   InitNodeSelector(m_Controls.rawCtImageSingleNodeSelectionWidget);
   InitNodeSelector(m_Controls.evaluationPointsSingleNodeSelectionWidget);
+  InitNodeSelector(m_Controls.vertebraSingleNodeSelectionWidget);
 
   connect(m_Controls.rawCtImageSingleNodeSelectionWidget,
           &QmitkSingleNodeSelectionWidget::CurrentSelectionChanged,
@@ -1580,6 +1573,10 @@ void NodeEditor::CreateQtPartControl(QWidget *parent)
           &QmitkSingleNodeSelectionWidget::CurrentSelectionChanged,
           this,
           &NodeEditor::InputDrrImageChanged_2);
+  connect(m_Controls.vertebraSingleNodeSelectionWidget,
+          &QmitkSingleNodeSelectionWidget::CurrentSelectionChanged,
+          this,
+          &NodeEditor::InputSingleVertebraChanged);
   // stl polydata to imagedata
   connect(m_Controls.surfaceToImagePushButton, &QPushButton::clicked, this, &NodeEditor::PolyDataToImageData);
   connect(m_Controls.generateWhiteImagePushButton, &QPushButton::clicked, this, &NodeEditor::GenerateWhiteImage);

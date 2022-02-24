@@ -19,8 +19,8 @@
   <property name="windowTitle">
    <string>QmitkTemplate</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout_6">
-   <item>
+  <layout class="QFormLayout" name="formLayout">
+   <item row="0" column="1">
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
       <number>4</number>
@@ -1210,13 +1210,34 @@
       <attribute name="title">
        <string>Add annotation</string>
       </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout_7">
+      <layout class="QVBoxLayout" name="verticalLayout_6">
        <item>
-        <widget class="QLabel" name="label_69">
-         <property name="text">
-          <string>Test annotation</string>
-         </property>
-        </widget>
+        <layout class="QHBoxLayout" name="horizontalLayout_34">
+         <item>
+          <widget class="QLabel" name="label_71">
+           <property name="text">
+            <string>Vertebra polydata: </string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QmitkSingleNodeSelectionWidget" name="vertebraSingleNodeSelectionWidget" native="true"/>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_8">
+         <item>
+          <widget class="QLabel" name="label_70">
+           <property name="text">
+            <string>Vertebra Index: </string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="vertebraNameLineEdit"/>
+         </item>
+        </layout>
        </item>
        <item>
         <widget class="QPushButton" name="addAnnotationPushButton">
@@ -1226,7 +1247,7 @@
         </widget>
        </item>
        <item>
-        <spacer name="verticalSpacer_2">
+        <spacer name="verticalSpacer_7">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
          </property>
