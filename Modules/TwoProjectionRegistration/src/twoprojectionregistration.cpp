@@ -285,6 +285,7 @@ void TwoProjectionRegistration::twoprojection_registration()
   metric->SetRotationX(dtr * m_rx);
   metric->SetRotationY(dtr * m_ry);
   metric->SetRotationZ(dtr * m_rz);
+
   if (m_registerTranslation == false)
   {
     metric->SetOptimizeTranslation(false);
@@ -444,12 +445,15 @@ void TwoProjectionRegistration::twoprojection_registration()
 
   itk::Optimizer::ScalesType weightings(transform->GetNumberOfParameters());
 
+  // Weightings only have to do with the speed of line search at each direction in the Powell's method
   weightings[0] = 1. / dtr;
   weightings[1] = 1. / dtr;
   weightings[2] = 1. / dtr;
   weightings[3] = 1.;
   weightings[4] = 1.;
   weightings[5] = 1.;
+
+
 
   optimizer->SetScales(weightings);
 
