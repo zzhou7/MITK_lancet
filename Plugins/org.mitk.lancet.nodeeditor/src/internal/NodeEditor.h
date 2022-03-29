@@ -10,7 +10,6 @@ found in the LICENSE file.
 
 ============================================================================*/
 
-
 #ifndef NodeEditor_h
 #define NodeEditor_h
 
@@ -41,25 +40,30 @@ public:
   static const std::string VIEW_ID;
 
 protected:
-    
   virtual void CreateQtPartControl(QWidget *parent) override;
 
   virtual void SetFocus() override;
-  
+
   Ui::NodeEditorControls m_Controls;
-  
+
   void InitPointSetSelector(QmitkSingleNodeSelectionWidget *widget);
   void InitNodeSelector(QmitkSingleNodeSelectionWidget *widget);
 
   // DRR
-  void SetUiDefault(); 
+  void SetUiDefault();
   void Drr();
   void DrrVisualization();
   void DrrGenerateData();
   mitk::DataNode *m_DrrCtImageDataNode{nullptr};
   void DrrCtImageChanged(QmitkSingleNodeSelectionWidget::NodeList /*nodes*/);
-  
-  // TwoProjection registration 
+
+  // new DRR
+  void NewDrrGenerateData();
+  void VisualizeDrrProjectionModel();
+  mitk::DataNode *m_NewDrrCtImageDataNode{nullptr};
+  void NewDrrCtImageChanged(QmitkSingleNodeSelectionWidget::NodeList /*nodes*/);
+
+  // TwoProjection registration
   void Register();
   void InitialMetric();
   mitk::DataNode *m_RegistrationCtImageDataNode{nullptr};
@@ -89,7 +93,6 @@ protected:
   mitk::DataNode *m_InputImageToCropDataNode{nullptr};
   void InputSurfaceChanged(QmitkSingleNodeSelectionWidget::NodeList /*nodes*/);
   void InputImageToCropChanged(QmitkSingleNodeSelectionWidget::NodeList /*nodes*/);
-
 };
 
 #endif // NodeEditor_h

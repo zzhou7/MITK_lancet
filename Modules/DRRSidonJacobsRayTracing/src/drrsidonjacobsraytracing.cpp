@@ -56,7 +56,7 @@ void DRRSidonJacobsRayTracingFilter::ItkImageProcessing(const itk::Image<TPixel,
     typename InputImageType::Pointer itkImage = duplicator->GetOutput();
 
     // To simply Siddon-Jacob's fast ray-tracing algorithm, we force the origin of the CT image
-    // to be (0,0,0). Because we align the CT isocenter with the central axis, the projection
+    // to be (0,0,0). Because we align the CT center with the central axis, the projection
     // geometry is fully defined. The origin of the CT image becomes irrelavent.
     typename InputImageType::PointType ctOrigin;
     ctOrigin[0] = 0.0;
@@ -104,9 +104,9 @@ void DRRSidonJacobsRayTracingFilter::ItkImageProcessing(const itk::Image<TPixel,
     // to determine the equation of each corresponding ray which is cast
     // through the input volume.
 
-    typedef itk::ResampleImageFilter<InputImageType, InputImageType> FilterType; // CHECKED
+    typedef itk::ResampleImageFilter<InputImageType, InputImageType> FilterType; 
 
-    typename FilterType::Pointer filter = FilterType::New();  // CHECKED
+    typename FilterType::Pointer filter = FilterType::New();  
 
     filter->SetInput(itkImage);  // CHECKED
     filter->SetDefaultPixelValue(0);  // CHECKED
@@ -121,7 +121,7 @@ void DRRSidonJacobsRayTracingFilter::ItkImageProcessing(const itk::Image<TPixel,
     TransformType::Pointer transform = TransformType::New(); // CHECKED
 
     transform->SetComputeZYX(true); // CHECKED
-
+    
     TransformType::OutputVectorType translation; // CHECKED
 
     translation[0] = m_tx; // CHECKED
@@ -281,6 +281,7 @@ void DRRSidonJacobsRayTracingFilter::ItkImageProcessing(const itk::Image<TPixel,
     origin[0] =  m_o2Dx - m_im_sx * ((double)m_dx - 1.) / 2.; // MODIFIED 
     origin[1] =  m_o2Dy - m_im_sy * ((double)m_dy - 1.) / 2.; // MODIFIED 
     origin[2] =  - m_scd;                                       // MODIFIED
+    // origin[2] =  0;
 
     // origin[0] = -m_im_sx * m_o2Dx; // MODIFIED
     // origin[1] = -m_im_sy * m_o2Dy; // MODIFIED
@@ -326,7 +327,7 @@ void DRRSidonJacobsRayTracingFilter::ItkImageProcessing(const itk::Image<TPixel,
     typedef FlipFilterType::FlipAxesArrayType FlipAxesArrayType;
     FlipAxesArrayType flipArray;
     flipArray[0] = 0;
-    flipArray[1] = 1;
+    flipArray[1] = 1; // zzhou: this flipping is actually not required in the MITK environment??
     flipArray[2] = 0; // tricky, this line cannot be missed
 
     flipFilter->SetFlipAxes(flipArray);
@@ -337,7 +338,8 @@ void DRRSidonJacobsRayTracingFilter::ItkImageProcessing(const itk::Image<TPixel,
     // get  Pointer to output image
     mitk::Image::Pointer resultImage = this->GetOutput();
     // write into output image
-    mitk::CastToMitkImage(flipFilter->GetOutput(), resultImage);
+    // mitk::CastToMitkImage(flipFilter->GetOutput(), resultImage); // zzhou: this flipping is actually not required in the MITK environment??
+    mitk::CastToMitkImage(rescaler->GetOutput(), resultImage);
     //m_out = mitk::ImportItkImage(rescaler->GetOutput())->Clone();
 }
 

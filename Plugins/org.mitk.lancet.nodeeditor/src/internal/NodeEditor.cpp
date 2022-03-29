@@ -28,6 +28,8 @@ Below are Headers for the Node Editor plugin
 #include <QPushButton>
 
 // mitk image
+#include "vtkPlaneSource.h"
+#include "vtkSphereSource.h"
 #include "basic.h"
 #include "mitkImagePixelReadAccessor.h"
 #include "mitkImagePixelWriteAccessor.h"
@@ -103,6 +105,11 @@ Below are Headers for DRR testing
 inline void NodeEditor::DrrCtImageChanged(QmitkSingleNodeSelectionWidget::NodeList /*nodes*/)
 {
   m_DrrCtImageDataNode = m_Controls.drrCtImageSingleNodeSelectionWidget->GetSelectedNode();
+}
+
+inline void NodeEditor::NewDrrCtImageChanged(QmitkSingleNodeSelectionWidget::NodeList /*nodes*/)
+{
+  m_NewDrrCtImageDataNode = m_Controls.newDrrCtImageSingleNodeSelectionWidget->GetSelectedNode();
 }
 
 inline void NodeEditor::RegistrationCtImageChanged(QmitkSingleNodeSelectionWidget::NodeList /*nodes*/)
@@ -549,7 +556,7 @@ void NodeEditor::DrrGenerateData()
   drrFilter->Seto2Dx(o2Dx);
   drrFilter->Seto2Dy(o2Dy);
   drrFilter->Update();
-
+   
   QString renameSuffix = "_new";
   QString outputFilename = m_Controls.drrOutputFilenameLineEdit->text();
   auto node = GetDataStorage()->GetNamedNode(outputFilename.toLocal8Bit().data());
@@ -745,6 +752,321 @@ void NodeEditor::DrrVisualization()
     raySourceDataNode->SetData(pointSet_raySource);
     GetDataStorage()->Add(raySourceDataNode);
   }
+}
+
+void NodeEditor::NewDrrGenerateData() // this method incorporates the MITK coordinate system which can be regarded as the NDI coordinate system later 
+{
+  if (m_NewDrrCtImageDataNode == nullptr)
+  {
+    MITK_ERROR << "m_NewDrrCtImageDataNode null";
+    return;
+  }
+  //-------------Below: Get the size and spacing of the input image-----------
+  auto image = dynamic_cast<mitk::Image *>(m_NewDrrCtImageDataNode->GetData());
+  typedef itk::Image<float, 3> TempImageType;
+  TempImageType::Pointer image_tmp;
+  mitk::CastToItkImage(image, image_tmp);
+  const typename TempImageType::SpacingType spacing_temp = image_tmp->GetSpacing();
+  typedef typename TempImageType::RegionType TempRegionType;
+  typename TempRegionType region = image_tmp->GetBufferedRegion();
+  typename TempRegionType::SizeType size_temp = region.GetSize();
+  int dx = (m_Controls.imagerPixelNumXLineEdit->text()).toInt();
+  int dy = (m_Controls.imagerPixelNumYLineEdit->text()).toInt();
+  double sx = (m_Controls.imagerPixelSizeXLineEdit->text()).toDouble();
+  double sy = (m_Controls.imagerPixelSizeYLineEdit->text()).toDouble();
+  //-------------Above: Get the size and spacing of the input image-----------
+  
+  //-------------Below: Construct the Affine transform between coordinate systems: MITK scene, CT volume, c-arm imager, c-arm internal CT volume-------------------------
+  // Axes transform from "MITK frame" to "imager frame"
+  auto transMitk2Imager = vtkSmartPointer<vtkTransform>::New();
+  vtkSmartPointer<vtkMatrix4x4> matrixMitk2Imager = vtkSmartPointer<vtkMatrix4x4>::New();
+  transMitk2Imager->Identity();
+  transMitk2Imager->PostMultiply();
+  transMitk2Imager->RotateZ(m_Controls.imagerRzLineEdit->text().toDouble());
+  transMitk2Imager->RotateY(m_Controls.imagerRyLineEdit->text().toDouble());
+  transMitk2Imager->RotateX(m_Controls.imagerRxLineEdit->text().toDouble());
+  double translationMitk2Imager[3] = {m_Controls.imagerTxLineEdit->text().toDouble(),
+                                      m_Controls.imagerTyLineEdit->text().toDouble(),
+                                      m_Controls.imagerTzLineEdit->text().toDouble()};
+  transMitk2Imager->Translate(translationMitk2Imager);
+  transMitk2Imager->Update();
+  transMitk2Imager->GetMatrix(matrixMitk2Imager);
+
+  // Axes transform from "MITK frame" to "CT image frame"
+  auto transMitk2Ct = vtkSmartPointer<vtkTransform>::New();
+  vtkSmartPointer<vtkMatrix4x4> matrixMitk2Ct = vtkSmartPointer<vtkMatrix4x4>::New();
+  // auto transCt2Mitk = vtkSmartPointer<vtkTransform>::New();
+  vtkSmartPointer<vtkMatrix4x4> matrixCt2Mitk = vtkSmartPointer<vtkMatrix4x4>::New();
+  transMitk2Ct->Identity();
+  transMitk2Ct->PostMultiply();
+  transMitk2Ct->RotateZ(m_Controls.ctRzLineEdit->text().toDouble());
+  transMitk2Ct->RotateY(m_Controls.ctRyLineEdit->text().toDouble());
+  transMitk2Ct->RotateX(m_Controls.ctRxLineEdit->text().toDouble());
+  double translationMitk2Ct[3] = {m_Controls.ctTxLineEdit->text().toDouble(),
+                                  m_Controls.ctTyLineEdit->text().toDouble(),
+                                  m_Controls.ctTzLineEdit->text().toDouble()};
+  transMitk2Ct->Translate(translationMitk2Ct);
+  transMitk2Ct->Update();
+  transMitk2Ct->GetMatrix(matrixMitk2Ct);
+  transMitk2Ct->GetInverse(matrixCt2Mitk);
+
+  // Axes transform from "imager frame" to "original C-arm internal CT image frame"
+  auto transImager2InternalCt = vtkSmartPointer<vtkTransform>::New();
+  vtkSmartPointer<vtkMatrix4x4> matrixImager2InternalCt = vtkSmartPointer<vtkMatrix4x4>::New();
+  transImager2InternalCt->Identity();
+  transImager2InternalCt->PostMultiply();
+  transImager2InternalCt->RotateX(-90);
+  double translationImager2InternalCt[3] = {
+    m_Controls.sourceXLineEdit->text().toDouble() - spacing_temp[0] * double(size_temp[0]) / 2.0,
+    m_Controls.sourceYLineEdit->text().toDouble() - spacing_temp[2] * double(size_temp[2]) / 2.0,
+    spacing_temp[1] * double(size_temp[1]) / 2.0};
+
+  transImager2InternalCt->Translate(translationImager2InternalCt);
+  transImager2InternalCt->Update();
+  transImager2InternalCt->GetMatrix(matrixImager2InternalCt);
+
+  // Axes transform from "original C-arm internal CT image frame" to "CT image frame"
+  auto transCt2InternalCt = vtkSmartPointer<vtkTransform>::New();
+  vtkSmartPointer<vtkMatrix4x4> matrixInternalCt2Ct = vtkSmartPointer<vtkMatrix4x4>::New();
+  transCt2InternalCt->Identity();
+  transCt2InternalCt->PostMultiply();
+  // transCt2InternalCt->Concatenate(matrixCt2Mitk);
+  // transCt2InternalCt->Concatenate(matrixMitk2Imager);
+  // transCt2InternalCt->Concatenate(matrixImager2InternalCt);
+  transCt2InternalCt->Concatenate(matrixImager2InternalCt);
+  transCt2InternalCt->Concatenate(matrixMitk2Imager);
+  transCt2InternalCt->Concatenate(matrixCt2Mitk);
+  transCt2InternalCt->Update();
+  transCt2InternalCt->GetInverse(matrixInternalCt2Ct);
+  //-------------Above: Construct the Affine transform between coordinate systems-------------------------
+
+  //----------Below: Extract ZYX angles from the affine transform matrix----------
+  double rx, ry, rz;
+  double piParameter = 180 / 3.1415926;
+  if (matrixInternalCt2Ct->GetElement(0,2) < 1)
+  {
+    if (matrixInternalCt2Ct->GetElement(0, 2) > -1)
+    {
+      ry = asin(matrixInternalCt2Ct->GetElement(0, 2));
+      rx = atan2(-matrixInternalCt2Ct->GetElement(1, 2), matrixInternalCt2Ct->GetElement(2, 2));
+      rz = atan2(-matrixInternalCt2Ct->GetElement(0, 1), matrixInternalCt2Ct->GetElement(0, 0));
+    }else
+    {
+      ry = -3.1415926 / 2;
+      rx = -atan2(matrixInternalCt2Ct->GetElement(1, 0), matrixInternalCt2Ct->GetElement(1, 1));
+      rz = 0;
+    }
+  }else
+  {
+    ry = 3.1415926 / 2;
+    rx = atan2(matrixInternalCt2Ct->GetElement(1, 0), matrixInternalCt2Ct->GetElement(1, 1));
+    rz = 0;
+  }
+  rx = rx * piParameter;
+  ry = ry * piParameter;
+  rz = rz * piParameter;
+  //----------Above: Extract ZYX angles from the affine transform matrix----------
+
+  //----------Below: Construct a filter and feed in the image and the parameters generated above--------------
+  itk::SmartPointer<DRRSidonJacobsRayTracingFilter> drrFilter = DRRSidonJacobsRayTracingFilter::New();
+  
+  drrFilter->SetInput(image);
+  
+  double rprojection = 0;
+  double tx = matrixInternalCt2Ct->GetElement(0,3);
+  double ty = matrixInternalCt2Ct->GetElement(1, 3);
+  double tz = matrixInternalCt2Ct->GetElement(2, 3);
+
+  double cx = 0;
+  double cy = 0;
+  double cz = 0;
+  double threshold = (m_Controls.newDrrthresLineEdit->text()).toDouble();
+  double scd = (m_Controls.sourceZLineEdit->text()).toDouble();
+
+
+  double o2Dx = -((m_Controls.sourceXLineEdit->text()).toDouble() - sx * (dx - 1) / 2);
+  double o2Dy = -((m_Controls.sourceYLineEdit->text()).toDouble() - sy * (dy - 1) / 2);
+  
+  drrFilter->Setrprojection(rprojection);
+  drrFilter->SetObjTranslate(tx, ty, tz);
+  drrFilter->SetObjRotate(rx, ry, rz);
+  drrFilter->Setcx(cx);
+  drrFilter->Setcy(cy);
+  drrFilter->Setcz(cz);
+  drrFilter->Setthreshold(threshold);
+  drrFilter->Setscd(scd);
+  drrFilter->Setim_sx(sx);
+  drrFilter->Setim_sy(sy);
+  drrFilter->Setdx(dx);
+  drrFilter->Setdy(dy);
+  drrFilter->Seto2Dx(o2Dx);
+  drrFilter->Seto2Dy(o2Dy);
+  drrFilter->Update();
+
+  //-----------Below: add the datanode containing the DRR--------------
+  QString renameSuffix = "_new";
+  QString outputFilename = m_Controls.drrNameLineEdit->text();
+  auto node = GetDataStorage()->GetNamedNode(outputFilename.toLocal8Bit().data());
+  auto newnode = mitk::DataNode::New();
+  // in case the output name already exists
+  if (node == nullptr)
+  {
+    newnode->SetName(outputFilename.toLocal8Bit().data());
+  }
+  else
+  {
+    newnode->SetName(outputFilename.append(renameSuffix).toLocal8Bit().data());
+    m_Controls.drrNameLineEdit->setText(outputFilename);
+  }
+  // add new node
+  newnode->SetData(drrFilter->GetOutput());
+  GetDataStorage()->Add(newnode);
+  //-----------Above: add the datanode containing the DRR--------------
+
+  //-----------------Below: generate a image on the virtual monitor screen------------------
+  QString pseudoImageSuffix = "_visual";
+  outputFilename = m_Controls.drrNameLineEdit->text();
+  auto visualnewnode = mitk::DataNode::New();
+  // in case the output name already exists
+  visualnewnode->SetName(outputFilename.append(pseudoImageSuffix).toLocal8Bit().data());
+  // add new node
+  auto pseudoImage = drrFilter->GetOutput()->Clone();
+  mitk::Point3D pseudoImageOrigin;
+  pseudoImageOrigin[0] = 300 - sx * (dx - 1) / 2;
+  pseudoImageOrigin[1] = 300 - sy * (dy - 1) / 2;
+  pseudoImageOrigin[2] = 1;
+  pseudoImage->GetGeometry()->SetOrigin(pseudoImageOrigin);
+  visualnewnode->SetData(pseudoImage);
+  GetDataStorage()->Add(visualnewnode);
+
+  //-----------------Above: generate a image on the virtual monitor screen------------------
+
+  //------------Below: Print out the real parameters used for DRR generation ----------------
+  m_Controls.newDrrTextBrowser->append("rprojection: " + QString::number(rprojection));
+  m_Controls.newDrrTextBrowser->append("tx: " + QString::number(tx));
+  m_Controls.newDrrTextBrowser->append("ty: " + QString::number(ty));
+  m_Controls.newDrrTextBrowser->append("tz: " + QString::number(tz));
+  m_Controls.newDrrTextBrowser->append("rx: " + QString::number(rx));
+  m_Controls.newDrrTextBrowser->append("ry: " + QString::number(ry));
+  m_Controls.newDrrTextBrowser->append("rz: " + QString::number(rz));
+  m_Controls.newDrrTextBrowser->append("scd: " + QString::number(scd));
+  m_Controls.newDrrTextBrowser->append("sx: " + QString::number(sx));
+  m_Controls.newDrrTextBrowser->append("sy: " + QString::number(sy));
+  m_Controls.newDrrTextBrowser->append("dx: " + QString::number(dx));
+  m_Controls.newDrrTextBrowser->append("o2Dx: " + QString::number(o2Dx));
+  m_Controls.newDrrTextBrowser->append("o2Dy: " + QString::number(o2Dy));
+  //------------Above: Print out the real parameters used for DRR generation ----------------
+  
+}
+
+void NodeEditor::VisualizeDrrProjectionModel()
+{
+  //-------------Below: Visualize the real CT volume in MITK scene coordinate system -----------
+  auto image = dynamic_cast<mitk::Image *>(m_NewDrrCtImageDataNode->GetData())->Clone();
+  auto origin = image->GetGeometry()->GetOrigin();
+
+  double rz = m_Controls.ctRzLineEdit->text().toDouble();
+  double ry = m_Controls.ctRyLineEdit->text().toDouble();
+  double rx = m_Controls.ctRxLineEdit->text().toDouble();
+  double tz = m_Controls.ctTzLineEdit->text().toDouble();
+  double ty = m_Controls.ctTyLineEdit->text().toDouble();
+  double tx = m_Controls.ctTxLineEdit->text().toDouble();
+
+  double translate2MITKorigin[3] = {-origin[0], -origin[1], -origin[2]};
+  TranslateImage(translate2MITKorigin, image);
+  double center[3] = {0, 0, 0};
+  double z_axis[3]{0, 0, 1};
+  RotateImage(center, z_axis, rz, image);
+  double y_axis[3]{0, 1, 0};
+  RotateImage(center, y_axis, ry, image);
+  double x_axis[3]{1, 0, 0};
+  RotateImage(center, x_axis, rx, image);
+  double MITKorigin2CT[3] = {tx, ty, tz};
+  TranslateImage(MITKorigin2CT, image);
+
+  QString renameSuffix = "_CT_visual";
+  QString outputFilename = m_Controls.drrNameLineEdit->text();
+  auto newnode = mitk::DataNode::New();
+  newnode->SetName(outputFilename.append(renameSuffix).toLocal8Bit().data());
+  // add new node
+  newnode->SetData(image);
+  GetDataStorage()->Add(newnode);
+  //-------------Above: Visualize the real CT volume in MITK scene coordinate system -----------
+
+  //------------Below: Visualize the ray source---------------
+  double source_x = m_Controls.sourceXLineEdit->text().toDouble();
+  double source_y = m_Controls.sourceYLineEdit->text().toDouble();
+  double source_z = m_Controls.sourceZLineEdit->text().toDouble();
+  auto transMitk2Imager = vtkSmartPointer<vtkTransform>::New();
+  vtkSmartPointer<vtkMatrix4x4> matrixMitk2Imager = vtkSmartPointer<vtkMatrix4x4>::New();
+  transMitk2Imager->Identity();
+  transMitk2Imager->PostMultiply();
+  transMitk2Imager->RotateZ(m_Controls.imagerRzLineEdit->text().toDouble());
+  transMitk2Imager->RotateY(m_Controls.imagerRyLineEdit->text().toDouble());
+  transMitk2Imager->RotateX(m_Controls.imagerRxLineEdit->text().toDouble());
+  double translationMitk2Imager[3] = {m_Controls.imagerTxLineEdit->text().toDouble(),
+                                      m_Controls.imagerTyLineEdit->text().toDouble(),
+                                      m_Controls.imagerTzLineEdit->text().toDouble()};
+  transMitk2Imager->Translate(translationMitk2Imager);
+  transMitk2Imager->GetMatrix(matrixMitk2Imager);
+  Eigen::Matrix4d eigenMatrixMitk2Imager{matrixMitk2Imager->GetData()};
+  eigenMatrixMitk2Imager.transposeInPlace();
+  Eigen::Vector4d sourcePointUnderImager{source_x, source_y, source_z, 1};
+  Eigen::Vector4d sourcePointUnderMitk = eigenMatrixMitk2Imager * sourcePointUnderImager;
+  auto raySource = vtkSmartPointer<vtkSphereSource>::New();
+  raySource->SetCenter(sourcePointUnderMitk[0], sourcePointUnderMitk[1], sourcePointUnderMitk[2]);
+  raySource->SetRadius(17);
+  raySource->Update();
+
+  auto raySourceNode = mitk::DataNode::New();
+  auto raySourceSurface = mitk::Surface::New();
+  raySourceSurface->SetVtkPolyData(raySource->GetOutput());
+  raySourceNode->SetData(raySourceSurface);
+  outputFilename = m_Controls.drrNameLineEdit->text();
+  raySourceNode->SetName(outputFilename.append("_raySource_visual").toLocal8Bit().data());
+  raySourceNode->SetColor(1.0, 0.0, 0.0);
+  raySourceNode->SetVisibility(true);
+  raySourceNode->SetOpacity(0.7);
+  GetDataStorage()->Add(raySourceNode);
+  //------------Above: Visualize the ray source---------------
+
+  //-----------Below: Visualize the imager plane----------
+  int dx = (m_Controls.imagerPixelNumXLineEdit->text()).toInt();
+  int dy = (m_Controls.imagerPixelNumYLineEdit->text()).toInt();
+  double sx = (m_Controls.imagerPixelSizeXLineEdit->text()).toDouble();
+  double sy = (m_Controls.imagerPixelSizeYLineEdit->text()).toDouble();
+  Eigen::Vector4d imagerOriginUnderImager{0, 0, 0, 1};
+  Eigen::Vector4d imagerP1UnderImager{sx * double(dx - 1), 0, 0, 1};
+  Eigen::Vector4d imagerP2UnderImager{0, sy * double(dy - 1), 0, 1};
+
+  Eigen::Vector4d imagerOriginUnderMitk = eigenMatrixMitk2Imager * imagerOriginUnderImager;
+  Eigen::Vector4d imagerP1UnderMitk = eigenMatrixMitk2Imager * imagerP1UnderImager;
+  Eigen::Vector4d imagerP2UnderMitk = eigenMatrixMitk2Imager * imagerP2UnderImager;
+
+  auto imagerPlaneSource = vtkSmartPointer<vtkPlaneSource>::New();
+  imagerPlaneSource->SetOrigin(imagerOriginUnderMitk[0], imagerOriginUnderMitk[1], imagerOriginUnderMitk[2]);
+  imagerPlaneSource->SetPoint1(imagerP1UnderMitk[0], imagerP1UnderMitk[1], imagerP1UnderMitk[2]);
+  imagerPlaneSource->SetPoint2(imagerP2UnderMitk[0], imagerP2UnderMitk[1], imagerP2UnderMitk[2]);
+  imagerPlaneSource->Update();
+
+  // auto tempCalibrePlaneNode = GetDataStorage()->GetNamedNode("Calibrator Plane");
+  // if (tempCalibrePlaneNode != nullptr)
+  // {
+  //   GetDataStorage()->Remove(tempCalibrePlaneNode);
+  // }
+
+  auto imagerPlaneNode = mitk::DataNode::New();
+  auto imagerPlaneSurface = mitk::Surface::New();
+  imagerPlaneSurface->SetVtkPolyData(imagerPlaneSource->GetOutput());
+  imagerPlaneNode->SetData(imagerPlaneSurface);
+  outputFilename = m_Controls.drrNameLineEdit->text();
+  imagerPlaneNode->SetName(outputFilename.append("_imagerPlane_visual").toLocal8Bit().data());
+  imagerPlaneNode->SetColor(0.0, 0.0, 1);
+  imagerPlaneNode->SetVisibility(true);
+  imagerPlaneNode->SetOpacity(0.5);
+  GetDataStorage()->Add(imagerPlaneNode);
+  //-----------Above: Visualize the imager plane----------
+
 }
 
 
@@ -1069,6 +1391,7 @@ void NodeEditor::CreateQtPartControl(QWidget *parent)
   // Set Node Selection Widget
   
   InitNodeSelector(m_Controls.drrCtImageSingleNodeSelectionWidget);
+  InitNodeSelector(m_Controls.newDrrCtImageSingleNodeSelectionWidget);
   InitNodeSelector(m_Controls.widget_Poly);
   InitNodeSelector(m_Controls.widget_CropImage);
   InitNodeSelector(m_Controls.registrationCtSingleNodeSelectionWidget);
@@ -1087,6 +1410,9 @@ void NodeEditor::CreateQtPartControl(QWidget *parent)
           &NodeEditor::EvaluationPointsChanged);
   connect(m_Controls.evaluateRegisterPushButton, &QPushButton::clicked, this, &NodeEditor::EvaluateRegistration);
 
+  connect(m_Controls.newGenerateDrrPushButton, &QPushButton::clicked, this, &NodeEditor::NewDrrGenerateData);
+  connect(m_Controls.drrModelVisualPushButton, &QPushButton::clicked, this, &NodeEditor::VisualizeDrrProjectionModel);
+
 
   //drr
   connect(m_Controls.recoverDefaultValuesPushButton, &QPushButton::clicked, this, &NodeEditor::SetUiDefault);
@@ -1095,6 +1421,10 @@ void NodeEditor::CreateQtPartControl(QWidget *parent)
           &QmitkSingleNodeSelectionWidget::CurrentSelectionChanged,
           this,
           &NodeEditor::DrrCtImageChanged);
+  connect(m_Controls.newDrrCtImageSingleNodeSelectionWidget,
+          &QmitkSingleNodeSelectionWidget::CurrentSelectionChanged,
+          this,
+          &NodeEditor::NewDrrCtImageChanged);
 
 
   connect(m_Controls.widget_CropImage,
