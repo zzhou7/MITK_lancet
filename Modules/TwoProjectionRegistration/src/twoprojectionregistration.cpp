@@ -28,7 +28,7 @@ found in the LICENSE file.
 #include "itkSiddonJacobsRayCastInterpolateImageFunction.h"
 #include "itkTimeProbesCollectorBase.h"
 #include "twoprojectionregistration.h"
-
+#include "modifiedItkSiddonJacobsRayCastInterpolateImageFunction.h"
 //------------
 #include "itkResampleImageFilter.h"
 #include "itkRescaleIntensityImageFilter.h"
@@ -278,7 +278,7 @@ void TwoProjectionRegistration::twoprojection_registration()
   // constant for converting degrees to radians
   const double dtr = (atan(1.0) * 4.0) / 180.0;
   transform->SetRotation(dtr * m_rx, dtr * m_ry, dtr * m_rz);
-
+  
   // The centre of rotation is set by default to the centre of the 3D
   // volume but can be offset from this position using a command
   // line specified translation [cx,cy,cz]
@@ -381,7 +381,6 @@ void TwoProjectionRegistration::twoprojection_registration()
   interpolator1->SetFocalPointToIsocenterDistance(m_scd);
   interpolator1->SetThreshold(m_threshold);
   interpolator1->SetTransform(transform);
-
   interpolator1->Initialize();
 
   // 2D Image 2

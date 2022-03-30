@@ -830,9 +830,6 @@ void NodeEditor::NewDrrGenerateData() // this method incorporates the MITK coord
   vtkSmartPointer<vtkMatrix4x4> matrixInternalCt2Ct = vtkSmartPointer<vtkMatrix4x4>::New();
   transCt2InternalCt->Identity();
   transCt2InternalCt->PostMultiply();
-  // transCt2InternalCt->Concatenate(matrixCt2Mitk);
-  // transCt2InternalCt->Concatenate(matrixMitk2Imager);
-  // transCt2InternalCt->Concatenate(matrixImager2InternalCt);
   transCt2InternalCt->Concatenate(matrixImager2InternalCt);
   transCt2InternalCt->Concatenate(matrixMitk2Imager);
   transCt2InternalCt->Concatenate(matrixCt2Mitk);
@@ -871,11 +868,24 @@ void NodeEditor::NewDrrGenerateData() // this method incorporates the MITK coord
   itk::SmartPointer<DRRSidonJacobsRayTracingFilter> drrFilter = DRRSidonJacobsRayTracingFilter::New();
   
   drrFilter->SetInput(image);
-  
-  double rprojection = 0;
-  double tx = matrixInternalCt2Ct->GetElement(0,3);
-  double ty = matrixInternalCt2Ct->GetElement(1, 3);
-  double tz = matrixInternalCt2Ct->GetElement(2, 3);
+
+  // The volume center of the internal Ct volume under the internal Ct coordinate system
+  Eigen::Vector4d internalCtCenter{spacing_temp[0] * double(size_temp[0]) / 2.0,
+                                   spacing_temp[1] * double(size_temp[1]) / 2.0,
+                                   spacing_temp[2] * double(size_temp[2]) / 2.0, 1};
+  // The center of the real Ct volume under the real Ct coordinate system
+  Eigen::Vector4d ctCenter{spacing_temp[0] * double(size_temp[0]) / 2.0,
+                                   spacing_temp[1] * double(size_temp[1]) / 2.0,
+                                   spacing_temp[2] * double(size_temp[2]) / 2.0,
+                                   1};
+  Eigen::Matrix4d eigenMatrixInternalCt2Ct{matrixInternalCt2Ct->GetData()};
+  eigenMatrixInternalCt2Ct.transposeInPlace();
+  // The volume center of the real Ct volume under the internal Ct coordinate system
+  Eigen::Vector4d targetCenterPoint = eigenMatrixInternalCt2Ct * ctCenter;
+
+  double tx = targetCenterPoint[0] - ctCenter[0];
+  double ty = targetCenterPoint[1] - ctCenter[1];
+  double tz = targetCenterPoint[2] - ctCenter[2];
 
   double cx = 0;
   double cy = 0;
@@ -887,7 +897,7 @@ void NodeEditor::NewDrrGenerateData() // this method incorporates the MITK coord
   double o2Dx = -((m_Controls.sourceXLineEdit->text()).toDouble() - sx * (dx - 1) / 2);
   double o2Dy = -((m_Controls.sourceYLineEdit->text()).toDouble() - sy * (dy - 1) / 2);
   
-  drrFilter->Setrprojection(rprojection);
+  drrFilter->Setrprojection(0);
   drrFilter->SetObjTranslate(tx, ty, tz);
   drrFilter->SetObjRotate(rx, ry, rz);
   drrFilter->Setcx(cx);
@@ -942,7 +952,7 @@ void NodeEditor::NewDrrGenerateData() // this method incorporates the MITK coord
   //-----------------Above: generate a image on the virtual monitor screen------------------
 
   //------------Below: Print out the real parameters used for DRR generation ----------------
-  m_Controls.newDrrTextBrowser->append("rprojection: " + QString::number(rprojection));
+  m_Controls.newDrrTextBrowser->append("rprojection: " + QString::number(0));
   m_Controls.newDrrTextBrowser->append("tx: " + QString::number(tx));
   m_Controls.newDrrTextBrowser->append("ty: " + QString::number(ty));
   m_Controls.newDrrTextBrowser->append("tz: " + QString::number(tz));
@@ -953,6 +963,7 @@ void NodeEditor::NewDrrGenerateData() // this method incorporates the MITK coord
   m_Controls.newDrrTextBrowser->append("sx: " + QString::number(sx));
   m_Controls.newDrrTextBrowser->append("sy: " + QString::number(sy));
   m_Controls.newDrrTextBrowser->append("dx: " + QString::number(dx));
+  m_Controls.newDrrTextBrowser->append("dy: " + QString::number(dy));
   m_Controls.newDrrTextBrowser->append("o2Dx: " + QString::number(o2Dx));
   m_Controls.newDrrTextBrowser->append("o2Dy: " + QString::number(o2Dy));
   //------------Above: Print out the real parameters used for DRR generation ----------------
@@ -1049,12 +1060,6 @@ void NodeEditor::VisualizeDrrProjectionModel()
   imagerPlaneSource->SetPoint2(imagerP2UnderMitk[0], imagerP2UnderMitk[1], imagerP2UnderMitk[2]);
   imagerPlaneSource->Update();
 
-  // auto tempCalibrePlaneNode = GetDataStorage()->GetNamedNode("Calibrator Plane");
-  // if (tempCalibrePlaneNode != nullptr)
-  // {
-  //   GetDataStorage()->Remove(tempCalibrePlaneNode);
-  // }
-
   auto imagerPlaneNode = mitk::DataNode::New();
   auto imagerPlaneSurface = mitk::Surface::New();
   imagerPlaneSurface->SetVtkPolyData(imagerPlaneSource->GetOutput());
@@ -1066,11 +1071,7 @@ void NodeEditor::VisualizeDrrProjectionModel()
   imagerPlaneNode->SetOpacity(0.5);
   GetDataStorage()->Add(imagerPlaneNode);
   //-----------Above: Visualize the imager plane----------
-
 }
-
-
-
 
 void NodeEditor::TranslateImage(double direction[3], mitk::Image *mitkImage)
 {
@@ -1456,16 +1457,8 @@ void NodeEditor::CreateQtPartControl(QWidget *parent)
   //stl polydata to imagedata
   connect(m_Controls.surfaceToImagePushButton, &QPushButton::clicked, this, &NodeEditor::PolyDataToImageData);
   connect(m_Controls.generateWhiteImagePushButton, &QPushButton::clicked, this, &NodeEditor::GenerateWhiteImage);
-  // connect(m_Controls.widget_stl,
-  //         &QmitkSingleNodeSelectionWidget::CurrentSelectionChanged,
-  //         this,
-  //         &NodeEditor::inputstldataChanged);
   
-
 }
-
-
-
 //-------------------------------- ↑  QT part  ↑---------------------------------------
 
 
