@@ -883,9 +883,9 @@ void NodeEditor::NewDrrGenerateData() // this method incorporates the MITK coord
   // The volume center of the real Ct volume under the internal Ct coordinate system
   Eigen::Vector4d targetCenterPoint = eigenMatrixInternalCt2Ct * ctCenter;
 
-  double tx = targetCenterPoint[0] - ctCenter[0];
-  double ty = targetCenterPoint[1] - ctCenter[1];
-  double tz = targetCenterPoint[2] - ctCenter[2];
+  double tx = targetCenterPoint[0] - internalCtCenter[0];
+  double ty = targetCenterPoint[1] - internalCtCenter[1];
+  double tz = targetCenterPoint[2] - internalCtCenter[2];
 
   double cx = 0;
   double cy = 0;
@@ -967,7 +967,8 @@ void NodeEditor::NewDrrGenerateData() // this method incorporates the MITK coord
   m_Controls.newDrrTextBrowser->append("o2Dx: " + QString::number(o2Dx));
   m_Controls.newDrrTextBrowser->append("o2Dy: " + QString::number(o2Dy));
   //------------Above: Print out the real parameters used for DRR generation ----------------
-  
+
+
 }
 
 void NodeEditor::VisualizeDrrProjectionModel()

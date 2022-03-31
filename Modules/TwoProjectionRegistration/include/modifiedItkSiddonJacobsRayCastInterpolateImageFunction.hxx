@@ -6,6 +6,10 @@
 #include "stdlib.h"
 #include "vnl/vnl_math.h"
 #include <iostream>
+#include <eigen3/Eigen/Eigen>
+#include <vtkMatrix4x4.h>
+#include <vtkTransform.h>
+
 
 namespace itk
 {
@@ -43,6 +47,8 @@ namespace itk
     m_CamRotTransform->SetRotation(dtr * (-90.0), 0.0, 0.0);
 
     m_Threshold = 0;
+
+
   }
 
   template <typename TInputImage, typename TCoordRep>
@@ -92,7 +98,7 @@ namespace itk
       this->ComputeInverseTransform();
       // The m_SourceWorld should be computed here to avoid the repeatedly calculation
       // for each projection ray. However, we are in a const function, which prohibits
-      // the modification of class member variables. So the world coordiate of the source
+      // the modification of class member variables. So the world coordinate of the source
       // point is calculated for each ray as below. Performance improvement may be made
       // by using a static variable?
       // m_SourceWorld = m_InverseTransform->TransformPoint(m_SourcePoint);
@@ -351,8 +357,108 @@ namespace itk
   }
 
   template <typename TInputImage, typename TCoordRep>
+  void ModifiedSiddonJacobsRayCastInterpolateImageFunction<TInputImage, TCoordRep>::AppendTransformOffset() const
+  {
+    // retrieve the matrix form of the transform offset
+    Eigen::Matrix4d eigenMatrixTransformOffset{m_ArrayTransformOffset};
+    eigenMatrixTransformOffset.transposeInPlace();
+
+    // get the matrix form of m_Transform
+    typename TransformType::InputPointType isocenter;
+    isocenter = m_Transform->GetCenter();
+    double volumeCenterUndervolumeCoordinate[3]{isocenter[0], isocenter[1], isocenter[2]}; // make a copy 
+    double vtkInverseIsoTranslation[3]{-isocenter[0], -isocenter[1], -isocenter[2]};
+    double vtkIsoTranslation[3]{isocenter[0], isocenter[1], isocenter[2]};
+    double vtkTranslation[3]{
+      (m_Transform->GetTranslation())[0],
+      (m_Transform->GetTranslation())[1],
+      (m_Transform->GetTranslation())[2]};
+    auto vtkInitialTransform = vtkSmartPointer<vtkTransform>::New();
+    vtkSmartPointer<vtkMatrix4x4> vtkMatrixInitialTransform = vtkSmartPointer<vtkMatrix4x4>::New();
+    vtkInitialTransform->Identity();
+    vtkInitialTransform->PostMultiply();
+    vtkInitialTransform->Translate(vtkInverseIsoTranslation);
+    vtkInitialTransform->RotateZ(m_Transform->GetAngleZ());
+    vtkInitialTransform->RotateY(m_Transform->GetAngleY());
+    vtkInitialTransform->RotateX(m_Transform->GetAngleX());
+    vtkInitialTransform->Translate(vtkIsoTranslation);
+    vtkInitialTransform->Translate(vtkTranslation);
+    vtkInitialTransform->GetMatrix(vtkMatrixInitialTransform);
+    Eigen::Matrix4d eigenMatrixInitialTransform{vtkMatrixInitialTransform->GetData()};
+    eigenMatrixInitialTransform.transposeInPlace();
+
+    // Composite transform matrix
+    Eigen::Matrix4d eigenMatrixInitialTransform = eigenMatrixInitialTransform * eigenMatrixTransformOffset;
+
+    // The volume center of the internal Ct volume under the internal Ct coordinate system
+    Eigen::Vector4d internalCtCenter{m_MovingImageSpacing[0] * double(m_MovingImagePixelNumbers[0]) / 2.0,
+                                     m_MovingImageSpacing[1] * double(m_MovingImagePixelNumbers[1]) / 2.0,
+                                     m_MovingImageSpacing[2] * double(m_MovingImagePixelNumbers[2]) / 2.0,
+                                     1};
+    // The center of the real Ct volume under the real Ct coordinate system
+    Eigen::Vector4d ctCenter{m_MovingImageSpacing[0] * double(m_MovingImagePixelNumbers[0]) / 2.0,
+                             m_MovingImageSpacing[1] * double(m_MovingImagePixelNumbers[1]) / 2.0,
+                             m_MovingImageSpacing[2] * double(m_MovingImagePixelNumbers[2]) / 2.0,
+                             1};
+
+    // The volume center of the real Ct volume under the internal Ct coordinate system
+    Eigen::Vector4d targetCenterPoint = eigenMatrixInitialTransform * ctCenter;
+
+    // Get composite translation
+    typename TransformType::OutputVectorType compositeTranslation;
+    compositeTranslation[0] = targetCenterPoint[0] - internalCtCenter[0];
+    compositeTranslation[1] = targetCenterPoint[1] - internalCtCenter[1];
+    compositeTranslation[2] = targetCenterPoint[2] - internalCtCenter[2];
+
+    // m_Transform->SetTranslation(compositeTranslation);
+
+    // Get composite rotation rx, ry, rz
+    double rx, ry, rz;
+    // double piParameter = 180 / 3.1415926;
+    if (eigenMatrixInitialTransform(0, 2) < 1)
+    {
+      if (eigenMatrixInitialTransform(0, 2) > -1)
+      {
+        ry = asin(eigenMatrixInitialTransform(0, 2));
+        rx = atan2(-eigenMatrixInitialTransform(1, 2), eigenMatrixInitialTransform(2, 2));
+        rz = atan2(-eigenMatrixInitialTransform(0, 1), eigenMatrixInitialTransform(0, 0));
+      }
+      else
+      {
+        ry = -3.1415926 / 2;
+        rx = -atan2(eigenMatrixInitialTransform(1, 0), eigenMatrixInitialTransform(1, 1));
+        rz = 0;
+      }
+    }
+    else
+    {
+      ry = 3.1415926 / 2;
+      rx = atan2(eigenMatrixInitialTransform(1, 0), eigenMatrixInitialTransform(1, 1));
+      rz = 0;
+    }
+    rx = rx; //* piParameter;
+    ry = ry; //* piParameter;
+    rz = rz; //* piParameter;
+
+    // Update m_Transform
+    typename TransformType::InputPointType newIsocenter;
+    newIsocenter[0] = volumeCenterUndervolumeCoordinate[0];
+    newIsocenter[1] = volumeCenterUndervolumeCoordinate[1];
+    newIsocenter[2] = volumeCenterUndervolumeCoordinate[2];
+    
+    newTranslation[0] = 
+    m_Transform->SetIdentity();
+    m_Transform->SetComputeZYX();
+    m_Transform->SetCenter(newIsocenter);
+    m_Transform->SetTranslation(compositeTranslation);
+    m_Transform->SetRotation(rx, ry, rz);
+  }
+
+  template <typename TInputImage, typename TCoordRep>
   void ModifiedSiddonJacobsRayCastInterpolateImageFunction<TInputImage, TCoordRep>::ComputeInverseTransform() const
   {
+    // TODO: add a new function to update m_Transform
+    // this->AppendTransformOffset();
     m_ComposedTransform->SetIdentity();
     m_ComposedTransform->Compose(m_Transform, 0);
 

@@ -124,6 +124,19 @@ namespace itk
     itkSetMacro(Threshold, double);
     itkGetMacro(Threshold, double);
 
+    /** Offset the transform from MITK to imager to internal CT volume */
+    itkSetMacro(ArrayTransformOffset, double);
+    itkGetMacro(ArrayTransformOffset, double);
+
+    /** Set and get the spacing of the 3d volume in mm */
+    itkSetMacro(MovingImageSpacing, double);
+    itkGetMacro(MovingImageSpacing, double);
+
+    /** Set and get the pixel numbers of the 3d volume at each dimension */
+    itkSetMacro(MovingImagePixelNumbers, int);
+    itkGetMacro(MovingImagePixelNumbers, int);
+
+
     /** Check if a point is inside the image buffer.
      * \warning For efficiency, no validity checking of
      * the input image pointer is done. */
@@ -149,9 +162,22 @@ namespace itk
     double m_ProjectionAngle;               // Linac gantry rotation angle in radians
 
 
+    double m_ArrayTransformOffset[16]
+    {
+      1,0,0,0,
+      0,1,0,0,
+      0,0,1,0,
+      0,0,0,1
+    };
+
+    double m_MovingImageSpacing[3]{1, 1, 1};
+    int m_MovingImagePixelNumbers[3]{512, 512, 512};
+
+
   private:
     ModifiedSiddonJacobsRayCastInterpolateImageFunction(const Self &); // purposely not implemented
     void operator=(const Self &);                              // purposely not implemented
+    void AppendTransformOffset(void) const;
     void ComputeInverseTransform(void) const;
     TransformPointer m_GantryRotTransform; // Gantry rotation transform
     TransformPointer m_CamShiftTransform;  // Camera shift transform camRotTransform
