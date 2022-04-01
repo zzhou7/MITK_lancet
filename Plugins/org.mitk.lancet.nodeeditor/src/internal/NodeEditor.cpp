@@ -68,7 +68,7 @@ Below are Headers for the Node Editor plugin
 #include <nodebinder.h>
 #include <surfaceregistraion.h>
 #include <drrsidonjacobsraytracing.h>
-
+#include <drrGenerator.h>
 // registration header
 #include <twoprojectionregistration.h>
 
@@ -754,7 +754,7 @@ void NodeEditor::DrrVisualization()
   }
 }
 
-void NodeEditor::NewDrrGenerateData() // this method incorporates the MITK coordinate system which can be regarded as the NDI coordinate system later 
+void NodeEditor::V1DrrGenerateData() // this method incorporates the MITK coordinate system which can be regarded as the NDI coordinate system later 
 {
   if (m_NewDrrCtImageDataNode == nullptr)
   {
@@ -967,8 +967,172 @@ void NodeEditor::NewDrrGenerateData() // this method incorporates the MITK coord
   m_Controls.newDrrTextBrowser->append("o2Dx: " + QString::number(o2Dx));
   m_Controls.newDrrTextBrowser->append("o2Dy: " + QString::number(o2Dy));
   //------------Above: Print out the real parameters used for DRR generation ----------------
+ //  double m_ArrayMatrixWorldToImager[16]
+	// {
+	// 	  1,0,0,2,
+	// 	  0,1,0,3,
+	// 	  0,0,1,4,
+	// 	  0,0,0,5
+	// };
+ //  Eigen::Matrix4d matrixTest{m_ArrayMatrixWorldToImager};
+ //  m_Controls.newDrrTextBrowser->append("Element 8" + QString::number(matrixTest(7)));
+
+}
+
+void NodeEditor::V2DrrGenerateData()
+{
+  if (m_NewDrrCtImageDataNode == nullptr)
+  {
+    MITK_ERROR << "m_NewDrrCtImageDataNode null";
+    return;
+  }
+  //-------------Below: Get the size and spacing of the input image-----------
+  auto image = dynamic_cast<mitk::Image *>(m_NewDrrCtImageDataNode->GetData());
+  typedef itk::Image<float, 3> TempImageType;
+  TempImageType::Pointer image_tmp;
+  mitk::CastToItkImage(image, image_tmp);
+  const typename TempImageType::SpacingType spacing_temp = image_tmp->GetSpacing();
+  typedef typename TempImageType::RegionType TempRegionType;
+  typename TempRegionType region = image_tmp->GetBufferedRegion();
+  typename TempRegionType::SizeType size_temp = region.GetSize();
+  int dx = (m_Controls.imagerPixelNumXLineEdit->text()).toInt();
+  int dy = (m_Controls.imagerPixelNumYLineEdit->text()).toInt();
+  double sx = (m_Controls.imagerPixelSizeXLineEdit->text()).toDouble();
+  double sy = (m_Controls.imagerPixelSizeYLineEdit->text()).toDouble();
+  //-------------Above: Get the size and spacing of the input image-----------
+
+  //-------------Below: Construct the Affine transform between coordinate systems: MITK scene, CT volume, c-arm imager,
+  //and c-arm internal CT volume-------------------------
+  // Axes transform from "MITK frame" to "imager frame"
+  auto transMitk2Imager = vtkSmartPointer<vtkTransform>::New();
+  vtkSmartPointer<vtkMatrix4x4> matrixMitk2Imager = vtkSmartPointer<vtkMatrix4x4>::New();
+  transMitk2Imager->Identity();
+  transMitk2Imager->PostMultiply();
+  transMitk2Imager->RotateZ(m_Controls.imagerRzLineEdit->text().toDouble());
+  transMitk2Imager->RotateY(m_Controls.imagerRyLineEdit->text().toDouble());
+  transMitk2Imager->RotateX(m_Controls.imagerRxLineEdit->text().toDouble());
+  double translationMitk2Imager[3] = {m_Controls.imagerTxLineEdit->text().toDouble(),
+                                      m_Controls.imagerTyLineEdit->text().toDouble(),
+                                      m_Controls.imagerTzLineEdit->text().toDouble()};
+  transMitk2Imager->Translate(translationMitk2Imager);
+  transMitk2Imager->Update();
+  transMitk2Imager->GetMatrix(matrixMitk2Imager);
+
+  // Axes transform from "MITK frame" to "CT image frame"
+  auto transMitk2Ct = vtkSmartPointer<vtkTransform>::New();
+  vtkSmartPointer<vtkMatrix4x4> matrixMitk2Ct = vtkSmartPointer<vtkMatrix4x4>::New();
+  // auto transCt2Mitk = vtkSmartPointer<vtkTransform>::New();
+  vtkSmartPointer<vtkMatrix4x4> matrixCt2Mitk = vtkSmartPointer<vtkMatrix4x4>::New();
+  transMitk2Ct->Identity();
+  transMitk2Ct->PostMultiply();
+  transMitk2Ct->RotateZ(m_Controls.ctRzLineEdit->text().toDouble());
+  transMitk2Ct->RotateY(m_Controls.ctRyLineEdit->text().toDouble());
+  transMitk2Ct->RotateX(m_Controls.ctRxLineEdit->text().toDouble());
+  double translationMitk2Ct[3] = {m_Controls.ctTxLineEdit->text().toDouble(),
+                                  m_Controls.ctTyLineEdit->text().toDouble(),
+                                  m_Controls.ctTzLineEdit->text().toDouble()};
+  transMitk2Ct->Translate(translationMitk2Ct);
+  transMitk2Ct->Update();
+  transMitk2Ct->GetMatrix(matrixMitk2Ct);
+  transMitk2Ct->GetInverse(matrixCt2Mitk);
+
+  
 
 
+
+
+
+  //----------Below: Construct a filter and feed in the image and the parameters generated above--------------
+  itk::SmartPointer<DrrGenerator> drrFilter = DrrGenerator::New();
+
+
+
+  // The volume center of the internal Ct volume under the internal Ct coordinate system
+  // Eigen::Vector4d internalCtCenter{spacing_temp[0] * double(size_temp[0]) / 2.0,
+  //                                  spacing_temp[1] * double(size_temp[1]) / 2.0,
+  //                                  spacing_temp[2] * double(size_temp[2]) / 2.0,
+  //                                  1};
+  // The center of the real Ct volume under the real Ct coordinate system
+  // Eigen::Vector4d ctCenter{spacing_temp[0] * double(size_temp[0]) / 2.0,
+  //                          spacing_temp[1] * double(size_temp[1]) / 2.0,
+  //                          spacing_temp[2] * double(size_temp[2]) / 2.0,
+  //                          1};
+  // Eigen::Matrix4d eigenMatrixInternalCt2Ct{matrixInternalCt2Ct->GetData()};
+  // eigenMatrixInternalCt2Ct.transposeInPlace();
+  // // The volume center of the real Ct volume under the internal Ct coordinate system
+  // Eigen::Vector4d targetCenterPoint = eigenMatrixInternalCt2Ct * ctCenter;
+  //
+  // double tx = targetCenterPoint[0] - internalCtCenter[0];
+  // double ty = targetCenterPoint[1] - internalCtCenter[1];
+  // double tz = targetCenterPoint[2] - internalCtCenter[2];
+
+
+  double threshold = (m_Controls.newDrrthresLineEdit->text()).toDouble();
+  // double scd = (m_Controls.sourceZLineEdit->text()).toDouble();
+
+  // double o2Dx = -((m_Controls.sourceXLineEdit->text()).toDouble() - sx * (dx - 1) / 2);
+  // double o2Dy = -((m_Controls.sourceYLineEdit->text()).toDouble() - sy * (dy - 1) / 2);
+
+  // drrFilter->Setrprojection(0);
+  // drrFilter->SetObjTranslate(tx, ty, tz);
+  // drrFilter->SetObjRotate(rx, ry, rz);
+  // drrFilter->Setcx(0);
+  // drrFilter->Setcy(0);
+  // drrFilter->Setcz(0);
+  drrFilter->SetInput(image);
+  drrFilter->SetArrayMatrixWorldToCt(matrixMitk2Ct->GetData());
+  drrFilter->SetArrayMatrixWorldToImager(matrixMitk2Imager->GetData());
+  drrFilter->Setthreshold(threshold);
+  double arraySource[3]
+  {
+    m_Controls.sourceXLineEdit->text().toDouble(),
+    m_Controls.sourceYLineEdit->text().toDouble(),
+    m_Controls.sourceZLineEdit->text().toDouble()
+  };
+  drrFilter->SetRaySource(arraySource); // source xyz 
+  drrFilter->Setim_sx(sx);
+  drrFilter->Setim_sy(sy);
+  drrFilter->Setdx(dx);
+  drrFilter->Setdy(dy);
+  // drrFilter->Seto2Dx(o2Dx);
+  // drrFilter->Seto2Dy(o2Dy);
+  drrFilter->Update();
+
+  //-----------Below: add the datanode containing the DRR--------------
+  QString renameSuffix = "_new";
+  QString outputFilename = m_Controls.drrNameLineEdit->text();
+  auto node = GetDataStorage()->GetNamedNode(outputFilename.toLocal8Bit().data());
+  auto newnode = mitk::DataNode::New();
+  // in case the output name already exists
+  if (node == nullptr)
+  {
+    newnode->SetName(outputFilename.toLocal8Bit().data());
+  }
+  else
+  {
+    newnode->SetName(outputFilename.append(renameSuffix).toLocal8Bit().data());
+    m_Controls.drrNameLineEdit->setText(outputFilename);
+  }
+  // add new node
+  newnode->SetData(drrFilter->GetOutput());
+  GetDataStorage()->Add(newnode);
+  //-----------Above: add the datanode containing the DRR--------------
+
+  //-----------------Below: generate a image on the virtual monitor screen------------------
+  QString pseudoImageSuffix = "_visual";
+  outputFilename = m_Controls.drrNameLineEdit->text();
+  auto visualnewnode = mitk::DataNode::New();
+  // in case the output name already exists
+  visualnewnode->SetName(outputFilename.append(pseudoImageSuffix).toLocal8Bit().data());
+  // add new node
+  auto pseudoImage = drrFilter->GetOutput()->Clone();
+  mitk::Point3D pseudoImageOrigin;
+  pseudoImageOrigin[0] = 300 - sx * (dx - 1) / 2;
+  pseudoImageOrigin[1] = 300 - sy * (dy - 1) / 2;
+  pseudoImageOrigin[2] = 1;
+  pseudoImage->GetGeometry()->SetOrigin(pseudoImageOrigin);
+  visualnewnode->SetData(pseudoImage);
+  GetDataStorage()->Add(visualnewnode);
 }
 
 void NodeEditor::VisualizeDrrProjectionModel()
@@ -1412,7 +1576,8 @@ void NodeEditor::CreateQtPartControl(QWidget *parent)
           &NodeEditor::EvaluationPointsChanged);
   connect(m_Controls.evaluateRegisterPushButton, &QPushButton::clicked, this, &NodeEditor::EvaluateRegistration);
 
-  connect(m_Controls.newGenerateDrrPushButton, &QPushButton::clicked, this, &NodeEditor::NewDrrGenerateData);
+  connect(m_Controls.v1GenerateDrrPushButton, &QPushButton::clicked, this, &NodeEditor::V1DrrGenerateData);
+  connect(m_Controls.v2GenerateDrrPushButton, &QPushButton::clicked, this, &NodeEditor::V2DrrGenerateData);
   connect(m_Controls.drrModelVisualPushButton, &QPushButton::clicked, this, &NodeEditor::VisualizeDrrProjectionModel);
 
 

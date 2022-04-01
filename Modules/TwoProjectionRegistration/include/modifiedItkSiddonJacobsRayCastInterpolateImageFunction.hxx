@@ -457,8 +457,8 @@ namespace itk
   template <typename TInputImage, typename TCoordRep>
   void ModifiedSiddonJacobsRayCastInterpolateImageFunction<TInputImage, TCoordRep>::ComputeInverseTransform() const
   {
-    // TODO: add a new function to update m_Transform
-    // this->AppendTransformOffset();
+
+    this->AppendTransformOffset();
     m_ComposedTransform->SetIdentity();
     m_ComposedTransform->Compose(m_Transform, 0);
 

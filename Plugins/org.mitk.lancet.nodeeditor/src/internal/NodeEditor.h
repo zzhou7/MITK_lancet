@@ -58,7 +58,8 @@ protected:
   void DrrCtImageChanged(QmitkSingleNodeSelectionWidget::NodeList /*nodes*/);
 
   // new DRR
-  void NewDrrGenerateData();
+  void V1DrrGenerateData();
+  void V2DrrGenerateData();
   void VisualizeDrrProjectionModel();
   mitk::DataNode *m_NewDrrCtImageDataNode{nullptr};
   void NewDrrCtImageChanged(QmitkSingleNodeSelectionWidget::NodeList /*nodes*/);
