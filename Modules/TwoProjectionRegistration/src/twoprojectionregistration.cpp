@@ -28,7 +28,7 @@ found in the LICENSE file.
 #include "itkSiddonJacobsRayCastInterpolateImageFunction.h"
 #include "itkTimeProbesCollectorBase.h"
 #include "twoprojectionregistration.h"
-#include "modifiedItkSiddonJacobsRayCastInterpolateImageFunction.h"
+
 
 //------------
 #include "itkResampleImageFilter.h"

@@ -68,9 +68,10 @@ Below are Headers for the Node Editor plugin
 #include <nodebinder.h>
 #include <surfaceregistraion.h>
 #include <drrsidonjacobsraytracing.h>
-#include <drrGenerator.h>
+#include "drrGenerator.h"
 // registration header
 #include <twoprojectionregistration.h>
+#include "volumeRegistrator.h"
 
 /*=============================================================
 Above are Headers for the Node Editor plugin

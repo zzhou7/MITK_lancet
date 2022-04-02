@@ -1,10 +1,12 @@
 set(SRC_CPP_FILES
-
 )
 
 set(INTERNAL_CPP_FILES
   org_mitk_lancet_nodeeditor_Activator.cpp
   NodeEditor.cpp
+  drrGenerator.cpp
+  volumeRegistrator.cpp
+  drrInterpolator.hxx
 )
 
 set(UI_FILES
@@ -14,6 +16,9 @@ set(UI_FILES
 set(MOC_H_FILES
   src/internal/org_mitk_lancet_nodeeditor_Activator.h
   src/internal/NodeEditor.h
+  src/internal/drrGenerator.h
+  src/internal/drrInterpolator.h
+  src/internal/volumeRegistrator.h
 )
 
 # list of resource files which can be used by the plug-in
