@@ -15,23 +15,23 @@ public:
 	itkSetMacro(switchOffOptimizer, bool);
 	itkGetMacro(metric, float);
 	// Projection angle of DRR 1 and DRR 2
-	itkSetMacro(angleDRR1, float);
-	itkSetMacro(angleDRR2, float);
+	// itkSetMacro(angleDRR1, float);
+	// itkSetMacro(angleDRR2, float);
 
 	// initial Translation parameter of the isocenter in mm
-	itkSetMacro(tx, float);
-	itkSetMacro(ty, float);
-	itkSetMacro(tz, float);
+	// itkSetMacro(tx, float);
+	// itkSetMacro(ty, float);
+	// itkSetMacro(tz, float);
 
 	// initial CT volume rotation around isocenter along x,y,z axis in degrees
-	itkSetMacro(rx, float);
-	itkSetMacro(ry, float);
-	itkSetMacro(rz, float);
+	// itkSetMacro(rx, float);
+	// itkSetMacro(ry, float);
+	// itkSetMacro(rz, float);
 
 	// The pixel indices of the isocenter
-	itkSetMacro(cx, float);
-	itkSetMacro(cy, float);
-	itkSetMacro(cz, float);
+	// itkSetMacro(cx, float);
+	// itkSetMacro(cy, float);
+	// itkSetMacro(cz, float);
 
 	itkSetMacro(threshold, float);
 
@@ -47,12 +47,12 @@ public:
 	itkSetMacro(sy_2, float);
 
 	// The central axis offset for DRR 1
-	itkSetMacro(o2Dx_1, float);
-	itkSetMacro(o2Dy_1, float);
+	// itkSetMacro(o2Dx_1, float);
+	// itkSetMacro(o2Dy_1, float);
 
 	// The central axis offset for DRR 2
-	itkSetMacro(o2Dx_2, float);
-	itkSetMacro(o2Dy_2, float);
+	// itkSetMacro(o2Dx_2, float);
+	// itkSetMacro(o2Dy_2, float);
 
 
 	itkSetMacro(verbose, bool);
@@ -65,6 +65,13 @@ public:
 	itkGetMacro(TY, double);
 	itkGetMacro(TZ, double);
 
+  // Set the locations of raySource1 and raySource2 under World coordinate
+  void SetRaySource1(double array[3]);
+  void SetRaySource2(double array[3]);
+
+  void SetArrayMatrixWorldToImager1(double array[16]);
+  void SetArrayMatrixWorldToImager2(double array[16]);
+  void SetArrayMatrixWorldToCt(double array[16]);
 
 	// typedef float InternalPixelType;
 	// typedef itk::Image<InternalPixelType, 3> InternalImageType;
@@ -156,6 +163,25 @@ private:
 	double m_TX{ 0.0 };
 	double m_TY{ 0.0 };
 	double m_TZ{ 0.0 };
+
+
+  // Ray source locations
+  double m_RaySource1[3]{255.5, 255.5, 600};
+  double m_RaySource2[3]{255.5, 255.5, 600};
+
+  // transform matrix: World --> imager1
+  double m_ArrayMatrixWorldToImager1[16]{1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
+
+  // transform matrix: World --> imager2
+  double m_ArrayMatrixWorldToImager2[16]{1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
+
+  // transform matrix: World --> real initial CT
+  double m_ArrayMatrixWorldToCt[16]
+  { 1, 0, 0, 0,
+    0, 1, 0, 0,
+    0, 0, 1, 0,
+    0, 0, 0, 1};
+
 
 };
 

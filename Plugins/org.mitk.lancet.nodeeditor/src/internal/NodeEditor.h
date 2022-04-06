@@ -74,6 +74,15 @@ protected:
   void InputDrrImageChanged_1(QmitkSingleNodeSelectionWidget::NodeList /*nodes*/);
   void InputDrrImageChanged_2(QmitkSingleNodeSelectionWidget::NodeList /*nodes*/);
 
+  // new 2projectionRegistration
+  void NewRegister();
+  mitk::DataNode *m_NewRegistrationCtDataNode{nullptr};
+  mitk::DataNode *m_RegDrr1DataNode{nullptr};
+  mitk::DataNode *m_RegDrr2DataNode{nullptr};
+  void NewRegistrationCtChanged(QmitkSingleNodeSelectionWidget::NodeList /*nodes*/);
+  void RegDrr1Changed(QmitkSingleNodeSelectionWidget::NodeList /*nodes*/);
+  void RegDrr2Changed(QmitkSingleNodeSelectionWidget::NodeList /*nodes*/);
+
   // Node operations
   void TranslateImage(double direction[3], mitk::Image *mitkImage);
   void RotateImage(double center[3], double axis[3], double degree, mitk::Image *mitkImage);

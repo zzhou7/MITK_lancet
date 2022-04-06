@@ -437,12 +437,11 @@ namespace itk
 		newIsocenter[1] = m_MovingImageSpacing[1] * double(m_MovingImagePixelNumbers[1]) / 2.0;
 		newIsocenter[2] = m_MovingImageSpacing[2] * double(m_MovingImagePixelNumbers[2]) / 2.0;
 
-		
-		m_Transform->SetIdentity();
-		m_Transform->SetComputeZYX(true);
-		m_Transform->SetCenter(newIsocenter);
-		m_Transform->SetTranslation(compositeTranslation);
-		m_Transform->SetRotation(rx, ry, rz);
+		m_TransformCopy->SetIdentity();
+    m_TransformCopy->SetComputeZYX(true);
+    m_TransformCopy->SetCenter(newIsocenter);
+    m_TransformCopy->SetTranslation(compositeTranslation);
+    m_TransformCopy->SetRotation(rx, ry, rz);
 	}
 
 	template <typename TInputImage, typename TCoordRep>
@@ -450,10 +449,10 @@ namespace itk
 	{
 		this->AppendTransformOffset();
 		m_ComposedTransform->SetIdentity();
-		m_ComposedTransform->Compose(m_Transform, 0);
+		m_ComposedTransform->Compose(m_TransformCopy, 0);
 
 		typename TransformType::InputPointType isocenter;
-		isocenter = m_Transform->GetCenter();
+		isocenter = m_TransformCopy->GetCenter();
 		// An Euler 3D transform is used to rotate the volume to simulate the roation of the linac gantry.
 		// The rotation is about z-axis. After the transform, a AP projection geometry (projecting
 		// towards positive y direction) is established.

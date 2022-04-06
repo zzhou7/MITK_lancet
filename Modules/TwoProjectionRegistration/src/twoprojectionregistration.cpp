@@ -231,7 +231,8 @@ void TwoProjectionRegistration::twoprojection_registration()
   typedef FlipFilterType::FlipAxesArrayType FlipAxesArrayType;
   FlipAxesArrayType flipArray;
   flipArray[0] = 0;
-  flipArray[1] = 1;
+  // flipArray[1] = 1; //zzhou: this y-axis flipping is actually not required in MITK??
+  flipArray[1] = 0; 
   flipArray[2] = 0;
 
   flipFilter1->SetFlipAxes(flipArray);

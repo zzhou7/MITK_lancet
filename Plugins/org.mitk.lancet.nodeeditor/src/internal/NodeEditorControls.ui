@@ -23,7 +23,7 @@
    <item>
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>1</number>
+      <number>3</number>
      </property>
      <widget class="QWidget" name="tab_5">
       <attribute name="title">
@@ -1445,7 +1445,11 @@
              </widget>
             </item>
             <item>
-             <widget class="QLineEdit" name="regThresholdLineEdit"/>
+             <widget class="QLineEdit" name="regThresholdLineEdit">
+              <property name="text">
+               <string>0</string>
+              </property>
+             </widget>
             </item>
            </layout>
           </item>
@@ -1541,7 +1545,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QmitkSingleNodeSelectionWidget" name="regDr1SingleNodeSelectionWidget" native="true"/>
+             <widget class="QmitkSingleNodeSelectionWidget" name="regDrr1SingleNodeSelectionWidget" native="true"/>
             </item>
            </layout>
           </item>
@@ -1555,10 +1559,18 @@
              </widget>
             </item>
             <item>
-             <widget class="QLineEdit" name="dr1SpacingXLineEdit"/>
+             <widget class="QLineEdit" name="dr1SpacingXLineEdit">
+              <property name="text">
+               <string>1</string>
+              </property>
+             </widget>
             </item>
             <item>
-             <widget class="QLineEdit" name="dr1SpacingYLineEdit"/>
+             <widget class="QLineEdit" name="dr1SpacingYLineEdit">
+              <property name="text">
+               <string>1</string>
+              </property>
+             </widget>
             </item>
            </layout>
           </item>
@@ -1686,7 +1698,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QmitkSingleNodeSelectionWidget" name="regDr2SingleNodeSelectionWidget" native="true"/>
+             <widget class="QmitkSingleNodeSelectionWidget" name="regDrr2SingleNodeSelectionWidget" native="true"/>
             </item>
            </layout>
           </item>
@@ -1700,10 +1712,18 @@
              </widget>
             </item>
             <item>
-             <widget class="QLineEdit" name="dr2SpacingXLineEdit"/>
+             <widget class="QLineEdit" name="dr2SpacingXLineEdit">
+              <property name="text">
+               <string>1</string>
+              </property>
+             </widget>
             </item>
             <item>
-             <widget class="QLineEdit" name="dr2SpacingYLineEdit"/>
+             <widget class="QLineEdit" name="dr2SpacingYLineEdit">
+              <property name="text">
+               <string>1</string>
+              </property>
+             </widget>
             </item>
            </layout>
           </item>
@@ -1732,14 +1752,14 @@
                <item>
                 <widget class="QLineEdit" name="imager2TyLineEdit">
                  <property name="text">
-                  <string>0</string>
+                  <string>255.5</string>
                  </property>
                 </widget>
                </item>
                <item>
                 <widget class="QLineEdit" name="imager2TzLineEdit">
                  <property name="text">
-                  <string>0</string>
+                  <string>255.5</string>
                  </property>
                 </widget>
                </item>
@@ -1757,7 +1777,7 @@
                <item>
                 <widget class="QLineEdit" name="imager2RxLineEdit">
                  <property name="text">
-                  <string>0</string>
+                  <string>-90</string>
                  </property>
                 </widget>
                </item>

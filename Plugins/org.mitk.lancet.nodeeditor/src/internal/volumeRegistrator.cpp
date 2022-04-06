@@ -14,6 +14,7 @@
 #include "itkImageDuplicator.h"
 #include "itkImageRegionIteratorWithIndex.h"
 #include "itkSiddonJacobsRayCastInterpolateImageFunction.h"
+#include "drrInterpolator.h"
 #include "itkTimeProbesCollectorBase.h"
 #include "twoprojectionregistration.h"
 #include "volumeRegistrator.h"
@@ -28,6 +29,8 @@
 #include <itkShiftScaleImageFilter.h>
 #include <mitkImageToItk.h>
 #include <ITKOptimizer.h>
+#include "vtkTransform.h"
+#include "vtkSmartPointer.h"
 
 class CommandIterationUpdate : public itk::Command
 {
@@ -156,12 +159,17 @@ void VolumeRegistrator::registration()
 		MITK_ERROR << "SurfaceRegistration Error: Input not ready";
 		return;
 	}
+
+  // Retrieve the initial euler transform from the matrix
+
+
 	typedef float InternalPixelType;
 	typedef itk::Image<InternalPixelType, 3> InternalImageType;
 	typedef itk::Euler3DTransform<double> TransformType;
 	typedef itk::PowellOptimizer OptimizerType;
 	typedef itk::NormalizedCorrelationTwoImageToOneImageMetric<InternalImageType, InternalImageType> MetricType;
-	typedef itk::SiddonJacobsRayCastInterpolateImageFunction<InternalImageType, double> InterpolatorType;
+	// typedef itk::SiddonJacobsRayCastInterpolateImageFunction<InternalImageType, double> InterpolatorType;
+  typedef itk::DrrInterpolator<InternalImageType, double> InterpolatorType;
 	typedef itk::TwoProjectionImageRegistrationMethod<InternalImageType, InternalImageType> RegistrationType;
 
 
@@ -220,7 +228,7 @@ void VolumeRegistrator::registration()
 	typedef FlipFilterType::FlipAxesArrayType FlipAxesArrayType;
 	FlipAxesArrayType flipArray;
 	flipArray[0] = 0;
-	flipArray[1] = 1;
+	flipArray[1] = 0; // do not flip, because in the new drrGenerator, the resulted image is not flipped along y axis 
 	flipArray[2] = 0;
 
 	flipFilter1->SetFlipAxes(flipArray);
@@ -259,15 +267,50 @@ void VolumeRegistrator::registration()
 
 	TransformType::OutputVectorType translation;
 
-	translation[0] = m_tx;
-	translation[1] = m_ty;
-	translation[2] = m_tz;
-
-	transform->SetTranslation(translation);
+	// translation[0] = m_tx;
+	// translation[1] = m_ty;
+	// translation[2] = m_tz;
+  translation[0] = m_ArrayMatrixWorldToCt[3];
+  translation[1] = m_ArrayMatrixWorldToCt[7];
+  translation[2] = m_ArrayMatrixWorldToCt[11];
+  transform->SetTranslation(translation);
 
 	// constant for converting degrees to radians
 	const double dtr = (atan(1.0) * 4.0) / 180.0;
-	transform->SetRotation(dtr * m_rx, dtr * m_ry, dtr * m_rz);
+	Eigen::Matrix4d eigenMatrixWorldToCt{m_ArrayMatrixWorldToCt};
+  eigenMatrixWorldToCt.transposeInPlace();
+  double rx, ry, rz;
+  // double piParameter = 180 / 3.1415926;
+  if (eigenMatrixWorldToCt(0, 2) < 1)
+  {
+    if (eigenMatrixWorldToCt(0, 2) > -1)
+    {
+      ry = asin(eigenMatrixWorldToCt(0, 2));
+      rx = atan2(-eigenMatrixWorldToCt(1, 2), eigenMatrixWorldToCt(2, 2));
+      rz = atan2(-eigenMatrixWorldToCt(0, 1), eigenMatrixWorldToCt(0, 0));
+    }
+    else
+    {
+      ry = -3.1415926 / 2;
+      rx = -atan2(eigenMatrixWorldToCt(1, 0), eigenMatrixWorldToCt(1, 1));
+      rz = 0;
+    }
+  }
+  else
+  {
+    ry = 3.1415926 / 2;
+    rx = atan2(eigenMatrixWorldToCt(1, 0), eigenMatrixWorldToCt(1, 1));
+    rz = 0;
+  }
+  m_rx = rx;
+  m_ry = ry;
+  m_rz = rz;
+  transform->SetRotation(m_rx, m_ry, m_rz);
+  TransformType::InputPointType worldOrigin;
+  worldOrigin[0] = 0;
+  worldOrigin[1] = 0;
+  worldOrigin[2] = 0;
+  transform->SetCenter(worldOrigin);
 
 	// The centre of rotation is set by default to the centre of the 3D
 	// volume but can be offset from this position using a command
@@ -283,11 +326,19 @@ void VolumeRegistrator::registration()
 	SizeType3D size3D = region3D.GetSize();
 
 	TransformType::InputPointType isocenter;
-	isocenter[0] = m_cx + origin3D[0] + resolution3D[0] * static_cast<double>(size3D[0]) / 2.0;
-	isocenter[1] = m_cy + origin3D[1] + resolution3D[1] * static_cast<double>(size3D[1]) / 2.0;
-	isocenter[2] = m_cz + origin3D[2] + resolution3D[2] * static_cast<double>(size3D[2]) / 2.0;
+	// isocenter[0] = m_cx + origin3D[0] + resolution3D[0] * static_cast<double>(size3D[0]) / 2.0;
+	// isocenter[1] = m_cy + origin3D[1] + resolution3D[1] * static_cast<double>(size3D[1]) / 2.0;
+	// isocenter[2] = m_cz + origin3D[2] + resolution3D[2] * static_cast<double>(size3D[2]) / 2.0;
 
-	transform->SetCenter(isocenter);
+  int MovingImagePixelNums[3]
+  {
+    static_cast<int>(size3D[0]),
+    static_cast<int>(size3D[1]),
+    static_cast<int>(size3D[2])
+  };
+  double MovingImageResolution[3]{resolution3D[0], resolution3D[1], resolution3D[2]};
+
+	// transform->SetCenter(isocenter);
 
 	if (m_verbose)
 	{
@@ -325,19 +376,20 @@ void VolumeRegistrator::registration()
 	ImageRegionType2D region2D2 = rescaler2D2->GetOutput()->GetBufferedRegion();
 	SizeType2D size2D1 = region2D1.GetSize();
 	SizeType2D size2D2 = region2D2.GetSize();
-
-	origin2D1[0] = m_o2Dx_1 - resolution2D1[0] * (size2D1[0] - 1.) / 2.;
-	origin2D1[1] = m_o2Dy_1 - resolution2D1[1] * (size2D1[1] - 1.) / 2.;
-	origin2D1[2] = -m_scd;
+  
+	origin2D1[0] = - m_RaySource1[0]; // m_o2Dx_1 - resolution2D1[0] * (size2D1[0] - 1.) / 2.;
+  origin2D1[1] = - m_RaySource1[1]; // m_o2Dy_1 - resolution2D1[1] * (size2D1[1] - 1.) / 2.;
+	origin2D1[2] = - m_RaySource1[2];
 
 	rescaler2D1->GetOutput()->SetOrigin(origin2D1);
 
-	origin2D2[0] = m_o2Dx_1 - resolution2D2[0] * (size2D2[0] - 1.) / 2.;
-	origin2D2[1] = m_o2Dy_1 - resolution2D2[1] * (size2D2[1] - 1.) / 2.;
-	origin2D2[2] = -m_scd;
+	origin2D2[0] = - m_RaySource2[0]; // m_o2Dx_1 - resolution2D2[0] * (size2D2[0] - 1.) / 2.;
+  origin2D2[1] = - m_RaySource2[1]; // m_o2Dy_1 - resolution2D2[1] * (size2D2[1] - 1.) / 2.;
+  origin2D2[2] = - m_RaySource2[2];
 
 	rescaler2D2->GetOutput()->SetOrigin(origin2D2);
 
+  // TODO: ROI is set here
 	registrator->SetFixedImageRegion1(rescaler2D1->GetOutput()->GetBufferedRegion());
 	registrator->SetFixedImageRegion2(rescaler2D2->GetOutput()->GetBufferedRegion());
 
@@ -366,19 +418,74 @@ void VolumeRegistrator::registration()
 	// tissue from projections of CT data and force the registration
 	// to find a match which aligns bony structures in the images.
 
+  	// Transform from Imager1 to Internal Ct
+  auto vtkTransformImager1ToInternalCt = vtkSmartPointer<vtkTransform>::New();
+  vtkTransformImager1ToInternalCt->PostMultiply();
+  vtkTransformImager1ToInternalCt->Identity();
+  vtkTransformImager1ToInternalCt->RotateX(-90);
+  double translationImager1ToInternalCt[3]{m_RaySource1[0] - resolution3D[0] * static_cast<double>(size3D[0]) / 2.0,
+                                           m_RaySource1[1] - resolution3D[2] * static_cast<double>(size3D[2]) / 2.0,
+                                           resolution3D[1] * static_cast<double>(size3D[1]) / 2.0};
+  vtkTransformImager1ToInternalCt->Translate(translationImager1ToInternalCt);
+  vtkTransformImager1ToInternalCt->Update();
+
+  // Calculate transform offset 1
+  Eigen::Matrix4d eigenMatrixWorldToImager1{m_ArrayMatrixWorldToImager1};
+  Eigen::Matrix4d eigenMatrixImager1ToInernalCt{vtkTransformImager1ToInternalCt->GetMatrix()->GetData()};
+  eigenMatrixWorldToImager1.transposeInPlace();
+  eigenMatrixImager1ToInernalCt.transposeInPlace();
+  Eigen::Matrix4d eigenMatrixTransformOffset1 = (eigenMatrixWorldToImager1 * eigenMatrixImager1ToInernalCt).inverse();
+  eigenMatrixTransformOffset1.transposeInPlace();
+
+  double arrayTransformOffset1[16];
+  for (int i = 0; i < 16; i = i + 1)
+  {
+    arrayTransformOffset1[i] = double(eigenMatrixTransformOffset1(i));
+  }
+
+  // Transform from Imager2 to Internal Ct
+  auto vtkTransformImager2ToInternalCt = vtkSmartPointer<vtkTransform>::New();
+  vtkTransformImager2ToInternalCt->PostMultiply();
+  vtkTransformImager2ToInternalCt->Identity();
+  vtkTransformImager2ToInternalCt->RotateX(-90);
+  double translationImager2ToInternalCt[3]{m_RaySource2[0] - resolution3D[0] * static_cast<double>(size3D[0]) / 2.0,
+                                           m_RaySource2[1] - resolution3D[2] * static_cast<double>(size3D[2]) / 2.0,
+                                           resolution3D[1] * static_cast<double>(size3D[1]) / 2.0};
+  vtkTransformImager2ToInternalCt->Translate(translationImager2ToInternalCt);
+  vtkTransformImager2ToInternalCt->Update();
+
+  // Calculate transform offset 2
+  Eigen::Matrix4d eigenMatrixWorldToImager2{m_ArrayMatrixWorldToImager2};
+  Eigen::Matrix4d eigenMatrixImager2ToInernalCt{vtkTransformImager2ToInternalCt->GetMatrix()->GetData()};
+  eigenMatrixWorldToImager2.transposeInPlace();
+  eigenMatrixImager2ToInernalCt.transposeInPlace();
+  Eigen::Matrix4d eigenMatrixTransformOffset2 = (eigenMatrixWorldToImager2 * eigenMatrixImager2ToInernalCt).inverse();
+  eigenMatrixTransformOffset2.transposeInPlace();
+
+  double arrayTransformOffset2[16];
+  for (int i = 0; i < 16; i = i + 1)
+  {
+    arrayTransformOffset2[i] = double(eigenMatrixTransformOffset2(i));
+  }
+
 	// 2D Image 1
-	interpolator1->SetProjectionAngle(dtr * m_angleDRR1);
-	interpolator1->SetFocalPointToIsocenterDistance(m_scd);
+	// interpolator1->SetProjectionAngle(dtr * m_angleDRR1);
+	interpolator1->SetFocalPointToIsocenterDistance(m_RaySource1[2]);
 	interpolator1->SetThreshold(m_threshold);
 	interpolator1->SetTransform(transform);
+  interpolator1->SetMovingImageSpacing(MovingImageResolution);
+  interpolator1->SetMovingImagePixelNumbers(MovingImagePixelNums);
+  interpolator1->SetArrayTransformOffset(arrayTransformOffset1);
 	interpolator1->Initialize();
 
 	// 2D Image 2
-	interpolator2->SetProjectionAngle(dtr * m_angleDRR2);
-	interpolator2->SetFocalPointToIsocenterDistance(m_scd);
+	// interpolator2->SetProjectionAngle(dtr * m_angleDRR2);
+  interpolator2->SetFocalPointToIsocenterDistance(m_RaySource2[2]);
 	interpolator2->SetThreshold(m_threshold);
 	interpolator2->SetTransform(transform);
-
+  interpolator2->SetMovingImageSpacing(MovingImageResolution);
+  interpolator2->SetMovingImagePixelNumbers(MovingImagePixelNums);
+  interpolator2->SetArrayTransformOffset(arrayTransformOffset2);
 	interpolator2->Initialize();
 
 	// Set up the transform and start position
@@ -461,6 +568,8 @@ void VolumeRegistrator::registration()
 	}
 
 	typedef RegistrationType::ParametersType ParametersType;
+
+  // Error here !!
 	ParametersType finalParameters = registrator->GetLastTransformParameters();
 
 	const double RotationAlongX = finalParameters[0] / dtr; // Convert radian to degree
@@ -495,4 +604,42 @@ void VolumeRegistrator::registration()
 
 }
 
+void VolumeRegistrator::SetRaySource1(double array[3])
+{
+  for (int i = 0; i < 3; i = i + 1)
+  {
+    m_RaySource1[i] = array[i];
+  }
+}
 
+void VolumeRegistrator::SetRaySource2(double array[3])
+{
+  for (int i = 0; i < 3; i = i + 1)
+  {
+    m_RaySource2[i] = array[i];
+  }
+}
+
+void VolumeRegistrator::SetArrayMatrixWorldToImager1(double array[16])
+{
+  for (int i = 0; i < 16; i = i + 1)
+  {
+    m_ArrayMatrixWorldToImager1[i] = array[i];
+  }
+}
+
+void VolumeRegistrator::SetArrayMatrixWorldToImager2(double array[16])
+{
+  for (int i = 0; i < 16; i = i + 1)
+  {
+    m_ArrayMatrixWorldToImager2[i] = array[i];
+  }
+}
+
+void VolumeRegistrator::SetArrayMatrixWorldToCt(double array[16])
+{
+  for (int i = 0; i < 16; i = i + 1)
+  {
+    m_ArrayMatrixWorldToCt[i] = array[i];
+  }
+}

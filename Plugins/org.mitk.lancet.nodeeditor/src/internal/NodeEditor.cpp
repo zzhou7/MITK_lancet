@@ -148,6 +148,21 @@ void NodeEditor::EvaluationPointsChanged(QmitkSingleNodeSelectionWidget::NodeLis
   m_EvaluationPointsDataNode = m_Controls.evaluationPointsSingleNodeSelectionWidget->GetSelectedNode();
 }
 
+void NodeEditor::NewRegistrationCtChanged(QmitkSingleNodeSelectionWidget::NodeList /*nodes*/)
+{
+  m_NewRegistrationCtDataNode = m_Controls.newRegistrationCtSingleNodeSelectionWidget->GetSelectedNode();
+}
+
+void NodeEditor::RegDrr1Changed(QmitkSingleNodeSelectionWidget::NodeList /*nodes*/)
+{
+  m_RegDrr1DataNode = m_Controls.regDrr1SingleNodeSelectionWidget->GetSelectedNode();
+}
+
+void NodeEditor::RegDrr2Changed(QmitkSingleNodeSelectionWidget::NodeList /*nodes*/)
+{
+  m_RegDrr2DataNode = m_Controls.regDrr2SingleNodeSelectionWidget->GetSelectedNode();
+}
+
 void NodeEditor::EvaluateRegistration()
 {
   auto image_original_ct = dynamic_cast<mitk::Image *>(m_RawCtImageDataNode->GetData());
@@ -1035,12 +1050,6 @@ void NodeEditor::V2DrrGenerateData()
   transMitk2Ct->Translate(translationMitk2Ct);
   transMitk2Ct->Update();
   transMitk2Ct->GetMatrix(matrixMitk2Ct);
-  transMitk2Ct->GetInverse(matrixCt2Mitk);
-
-  
-
-
-
 
 
   //----------Below: Construct a filter and feed in the image and the parameters generated above--------------
@@ -1401,6 +1410,121 @@ void NodeEditor::Register()
   GetDataStorage()->Add(movedCT_node);
 }
 
+void NodeEditor::NewRegister()
+{
+  if (m_NewRegistrationCtDataNode == nullptr || m_RegDrr1DataNode == nullptr || m_RegDrr2DataNode == nullptr)
+  {
+    MITK_ERROR << "Input nodes are not ready";
+    return;
+  }
+
+  auto ctimage = dynamic_cast<mitk::Image *>(m_NewRegistrationCtDataNode->GetData());
+  auto DRR1 = dynamic_cast<mitk::Image *>(m_RegDrr1DataNode->GetData());
+  auto DRR2 = dynamic_cast<mitk::Image *>(m_RegDrr2DataNode->GetData());
+
+  if (ctimage == nullptr || DRR1 == nullptr || DRR2 == nullptr)
+  {
+    MITK_ERROR << "Can't Run twoProjectionRegistration: Input images are empty";
+    m_Controls.newRegTextBrowser->append("Error: Input image node is empty");
+    return;
+  }
+  itk::SmartPointer<VolumeRegistrator> registrator = VolumeRegistrator::New();
+ 
+  registrator->link_drr1_cast(DRR1);
+  registrator->link_drr2_cast(DRR2);
+  registrator->link_3d_cast(ctimage);
+
+
+  double threshold = (m_Controls.regThresholdLineEdit->text()).toDouble();
+  double sx_1 = (m_Controls.dr1SpacingXLineEdit->text()).toDouble();
+  double sy_1 = (m_Controls.dr1SpacingYLineEdit->text()).toDouble();
+  double sx_2 = (m_Controls.dr2SpacingXLineEdit->text()).toDouble();
+  double sy_2 = (m_Controls.dr2SpacingYLineEdit->text()).toDouble();
+
+  // Axes transform from "MITK frame" to "CT image frame" (world to Ct)
+  auto transMitk2Ct = vtkSmartPointer<vtkTransform>::New();
+  vtkSmartPointer<vtkMatrix4x4> matrixMitk2Ct = vtkSmartPointer<vtkMatrix4x4>::New();
+  // auto transCt2Mitk = vtkSmartPointer<vtkTransform>::New();
+  vtkSmartPointer<vtkMatrix4x4> matrixCt2Mitk = vtkSmartPointer<vtkMatrix4x4>::New();
+  transMitk2Ct->Identity();
+  transMitk2Ct->PostMultiply();
+  transMitk2Ct->RotateZ(m_Controls.regCtRzLineEdit->text().toDouble());
+  transMitk2Ct->RotateY(m_Controls.regCtRyLineEdit->text().toDouble());
+  transMitk2Ct->RotateX(m_Controls.regCtRxLineEdit->text().toDouble());
+  double translationMitk2Ct[3] = {m_Controls.regCtTxLineEdit->text().toDouble(),
+                                  m_Controls.regCtTyLineEdit->text().toDouble(),
+                                  m_Controls.regCtTzLineEdit->text().toDouble()};
+  transMitk2Ct->Translate(translationMitk2Ct);
+  transMitk2Ct->Update();
+  transMitk2Ct->GetMatrix(matrixMitk2Ct);
+
+  // Axes transform from "MITK frame" to "imager1 frame" (world to imager1)
+  auto transMitk2Imager1 = vtkSmartPointer<vtkTransform>::New();
+  vtkSmartPointer<vtkMatrix4x4> matrixMitk2Imager1 = vtkSmartPointer<vtkMatrix4x4>::New();
+  transMitk2Imager1->Identity();
+  transMitk2Imager1->PostMultiply();
+  transMitk2Imager1->RotateZ(m_Controls.imager1RzLineEdit->text().toDouble());
+  transMitk2Imager1->RotateY(m_Controls.imager1RyLineEdit->text().toDouble());
+  transMitk2Imager1->RotateX(m_Controls.imager1RxLineEdit->text().toDouble());
+  double translationMitk2Imager1[3] = {m_Controls.imager1TxLineEdit->text().toDouble(),
+                                      m_Controls.imager1TyLineEdit->text().toDouble(),
+                                      m_Controls.imager1TzLineEdit->text().toDouble()};
+  transMitk2Imager1->Translate(translationMitk2Imager1);
+  transMitk2Imager1->Update();
+  transMitk2Imager1->GetMatrix(matrixMitk2Imager1);
+
+  // Axes transform from "MITK frame" to "imager1 frame" (world to imager2)
+  auto transMitk2Imager2 = vtkSmartPointer<vtkTransform>::New();
+  vtkSmartPointer<vtkMatrix4x4> matrixMitk2Imager2 = vtkSmartPointer<vtkMatrix4x4>::New();
+  transMitk2Imager2->Identity();
+  transMitk2Imager2->PostMultiply();
+  transMitk2Imager2->RotateZ(m_Controls.imager2RzLineEdit->text().toDouble());
+  transMitk2Imager2->RotateY(m_Controls.imager2RyLineEdit->text().toDouble());
+  transMitk2Imager2->RotateX(m_Controls.imager2RxLineEdit->text().toDouble());
+  double translationMitk2Imager2[3] = {m_Controls.imager2TxLineEdit->text().toDouble(),
+                                       m_Controls.imager2TyLineEdit->text().toDouble(),
+                                       m_Controls.imager2TzLineEdit->text().toDouble()};
+  transMitk2Imager2->Translate(translationMitk2Imager2);
+  transMitk2Imager2->Update();
+  transMitk2Imager2->GetMatrix(matrixMitk2Imager2);
+
+  // obtain the 2 raySources
+  double arraySource1[3]{m_Controls.source1XLineEdit->text().toDouble(),
+                        m_Controls.source1YLineEdit->text().toDouble(),
+                        m_Controls.source1ZLineEdit->text().toDouble()};
+  double arraySource2[3]{m_Controls.source2XLineEdit->text().toDouble(),
+                         m_Controls.source2YLineEdit->text().toDouble(),
+                         m_Controls.source2ZLineEdit->text().toDouble()};
+
+  registrator->SetArrayMatrixWorldToCt(matrixMitk2Ct->GetData());
+  registrator->SetArrayMatrixWorldToImager1(matrixMitk2Imager1->GetData());
+  registrator->SetArrayMatrixWorldToImager2(matrixMitk2Imager2->GetData());
+  registrator->Setthreshold(threshold);
+  registrator->SetRaySource1(arraySource1);
+  registrator->SetRaySource2(arraySource2);
+  registrator->Setsx_1(sx_1);
+  registrator->Setsy_1(sy_1);
+  registrator->Setsx_2(sx_2);
+  registrator->Setsy_2(sy_2);
+
+  registrator->SetswitchOffOptimizer(false);
+
+  registrator->registration();
+
+  m_Controls.regResultCtTxLineEdit->setText(QString::number(registrator->GetTX()));
+  m_Controls.regResultCtTyLineEdit->setText(QString::number(registrator->GetTY()));
+  m_Controls.regResultCtTzLineEdit->setText(QString::number(registrator->GetTZ()));
+
+  m_Controls.regResultCtRxLineEdit->setText(QString::number(registrator->GetRX()));
+  m_Controls.regResultCtRyLineEdit->setText(QString::number(registrator->GetRY()));
+  m_Controls.regResultCtRzLineEdit->setText(QString::number(registrator->GetRZ()));
+  m_Controls.newRegTextBrowser->append("The metric is:");
+  m_Controls.newRegTextBrowser->append(QString::number(registrator->Getmetric()));
+  m_Controls.newRegTextBrowser->append("(The closer to -1 the better)");
+
+}
+
+
 void NodeEditor::InitialMetric()
 {
   if (m_RegistrationCtImageDataNode == nullptr || m_InputDrrImageDataNode_1 == nullptr ||
@@ -1566,7 +1690,27 @@ void NodeEditor::CreateQtPartControl(QWidget *parent)
   InitNodeSelector(m_Controls.registrationDrr2SingleNodeSelectionWidget);
   InitNodeSelector(m_Controls.rawCtImageSingleNodeSelectionWidget);
   InitNodeSelector(m_Controls.evaluationPointsSingleNodeSelectionWidget);
-   
+  InitNodeSelector(m_Controls.newRegistrationCtSingleNodeSelectionWidget);
+  InitNodeSelector(m_Controls.regDrr1SingleNodeSelectionWidget);
+  InitNodeSelector(m_Controls.regDrr2SingleNodeSelectionWidget);
+
+  connect(m_Controls.newRegistrationCtSingleNodeSelectionWidget,
+          &QmitkSingleNodeSelectionWidget::CurrentSelectionChanged,
+          this,
+          &NodeEditor::NewRegistrationCtChanged);
+
+  connect(m_Controls.regDrr1SingleNodeSelectionWidget,
+          &QmitkSingleNodeSelectionWidget::CurrentSelectionChanged,
+          this,
+          &NodeEditor::RegDrr1Changed);
+
+  connect(m_Controls.regDrr2SingleNodeSelectionWidget,
+          &QmitkSingleNodeSelectionWidget::CurrentSelectionChanged,
+          this,
+          &NodeEditor::RegDrr2Changed);
+
+  connect(m_Controls.newRegPushButton, &QPushButton::clicked, this, &NodeEditor::NewRegister);
+
   connect(m_Controls.rawCtImageSingleNodeSelectionWidget,
           &QmitkSingleNodeSelectionWidget::CurrentSelectionChanged,
           this,

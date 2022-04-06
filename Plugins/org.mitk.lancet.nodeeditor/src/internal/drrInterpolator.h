@@ -151,6 +151,7 @@ namespace itk
 
 		/// Transformation used to calculate the new focal point position
 		TransformPointer m_Transform; // Displacement of the volume
+    TransformPointer m_TransformCopy = TransformType::New();// a copy of m_Transform 
 		// Overall inverse transform used to calculate the ray position in the input space
 		TransformPointer m_InverseTransform;
 
