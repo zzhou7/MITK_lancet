@@ -82,6 +82,7 @@ protected:
   void NewRegistrationCtChanged(QmitkSingleNodeSelectionWidget::NodeList /*nodes*/);
   void RegDrr1Changed(QmitkSingleNodeSelectionWidget::NodeList /*nodes*/);
   void RegDrr2Changed(QmitkSingleNodeSelectionWidget::NodeList /*nodes*/);
+  void Visualize2ProjectionModel();
 
   // Node operations
   void TranslateImage(double direction[3], mitk::Image *mitkImage);
@@ -103,6 +104,9 @@ protected:
   mitk::DataNode *m_InputImageToCropDataNode{nullptr};
   void InputSurfaceChanged(QmitkSingleNodeSelectionWidget::NodeList /*nodes*/);
   void InputImageToCropChanged(QmitkSingleNodeSelectionWidget::NodeList /*nodes*/);
+
+  // Calculate multi-line intersection
+  void GetIntersection();
 };
 
 #endif // NodeEditor_h
