@@ -53,16 +53,50 @@ class QmitkIGTFiducialRegistration : public QmitkAbstractView
   void PointerSelectionChanged();
   void ImageSelectionChanged();
 
+  void ProbeSelect();
+  void ReferenceSelect();
+  void ToolSelect();
 
-  protected:
+  void SnapShotTool();
+  void ProbeSawPit();
+  void ProbeSawPlane();
 
+  void Calibrate();
+
+  void calibrateGooseSaw(double MatrixRefToPointAcoordinate[16],
+                         double sawPointD[3],
+                         double sawPlanePointP[3],
+                         double sawPlanePointQ[3],
+                         double sawPlanePointS[3]);
+
+protected:
+  
+  void getReferenceMatrix4x4(vtkMatrix4x4 *Mainmatrix, vtkMatrix4x4 *Refmatrix, vtkMatrix4x4 *Returnmatrix)
+  {
+    Refmatrix->Invert();
+    vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
+    transform->PostMultiply();
+    transform->SetMatrix(Mainmatrix);
+    transform->Concatenate(Refmatrix);
+    transform->Update();
+    transform->GetMatrix(Returnmatrix);
+  }
+
+  vtkMatrix4x4 *getVtkMatrix4x4(mitk::NavigationData::Pointer nd);
+    
     void InitializeRegistration();
 
     Ui::IGTFiducialRegistrationControls m_Controls;
 
     mitk::NavigationData::Pointer m_TrackingPointer;
 
+    mitk::NavigationData::Pointer m_ProbeNDPointer;
+    mitk::NavigationData::Pointer m_ToolNDPointer;
+    mitk::NavigationData::Pointer m_ReferenceNDPointer;
 
+	vtkMatrix4x4 *m_toolMatrixInRef;
+    mitk::PointSet::Pointer m_ProbePitPointInRef;
+    mitk::PointSet::Pointer m_probePlanePointInRef;
 };
 
 #endif // IGTFiducialRegistration_h

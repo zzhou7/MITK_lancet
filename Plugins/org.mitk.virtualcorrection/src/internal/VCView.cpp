@@ -58,6 +58,8 @@ found in the LICENSE file.
 #include <eigen3/Eigen/Eigen>
 #include <mitkPadImageFilter.h>
 
+#include <polish.h>
+#include <vtkLinearSubdivisionFilter.h>
 #define PI acos(-1)
 const std::string VCView::VIEW_ID = "org.mitk.views.vcview";
 
@@ -210,6 +212,13 @@ void VCView::CreateQtPartControl(QWidget *parent)
           this,
           &VCView::onTargetPsetChanged);
   connect(m_Controls.pushButton_padImage, &QPushButton::clicked, this, &VCView::padImage);
+
+  //polish
+  connect(m_Controls.pushButton_setupPolish, &QPushButton::clicked, this, &VCView::SetupPolish);
+  connect(m_Controls.pushButton_startPolishing, &QPushButton::clicked, this, &VCView::StartPolish);
+  connect(m_Controls.pushButton_stopPolishing, &QPushButton::clicked, this, &VCView::StopPolishing);
+  connect(m_Controls.pushButton_polishonce, &QPushButton::clicked, this, &VCView::PolishOnce);
+  connect(m_Controls.pushButton_restore, &QPushButton::clicked, this, &VCView::RestorePolish);
 }
 
 void VCView::CutImage()
@@ -1911,6 +1920,93 @@ void VCView::padImage()
   newNode->SetData(padImgFilter->GetOutput());
 
   GetDataStorage()->Add(newNode);
+}
+
+void VCView::SetupPolish()
+{
+  auto boneImage = GetDataStorage()->GetNamedObject<mitk::Image>("boneImage");
+  if (boneImage == nullptr)
+  {
+    MITK_ERROR << "boneImage null";
+    return;
+  }
+  auto toolSurface = GetDataStorage()->GetNamedObject<mitk::Surface>("tool");
+  if (toolSurface == nullptr)
+  {
+    MITK_ERROR << "toolSurface null";
+    return;
+  }
+  auto boneSurface = GetDataStorage()->GetNamedObject<mitk::Surface>("boneSurface");
+  if (boneSurface == nullptr)
+  {
+    MITK_ERROR << "boneSurface null";
+    return;
+  }
+  if (m_polish.IsNull())
+  {
+    m_polish = Polish::New();
+  }
+
+  m_polish->SetboneImage(boneImage);
+  m_polish->SettoolSurface(toolSurface);
+  m_polish->SetboneSurface(boneSurface);
+
+  //for showing the polish result
+  auto resnode = GetDataStorage()->GetNamedNode("BoneSurfacePolished");
+  if (resnode == nullptr)
+  {
+    mitk::DataNode::Pointer resnode = mitk::DataNode::New();
+    resnode->SetData(m_polish->GetboneSurface_polished());
+    resnode->SetName("BoneSurfacePolished");
+
+    GetDataStorage()->Add(resnode);
+  }
+  else
+  {
+    resnode->SetData(m_polish->GetboneImage_polished());
+  }
+}
+
+void VCView::PolishOnce()
+{
+  m_polish->PolishWorkflow();
+
+  mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+}
+
+void VCView::StartPolish()
+{
+
+  
+  // vtkNew<vtkLinearSubdivisionFilter> subdivision;
+  // subdivision->SetInputData(toolSurface->GetVtkPolyData());
+  // subdivision->SetNumberOfSubdivisions(1);
+  // subdivision->Update();
+  // toolSurface->SetVtkPolyData(subdivision->GetOutput());
+  
+  
+  //m_polish->PolishWorkflow();
+  m_polish->StartPolishing();
+
+  
+  //
+  mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+}
+
+void VCView::StopPolishing()
+{
+  if (m_polish.IsNotNull())
+  {
+    m_polish ->StopPolishing();
+  }
+}
+
+void VCView::RestorePolish()
+{
+  if (m_polish.IsNotNull())
+  {
+    m_polish->RestorePolish();
+  }
 }
 
 void VCView::OnPushButtonApplyTrans()

@@ -82,4 +82,5 @@ set(MITK_MODULES
   TKAGapAssessment
   DRR
   SurfaceRegistration
+  SetUpTcpCalibrator
 )
