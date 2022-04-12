@@ -141,19 +141,19 @@ void SetUpTcpCalibrator::calibrateGooseSaw(double MatrixRefToPointAcoordinate[16
   Eigen::Vector3d PQ(sawPlanePointQ[0] - sawPlanePointP[0],
                      sawPlanePointQ[1] - sawPlanePointP[1],
                      sawPlanePointQ[2] - sawPlanePointP[2]);
-  //double normPQ = PQ.norm();
-  PQ.normalize();
+
+  double normPQ = PQ.norm();
+
   Eigen::Vector3d PS(sawPlanePointS[0] - sawPlanePointP[0],
                      sawPlanePointS[1] - sawPlanePointP[1],
                      sawPlanePointS[2] - sawPlanePointP[2]);
-  PS.normalize();
-  //double normPS = PS.norm();
+  double normPS = PS.norm();
 
 
   // 3 unit vectors of the coordinate system at Point A
   Eigen::Matrix4d matrixRefToPointACoordinate{MatrixRefToPointAcoordinate};
-  // matrixRefToPointACoordinate.transposeInPlace();
-  //matrixRefToPointACoordinate(0, 0);
+
+  matrixRefToPointACoordinate.transposeInPlace();
   Eigen::Vector3d x(matrixRefToPointACoordinate(0), matrixRefToPointACoordinate(1), matrixRefToPointACoordinate(2));
   Eigen::Vector3d y(matrixRefToPointACoordinate(4), matrixRefToPointACoordinate(5), matrixRefToPointACoordinate(6));
   Eigen::Vector3d z(matrixRefToPointACoordinate(8), matrixRefToPointACoordinate(9), matrixRefToPointACoordinate(10));
@@ -166,9 +166,8 @@ void SetUpTcpCalibrator::calibrateGooseSaw(double MatrixRefToPointAcoordinate[16
 
   // 3 unit vectors of the coordinate system at Point D
   Eigen::Vector3d X;
-  X = PQ.cross(PS);
-  X.normalize();
 
+  X = PQ.cross(PS) / (normPQ * normPS);
   if (X.dot(x) < 0)
   {
     X = -X;
@@ -176,9 +175,9 @@ void SetUpTcpCalibrator::calibrateGooseSaw(double MatrixRefToPointAcoordinate[16
 
   Eigen::Vector3d Y;
   Y = y - X * (y.dot(X));
-  Y.normalize();
-  //double normY = Y.norm();
-  //Y = Y / Y.norm();
+
+  Y = Y / Y.norm();
+
 
   Eigen::Vector3d Z;
   Z = X.cross(Y);
@@ -190,40 +189,13 @@ void SetUpTcpCalibrator::calibrateGooseSaw(double MatrixRefToPointAcoordinate[16
 
   // Obtain the rotation angles
   Eigen::Matrix3d matrixR;
-  
-  matrixR = inverseMatrixA * matrixD;
-
-  // double rx, ry, rz;
-  // double piParameter = 180 / 3.1415926;
-  //
-  // if (matrixR(0, 2) < 1)
-  // {
-  //   if (matrixR(0, 2) > -1)
-  //   {
-  //     ry = asin(matrixR(0, 2));
-  //     rx = atan2(-matrixR(1, 2), matrixR(2, 2));
-  //     rz = atan2(-matrixR(0, 1), matrixR(0, 0));
-  //   }
-  //   else
-  //   {
-  //     ry = -3.1415926 / 2;
-  //     rx = -atan2(matrixR(1, 0), matrixR(1, 1));
-  //     rz = 0;
-  //   }
-  // }
-  // else
-  // {
-  //   ry = 3.1415926 / 2;
-  //   rx = atan2(matrixR(1, 0), matrixR(1, 1));
-  //   rz = 0;
-  // }
-  // rx = rx * piParameter;
-  // ry = ry * piParameter;
-  // rz = rz * piParameter;
 
 
   Eigen::Vector3d eulerAngles = matrixR.eulerAngles(0, 1, 2); // ZYX rotation
   
+  matrixR = matrixD * inverseMatrixA;
+  Eigen::Vector3d eulerAngles = matrixR.eulerAngles(0, 1, 2); // ZYX rotation
+
   double r_x = eulerAngles[0];
   double r_y = eulerAngles[1];
   double r_z = eulerAngles[2];

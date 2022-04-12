@@ -15,6 +15,7 @@ found in the LICENSE file.
 #define VCView_h
 
 #include "mitkImage.h"
+#include "polish.h"
 #include <berryISelectionListener.h>
 
 #include <QmitkAbstractView.h>
@@ -179,7 +180,13 @@ protected:
   //pad iamge
   void padImage();
 
- 
+  //polish
+  void SetupPolish();
+  void PolishOnce();
+  void StartPolish();
+  void StopPolishing();
+  void RestorePolish();
+  Polish::Pointer m_polish{nullptr};
 
   Ui::VCViewControls m_Controls;
 
