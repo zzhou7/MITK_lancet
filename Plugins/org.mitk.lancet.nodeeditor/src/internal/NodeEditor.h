@@ -107,6 +107,16 @@ protected:
 
   // Calculate multi-line intersection
   void GetIntersection();
+
+
+  // set up the coordinate of the TCP calibrator
+  // void SetUpTcpCalibrator(double toolPointA[3],
+  //                         double toolPointB[3],
+  //                         double toolPointC[3],
+  //                         double sawPointD[3], 
+  //                         double sawPlanePointP[3],
+  //                         double sawPlanePointQ[3],
+  //                         double sawPlanePointS[3]);
 };
 
 #endif // NodeEditor_h

@@ -72,6 +72,7 @@ Below are Headers for the Node Editor plugin
 // registration header
 #include "volumeRegistrator.h"
 #include <twoprojectionregistration.h>
+#include <setuptcpcalibrator.h>
 
 /*=============================================================
 Above are Headers for the Node Editor plugin
@@ -98,6 +99,7 @@ Below are Headers for DRR testing
 #include <vtkNew.h>
 #include <vtkPointData.h>
 #include <vtkPolyData.h>
+#include <iostream>
 
 inline void NodeEditor::DrrCtImageChanged(QmitkSingleNodeSelectionWidget::NodeList /*nodes*/)
 {
@@ -978,6 +980,27 @@ void NodeEditor::V1DrrGenerateData() // this method incorporates the MITK coordi
   // };
   //  Eigen::Matrix4d matrixTest{m_ArrayMatrixWorldToImager};
   //  m_Controls.newDrrTextBrowser->append("Element 8" + QString::number(matrixTest(7)));
+
+  // itk::SmartPointer<SetUpTcpCalibrator> tcpCorrector = SetUpTcpCalibrator::New();
+  // double pointD[3]{8, 9, 10};
+  // double pointP[3]{1, 4, 4};
+  // double pointQ[3]{0.292993,4.707106,4};
+  // double pointS[3]{1, 4, 3};
+  // double arrayMatrix[16]{1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 2, 3, 1};
+  //
+  // tcpCorrector->calibrateGooseSaw(arrayMatrix,pointD,pointP,pointQ,pointS);
+  // m_Controls.newDrrTextBrowser->append("Rx: " + QString::number(tcpCorrector->GetRx()));
+  // m_Controls.newDrrTextBrowser->append("Ry: " + QString::number(tcpCorrector->GetRy()));
+  // m_Controls.newDrrTextBrowser->append("Rz: " + QString::number(tcpCorrector->GetRz()));
+  // m_Controls.newDrrTextBrowser->append("Tx: " + QString::number(tcpCorrector->GetTx()));
+  // m_Controls.newDrrTextBrowser->append("Ty: " + QString::number(tcpCorrector->GetTy()));
+  // m_Controls.newDrrTextBrowser->append("Tz: " + QString::number(tcpCorrector->GetTz()));
+  //
+  // Eigen::Vector3d X(0.204007,-0.177015,0.494579);
+  // Eigen::Vector3d x(0.356809,0.0814958,0.930616);
+  //
+  // m_Controls.newDrrTextBrowser->append("The initial result is " + QString::number(X.dot(x)));
+  // m_Controls.newDrrTextBrowser->append("The fixed result is " + QString::number(X(0)*x(0)+X(1)*x(1)+X(2)*x(2)));
 }
 
 void NodeEditor::V2DrrGenerateData()
@@ -1960,6 +1983,96 @@ void NodeEditor::InitialMetric()
 }
 
 //-------------------------------- ↑  registration part  ↑---------------------------------------
+
+// void NodeEditor::SetUpTcpCalibrator(double toolPointA[3],
+//                                     double toolPointB[3],
+//                                     double toolPointC[3],
+//                                     double sawPointD[3],
+//                                     double sawPlanePointP[3],
+//                                     double sawPlanePointQ[3],
+//                                     double sawPlanePointS[3])
+// {
+//   Eigen::Vector3d AC(toolPointC[0] - toolPointA[0], toolPointC[1] - toolPointA[1], toolPointC[2] - toolPointA[2]);
+//   double normAC = AC.norm();
+//
+//   Eigen::Vector3d AB(toolPointB[0] - toolPointA[0], toolPointB[1] - toolPointA[1], toolPointB[2] - toolPointA[2]);
+//   double normAB = AB.norm();
+//
+//   Eigen::Vector3d AD(sawPointD[0] - toolPointA[0], sawPointD[1] - toolPointA[1], sawPointD[2] - toolPointA[2]);
+//   double normAD = AD.norm();
+//
+//   Eigen::Vector3d PQ(sawPlanePointQ[0] - sawPlanePointP[0],
+//                      sawPlanePointQ[1] - sawPlanePointP[1],
+//                      sawPlanePointQ[2] - sawPlanePointP[2]);
+//   double normPQ = PQ.norm();
+//
+//   Eigen::Vector3d PS(sawPlanePointS[0] - sawPlanePointP[0],
+//                      sawPlanePointS[1] - sawPlanePointP[1],
+//                      sawPlanePointS[2] - sawPlanePointP[2]);
+//   double normPS = PS.norm();
+//
+//   // 3 unit vectors of the coordinate system at Point A
+//   Eigen::Vector3d y;
+//   y = AC / normAC;
+//
+//   Eigen::Vector3d z;
+//   z = (AB.cross(AC)) / (normAB * normAC);
+//
+//   Eigen::Vector3d x;
+//   x = y.cross(z);
+//
+//   Eigen::Matrix3d matrixA;
+//   matrixA.col(0) = x;
+//   matrixA.col(1) = y;
+//   matrixA.col(2) = z;
+//   Eigen::Matrix3d inverseMatrixA = matrixA.inverse();
+//
+//   // 3 unit vectors of the coordinate system at Point D
+//   Eigen::Vector3d X;
+//   X = PQ.cross(PS) / (normPQ * normPS);
+//   if (X.dot(x)<0)
+//   {
+//     X = - X;
+//   }
+//  
+//
+//   Eigen::Vector3d Y;
+//   Y = y - X * (y.dot(X));
+//   Y = Y / Y.norm();
+//
+//   Eigen::Vector3d Z;
+//   Z = X.cross(Y);
+//
+//   Eigen::Matrix3d matrixD;
+//   matrixD.col(0) = X;
+//   matrixD.col(1) = Y;
+//   matrixD.col(2) = Z;
+//
+//   // Obtain the rotation angles 
+//   Eigen::Matrix3d matrixR;
+//   matrixR = matrixD * inverseMatrixA;
+//   Eigen::Vector3d eulerAngles = matrixR.eulerAngles(2, 1, 0);
+//
+//   double r_x = eulerAngles[2];
+//   double r_y = eulerAngles[1];
+//   double r_z = eulerAngles[0];
+//
+//   // Obtain the translation (D's position under A's coordinate system)
+//   double x_d = AD.dot(x);
+//   double y_d = AD.dot(y);
+//   double z_d = AD.dot(z);
+//
+//   // print out 
+//   std::cout << "r_z: " << r_z << std::endl;
+//   std::cout << "r_y: " << r_y << std::endl;
+//   std::cout << "r_x: " << r_x << std::endl;
+//
+//   std::cout << "x: " << x_d << std::endl;
+//   std::cout << "y: " << y_d << std::endl;
+//   std::cout << "z: " << z_d << std::endl;
+// }
+
+
 
 //-------------------------------- ↓  QT part  ↓---------------------------------------
 

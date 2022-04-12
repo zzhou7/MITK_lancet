@@ -84,4 +84,5 @@ set(MITK_MODULES
   SurfaceRegistration
   DRRSidonJacobsRayTracing
   TwoProjectionRegistration
+  SetUpTcpCalibrator
 )
