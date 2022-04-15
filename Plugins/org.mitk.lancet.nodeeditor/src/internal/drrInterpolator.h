@@ -150,8 +150,9 @@ namespace itk
 		virtual void PrintSelf(std::ostream& os, Indent indent) const ITK_OVERRIDE;
 
 		/// Transformation used to calculate the new focal point position
-		TransformPointer m_Transform; // Displacement of the volume
-    TransformPointer m_TransformCopy = TransformType::New();// a copy of m_Transform 
+		TransformPointer m_Transform; // input transform 
+		TransformPointer m_TransformCopy = TransformType::New(); // initially a copy of m_Transform, then converted to the real tranform for interpolation
+		
 		// Overall inverse transform used to calculate the ray position in the input space
 		TransformPointer m_InverseTransform;
 

@@ -1061,38 +1061,9 @@ void NodeEditor::V2DrrGenerateData()
 
   //----------Below: Construct a filter and feed in the image and the parameters generated above--------------
   itk::SmartPointer<DrrGenerator> drrFilter = DrrGenerator::New();
-
-  // The volume center of the internal Ct volume under the internal Ct coordinate system
-  // Eigen::Vector4d internalCtCenter{spacing_temp[0] * double(size_temp[0]) / 2.0,
-  //                                  spacing_temp[1] * double(size_temp[1]) / 2.0,
-  //                                  spacing_temp[2] * double(size_temp[2]) / 2.0,
-  //                                  1};
-  // The center of the real Ct volume under the real Ct coordinate system
-  // Eigen::Vector4d ctCenter{spacing_temp[0] * double(size_temp[0]) / 2.0,
-  //                          spacing_temp[1] * double(size_temp[1]) / 2.0,
-  //                          spacing_temp[2] * double(size_temp[2]) / 2.0,
-  //                          1};
-  // Eigen::Matrix4d eigenMatrixInternalCt2Ct{matrixInternalCt2Ct->GetData()};
-  // eigenMatrixInternalCt2Ct.transposeInPlace();
-  // // The volume center of the real Ct volume under the internal Ct coordinate system
-  // Eigen::Vector4d targetCenterPoint = eigenMatrixInternalCt2Ct * ctCenter;
-  //
-  // double tx = targetCenterPoint[0] - internalCtCenter[0];
-  // double ty = targetCenterPoint[1] - internalCtCenter[1];
-  // double tz = targetCenterPoint[2] - internalCtCenter[2];
-
+  
   double threshold = (m_Controls.newDrrthresLineEdit->text()).toDouble();
-  // double scd = (m_Controls.sourceZLineEdit->text()).toDouble();
 
-  // double o2Dx = -((m_Controls.sourceXLineEdit->text()).toDouble() - sx * (dx - 1) / 2);
-  // double o2Dy = -((m_Controls.sourceYLineEdit->text()).toDouble() - sy * (dy - 1) / 2);
-
-  // drrFilter->Setrprojection(0);
-  // drrFilter->SetObjTranslate(tx, ty, tz);
-  // drrFilter->SetObjRotate(rx, ry, rz);
-  // drrFilter->Setcx(0);
-  // drrFilter->Setcy(0);
-  // drrFilter->Setcz(0);
   drrFilter->SetInput(image);
   drrFilter->SetArrayMatrixWorldToCt(matrixMitk2Ct->GetData());
   drrFilter->SetArrayMatrixWorldToImager(matrixMitk2Imager->GetData());
@@ -1105,8 +1076,6 @@ void NodeEditor::V2DrrGenerateData()
   drrFilter->Setim_sy(sy);
   drrFilter->Setdx(dx);
   drrFilter->Setdy(dy);
-  // drrFilter->Seto2Dx(o2Dx);
-  // drrFilter->Seto2Dy(o2Dy);
   drrFilter->Update();
 
   //-----------Below: add the datanode containing the DRR--------------

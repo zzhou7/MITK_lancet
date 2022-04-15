@@ -373,15 +373,16 @@ namespace itk
 		vtkSmartPointer<vtkMatrix4x4> vtkMatrixInitialTransform = vtkSmartPointer<vtkMatrix4x4>::New();
 		vtkInitialTransform->Identity();
 		vtkInitialTransform->PostMultiply();
-		vtkInitialTransform->RotateZ(m_Transform->GetAngleZ() * piParameter);
+    // m_Transform is ZYX, i.e. : extrinsic rotation order: along X --> along Y --> along Z
+    vtkInitialTransform->RotateX(m_Transform->GetAngleX() * piParameter);
 		vtkInitialTransform->RotateY(m_Transform->GetAngleY() * piParameter);
-		vtkInitialTransform->RotateX(m_Transform->GetAngleX() * piParameter);
+		vtkInitialTransform->RotateZ(m_Transform->GetAngleZ() * piParameter);
 		vtkInitialTransform->Translate(vtkTranslation);
 		vtkInitialTransform->GetMatrix(vtkMatrixInitialTransform);
 		Eigen::Matrix4d eigenMatrixInitialTransform{ vtkMatrixInitialTransform->GetData() };
 		eigenMatrixInitialTransform.transposeInPlace(); // world to real initial Ct
 
-		// Composite transform matrix
+		// Composite transform matrix i.e. the transform from internal CT center coordinate system to real Ct center coordinate system
 		Eigen::Matrix4d eigenMatrixCompositeTransform = eigenMatrixTransformOffset * eigenMatrixInitialTransform;
 
 		// The volume center of the internal Ct volume under the internal Ct coordinate system
@@ -406,30 +407,46 @@ namespace itk
 
 		// m_Transform->SetTranslation(compositeTranslation);
 
-		// Get composite rotation rx, ry, rz
+		// Get composite rotation rx, ry, rz, extrinsic rotation order: along X --> along Y --> along Z in radian
 		double rx, ry, rz;
-		// double piParameter = 180 / 3.1415926;
-		if (eigenMatrixCompositeTransform(0, 2) < 1)
-		{
-			if (eigenMatrixCompositeTransform(0, 2) > -1)
-			{
-				ry = asin(eigenMatrixCompositeTransform(0, 2));
-				rx = atan2(-eigenMatrixCompositeTransform(1, 2), eigenMatrixCompositeTransform(2, 2));
-				rz = atan2(-eigenMatrixCompositeTransform(0, 1), eigenMatrixCompositeTransform(0, 0));
-			}
-			else
-			{
-				ry = -3.1415926 / 2;
-				rx = -atan2(eigenMatrixCompositeTransform(1, 0), eigenMatrixCompositeTransform(1, 1));
-				rz = 0;
-			}
-		}
-		else
-		{
-			ry = 3.1415926 / 2;
-			rx = atan2(eigenMatrixCompositeTransform(1, 0), eigenMatrixCompositeTransform(1, 1));
-			rz = 0;
-		}
+
+
+    Eigen::Matrix3d eigenRotationMatrixCompositeTransform;
+    for (int i = 0; i < 3; i = i + 1)
+    {
+      for (int j = 0; i < 3; i = i + 1)
+      {
+        eigenRotationMatrixCompositeTransform(i, j) = eigenMatrixCompositeTransform(i, j);
+      }
+    }
+    // extrinsic rotation order: along X --> along Y --> along Z in radian
+    Eigen::Vector3d eulerAngles = eigenRotationMatrixCompositeTransform.eulerAngles(2, 1, 0); 
+    rx = eulerAngles[2];
+    ry = eulerAngles[1];
+    rz = eulerAngles[0];
+
+    // Problematic way of retrieving the euler angles
+		// if (eigenMatrixCompositeTransform(0, 2) < 1)
+		// {
+		// 	if (eigenMatrixCompositeTransform(0, 2) > -1)
+		// 	{
+		// 		ry = asin(eigenMatrixCompositeTransform(0, 2));
+		// 		rx = atan2(-eigenMatrixCompositeTransform(1, 2), eigenMatrixCompositeTransform(2, 2));
+		// 		rz = atan2(-eigenMatrixCompositeTransform(0, 1), eigenMatrixCompositeTransform(0, 0));
+		// 	}
+		// 	else
+		// 	{
+		// 		ry = -3.1415926 / 2;
+		// 		rx = -atan2(eigenMatrixCompositeTransform(1, 0), eigenMatrixCompositeTransform(1, 1));
+		// 		rz = 0;
+		// 	}
+		// }
+		// else
+		// {
+		// 	ry = 3.1415926 / 2;
+		// 	rx = atan2(eigenMatrixCompositeTransform(1, 0), eigenMatrixCompositeTransform(1, 1));
+		// 	rz = 0;
+		// }
 
 		// Update m_Transform
 		typename TransformType::InputPointType newIsocenter;

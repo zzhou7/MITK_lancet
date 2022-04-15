@@ -281,30 +281,45 @@ void VolumeRegistrator::registration()
   eigenMatrixWorldToCt.transposeInPlace();
   double rx, ry, rz;
   // double piParameter = 180 / 3.1415926;
-  if (eigenMatrixWorldToCt(0, 2) < 1)
+  // Problematic euler angle extraction
+  // if (eigenMatrixWorldToCt(0, 2) < 1)
+  // {
+  //   if (eigenMatrixWorldToCt(0, 2) > -1)
+  //   {
+  //     ry = asin(eigenMatrixWorldToCt(0, 2));
+  //     rx = atan2(-eigenMatrixWorldToCt(1, 2), eigenMatrixWorldToCt(2, 2));
+  //     rz = atan2(-eigenMatrixWorldToCt(0, 1), eigenMatrixWorldToCt(0, 0));
+  //   }
+  //   else
+  //   {
+  //     ry = -3.1415926 / 2;
+  //     rx = -atan2(eigenMatrixWorldToCt(1, 0), eigenMatrixWorldToCt(1, 1));
+  //     rz = 0;
+  //   }
+  // }
+  // else
+  // {
+  //   ry = 3.1415926 / 2;
+  //   rx = atan2(eigenMatrixWorldToCt(1, 0), eigenMatrixWorldToCt(1, 1));
+  //   rz = 0;
+  // }
+  // m_rx = rx;
+  // m_ry = ry;
+  // m_rz = rz;
+  Eigen::Matrix3d eigenRotationMatrixWorldToCt;
+  for (int i = 0; i < 3; i = i + 1)
   {
-    if (eigenMatrixWorldToCt(0, 2) > -1)
+    for (int j = 0; i < 3; i = i + 1)
     {
-      ry = asin(eigenMatrixWorldToCt(0, 2));
-      rx = atan2(-eigenMatrixWorldToCt(1, 2), eigenMatrixWorldToCt(2, 2));
-      rz = atan2(-eigenMatrixWorldToCt(0, 1), eigenMatrixWorldToCt(0, 0));
-    }
-    else
-    {
-      ry = -3.1415926 / 2;
-      rx = -atan2(eigenMatrixWorldToCt(1, 0), eigenMatrixWorldToCt(1, 1));
-      rz = 0;
+      eigenRotationMatrixWorldToCt(i, j) = eigenMatrixWorldToCt(i, j);
     }
   }
-  else
-  {
-    ry = 3.1415926 / 2;
-    rx = atan2(eigenMatrixWorldToCt(1, 0), eigenMatrixWorldToCt(1, 1));
-    rz = 0;
-  }
-  m_rx = rx;
-  m_ry = ry;
-  m_rz = rz;
+  Eigen::Vector3d eulerAngles = eigenRotationMatrixWorldToCt.eulerAngles(
+    2, 1, 0); // extrinsic rotation order: along X --> along Y --> along Z in radian
+  m_rx = eulerAngles[2];
+  m_ry = eulerAngles[1];
+  m_rz = eulerAngles[0];
+
   transform->SetRotation(m_rx, m_ry, m_rz);
   TransformType::InputPointType worldOrigin;
   worldOrigin[0] = 0;
