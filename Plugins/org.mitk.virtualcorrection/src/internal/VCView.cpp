@@ -33,6 +33,7 @@ found in the LICENSE file.
 #include "mitkNodePredicateProperty.h"
 #include "mitkSurfaceOperation.h"
 #include "physioModelFactory.h"
+#include "QmitkSingleNodeSelectionWidget.h"
 #include <QComboBox>
 #include <itkBSplineInterpolateImageFunction.h>
 #include <itkResampleImageFilter.h>
@@ -68,7 +69,7 @@ void VCView::SetFocus()
   m_Controls.pushButton_applyPelvicVC->setFocus();
 }
 
-void VCView::InitPointSetSelector(QmitkSingleNodeSelectionWidget *widget)
+void VCView::InitPointSetSelector(QmitkSingleNodeSelectionWidget* widget)
 {
   widget->SetDataStorage(GetDataStorage());
   widget->SetNodePredicate(mitk::NodePredicateAnd::New(

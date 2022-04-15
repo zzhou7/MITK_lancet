@@ -245,6 +245,7 @@ void QmitkIGTFiducialRegistration::ProbeSawPit()
 
       m_ProbePitPointInRef = mitk::PointSet::New();
 
+
       
       m_ProbePitPointInRef->InsertPoint(point);
       SawPitnode->SetData(m_ProbePitPointInRef);
@@ -319,6 +320,7 @@ void QmitkIGTFiducialRegistration::calibrateGooseSaw(double MatrixRefToPointAcoo
                                                      double sawPlanePointQ[3],
                                                      double sawPlanePointS[3])
 {
+  MITK_INFO << sawPointD;
   Eigen::Vector3d PQ(sawPlanePointQ[0] - sawPlanePointP[0],
                      sawPlanePointQ[1] - sawPlanePointP[1],
                      sawPlanePointQ[2] - sawPlanePointP[2]);
@@ -339,7 +341,8 @@ void QmitkIGTFiducialRegistration::calibrateGooseSaw(double MatrixRefToPointAcoo
   Eigen::Vector3d z(matrixRefToPointACoordinate(8), matrixRefToPointACoordinate(9), matrixRefToPointACoordinate(10));
 
   MITK_INFO <<"x before: " << x;
-
+  MITK_INFO << "y before: " << y;
+  MITK_INFO << "z before: " << z;
   Eigen::Matrix3d matrixA;
   matrixA.col(0) = x;
   matrixA.col(1) = y;
@@ -355,6 +358,7 @@ void QmitkIGTFiducialRegistration::calibrateGooseSaw(double MatrixRefToPointAcoo
   {
     X = -X;
   }
+  X.normalize();
 
   Eigen::Vector3d Y;
   Y = y - X * (y.dot(X));
@@ -376,33 +380,6 @@ void QmitkIGTFiducialRegistration::calibrateGooseSaw(double MatrixRefToPointAcoo
   Eigen::Matrix3d matrixR;
   matrixR = inverseMatrixA * matrixD;
 
-  // double rx, ry, rz, r_x, r_y, r_z;
-  // double piParameter = 180 / 3.1415926;
-  //
-  // if (matrixR(0, 2) < 1)
-  // {
-  //   if (matrixR(0, 2) > -1)
-  //   {
-  //     ry = asin(matrixR(0, 2));
-  //     rx = atan2(-matrixR(1, 2), matrixR(2, 2));
-  //     rz = atan2(-matrixR(0, 1), matrixR(0, 0));
-  //   }
-  //   else
-  //   {
-  //     ry = -3.1415926 / 2;
-  //     rx = -atan2(matrixR(1, 0), matrixR(1, 1));
-  //     rz = 0;
-  //   }
-  // }
-  // else
-  // {
-  //   ry = 3.1415926 / 2;
-  //   rx = atan2(matrixR(1, 0), matrixR(1, 1));
-  //   rz = 0;
-  // }
-  // r_x = rx * piParameter;
-  // r_y = ry * piParameter;
-  // r_z = rz * piParameter;
   Eigen::Vector3d eulerAngles = matrixR.eulerAngles(0, 1, 2); // ZYX rotation
   MITK_INFO << matrixR;
   double r_x = eulerAngles[0];
@@ -414,7 +391,8 @@ void QmitkIGTFiducialRegistration::calibrateGooseSaw(double MatrixRefToPointAcoo
   Eigen::Vector3d AD(sawPointD[0] - matrixRefToPointACoordinate(12),
                      sawPointD[1] - matrixRefToPointACoordinate(13),
                      sawPointD[2] - matrixRefToPointACoordinate(14));
-
+  MITK_INFO << "AD Before translation calculation:" << AD;
+  MITK_INFO << "matrixRefToPointACoordinate Before translation calculation:" << matrixRefToPointACoordinate;
   double x_d = AD.dot(x);
   double y_d = AD.dot(y);
   double z_d = AD.dot(z);

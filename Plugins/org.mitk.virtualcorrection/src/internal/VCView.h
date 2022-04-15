@@ -17,7 +17,7 @@ found in the LICENSE file.
 #include "mitkImage.h"
 #include "polish.h"
 #include <berryISelectionListener.h>
-
+#include "QmitkSingleNodeSelectionWidget.h"
 #include <QmitkAbstractView.h>
 
 #include "ui_VCViewControls.h"

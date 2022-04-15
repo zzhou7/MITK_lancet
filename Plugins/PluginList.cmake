@@ -88,7 +88,7 @@ set(MITK_PLUGINS
   org.mitk.gui.qt.flowapplication:OFF
   org.mitk.gui.qt.flow.segmentation:OFF
   org.mitk.lancet.robot:OFF
-  org.mitk.virtualcorrection:OFF
+  org.mitk.virtualcorrection:ON
   org.mitk.lancet.fit:OFF
   org.mitk.lancet.nodeeditor:OFF
 )

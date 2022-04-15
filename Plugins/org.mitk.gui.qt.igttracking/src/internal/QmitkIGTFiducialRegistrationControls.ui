@@ -297,21 +297,21 @@
        <item>
         <widget class="QPushButton" name="pushButton_snapshotTool">
          <property name="text">
-          <string>Snap shot tool</string>
+          <string>Snapshot the target tool</string>
          </property>
         </widget>
        </item>
        <item>
         <widget class="QPushButton" name="pushButton_probeSawPit">
          <property name="text">
-          <string>Probe saw pit</string>
+          <string>Probe at saw pit</string>
          </property>
         </widget>
        </item>
        <item>
         <widget class="QPushButton" name="pushButton_probeSawPlane">
          <property name="text">
-          <string>Probe saw plane</string>
+          <string>Probe on saw plane</string>
          </property>
         </widget>
        </item>
