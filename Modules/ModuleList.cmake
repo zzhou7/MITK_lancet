@@ -85,4 +85,5 @@ set(MITK_MODULES
   DRRSidonJacobsRayTracing
   TwoProjectionRegistration
   SetUpTcpCalibrator
+  Spine2Dto3Dregistration
 )

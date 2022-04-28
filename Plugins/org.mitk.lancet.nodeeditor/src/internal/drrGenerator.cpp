@@ -25,6 +25,8 @@
 #include <vtkSmartPointer.h>
 #include <eigen3/Eigen/Eigen>
 #include "drrInterpolator.h"
+#include "spineDrrInterpolator.h"
+
 template <typename TPixel, unsigned VDimension>
 void DrrGenerator::ItkImageProcessing(const itk::Image<TPixel, VDimension>* itkImage_0)
 {
@@ -237,6 +239,8 @@ void DrrGenerator::ItkImageProcessing(const itk::Image<TPixel, VDimension>* itkI
 	//     InterpolatorType;
 	// typedef itk::SiddonJacobsRayCastInterpolateImageFunction<InputImageType, double> InterpolatorType; // MODIFIED
 	typedef itk::DrrInterpolator<InputImageType, double> InterpolatorType;
+  // typedef itk::SpineDrrInterpolator<InputImageType, double> InterpolatorType;
+
 	typename InterpolatorType::Pointer interpolator = InterpolatorType::New(); // MODIFIED
 	interpolator->SetTransform(transform); // MODIFIED
 

@@ -3,5 +3,5 @@ project(org_mitk_lancet_nodeeditor)
 mitk_create_plugin(
   EXPORT_DIRECTIVE NODEEDITOR_EXPORT
   EXPORTED_INCLUDE_SUFFIXES src
-  MODULE_DEPENDS MitkQtWidgetsExt MitkBoundingShape MitkLancetAlgo MitkSurfaceRegistration MitkLancetGeoUtil MitkDICOM MitkDRR MitkDRRSIDONJACOBSRAYTRACING MitkTwoProjectionRegistration MitkSetUpTcpCalibrator
+  MODULE_DEPENDS MitkQtWidgetsExt MitkBoundingShape MitkLancetAlgo MitkSurfaceRegistration MitkLancetGeoUtil MitkDICOM MitkDRR MitkDRRSIDONJACOBSRAYTRACING MitkTwoProjectionRegistration MitkSetUpTcpCalibrator MitkSpine2Dto3Dregistration
 )
