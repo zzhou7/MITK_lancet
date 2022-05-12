@@ -15,11 +15,9 @@ found in the LICENSE file.
 #define VCView_h
 
 #include "mitkImage.h"
-#include "nodebinder.h"
 #include "polish.h"
-#include "surfaceregistraion.h"
 #include <berryISelectionListener.h>
-
+#include "QmitkSingleNodeSelectionWidget.h"
 #include <QmitkAbstractView.h>
 
 #include "ui_VCViewControls.h"
@@ -129,8 +127,8 @@ protected:
   //node op
   void EnableTransform();
 
-  void move(double d[3] , mitk::BaseData* data);
-  void rotate(double center[3], double axis[3],mitk::BaseData* data);
+  void move(double d[3] , mitk::Surface* surface);
+  void rotate(double center[3], double axis[3],mitk::Surface* surface);
 
   void moveXp();
   void moveXm();
@@ -164,15 +162,11 @@ protected:
   void TransferItkTransformToVtkMatrix(mitk::AffineTransform3D *itkTransform, vtkMatrix4x4 *vtkmatrix);
   std::vector<double> vtkmatrix2angle(vtkMatrix4x4 *pMatrix);
 
-  //landmark ICP transform 
+  //landmark transform
   void onSourcePsetChanged(QmitkSingleNodeSelectionWidget::NodeList /*nodes*/);
   void onTargetPsetChanged(QmitkSingleNodeSelectionWidget::NodeList /*nodes*/);
   void onMovingNodeChanged(QmitkSingleNodeSelectionWidget::NodeList /*nodes*/);
-  void onIcpPsetChanged(QmitkSingleNodeSelectionWidget::NodeList /*nodes*/);
-  void OnPushButtonApplyLandMarks();
-  void OnPushButtonApplyICP();
-  void OnPushButtonUndo();
-  void OnPushButtonClearRegist();
+  void OnPushButtonApplyTrans();
   //5cut
   void on_widget_plane_distal_Changed(QmitkSingleNodeSelectionWidget::NodeList /*nodes*/);
   void on_widget_plane_backOblique_Changed(QmitkSingleNodeSelectionWidget::NodeList /*nodes*/);
@@ -182,49 +176,24 @@ protected:
 
   void OnpushButton_calNormalPlaneRMS();
   void OnpushButtonCalAngle();
-  void showRectangle(mitk::Point3D center,
-                     mitk::Vector3D normal,
-                     mitk::Vector3D x_axis,
-                     mitk::Vector3D y_axis,
-                     double length,
-                     double width,
-                     int color,
-                     std::string name,
-                     bool overwrite);
-  void OnPushButton_pInPoly();
-  void OnPushButton_genPolygon();
-  int projectPointInPolygon(double *point, mitk::PointSet *polygonPset);
-  void projectPointSetToPlane(mitk::PointSet* pset);
-  bool GenNormalFromSurface(mitk::Surface::Pointer surface, std::string name, bool flip = false);
-  void GenPlaneFromNormal(mitk::Point3D p, mitk::Vector3D v, std::string name);
-  void GenerateNormals();
-  void GeneratePlanes();
 
-  mitk::Vector3D DesignAngle2Normal(double angle);
-
-  void GenerateNormalsFromDesignAngle();
-  
   //pad iamge
   void padImage();
 
-  void runDRR();
+  //polish
+  void SetupPolish();
+  void PolishOnce();
+  void StartPolish();
+  void StopPolishing();
+  void RestorePolish();
+  Polish::Pointer m_polish{nullptr};
 
-  //TEST
-  void Test();
-
-  void Test2();
-
-  //surfaceBoolean
-  void surfaceBoolean();
-  void surfaceBoolean2();
   Ui::VCViewControls m_Controls;
 
-  //node op
-  mitk::BaseData* m_transData{nullptr};
-
   //pelvis
- 
   mitk::Surface* m_pelvis{nullptr};
+  mitk::Surface* m_tmpSurface{ nullptr };
+  mitk::Surface* m_surface_transform{ nullptr };
   mitk::PointSet* m_asis{ nullptr };
   mitk::PointSet* m_pt{ nullptr };
 
@@ -239,7 +208,7 @@ protected:
   mitk::PointSet *m_BtrochanterL{nullptr};
   mitk::PointSet *m_condylesL{nullptr};
 
-  NodeBinder::Pointer m_femurLeftGroup;
+  OperateGroup m_femurLeftGroup{8};
 
   //femur right
   mitk::Surface* m_femurR{ nullptr };
@@ -252,7 +221,7 @@ protected:
   mitk::PointSet *m_BtrochanterR{nullptr};
   mitk::PointSet *m_condylesR{nullptr};
   
-  NodeBinder::Pointer m_femurRightGroup{ nullptr };
+  OperateGroup m_femurRightGroup{8};
 
   //stem
   mitk::PointSet* m_stemCenter{ nullptr };
@@ -280,10 +249,8 @@ protected:
   //landmark trans
   mitk::DataNode* m_sourcePset{ nullptr };
   mitk::DataNode* m_targetPset{ nullptr };
-  mitk::DataNode* m_registSrc{ nullptr };
-  mitk::DataNode* m_icpPset{ nullptr };
+  mitk::DataNode* m_movingNode{ nullptr };
 
-  mitk::SurfaceRegistration::Pointer m_surfaceRegistration;
 
   //5Cut
   mitk::DataNode* m_distalCut{ nullptr };
@@ -291,35 +258,16 @@ protected:
   mitk::DataNode* m_backCut{ nullptr };
   mitk::DataNode* m_frontObliCut{ nullptr };
   mitk::DataNode* m_frontCut{ nullptr };
-
-  mitk::Vector3D m_ant;
-  mitk::Vector3D m_antCham;
-  mitk::Vector3D m_distal;
-  mitk::Vector3D m_postCham;
-  mitk::Vector3D m_post;
-  double AntDesignAngle{ 86 };
-  double AntChamDesignAngle{ 48 };
-  double postChamDesignAngle{ 44.5 };
-  double postDesignAngle{ 89 };
-
-  //polish
-  Polish::Pointer m_polish{ nullptr };
 };
-
 
 inline void VCView::onMovingNodeChanged(QmitkSingleNodeSelectionWidget::NodeList)
 {
-    m_registSrc = m_Controls.widget_MovingNode->GetSelectedNode();
+    m_movingNode = m_Controls.widget_MovingNode->GetSelectedNode();
 }
 
 inline void VCView::onTargetPsetChanged(QmitkSingleNodeSelectionWidget::NodeList)
 {
     m_targetPset = m_Controls.widget_TargetPset->GetSelectedNode();
-}
-
-inline void VCView::onIcpPsetChanged(QmitkSingleNodeSelectionWidget::NodeList)
-{
-    m_icpPset = m_Controls.widget_IcpPset->GetSelectedNode();
 }
 
 inline void VCView::onSourcePsetChanged(QmitkSingleNodeSelectionWidget::NodeList /*nodes*/)

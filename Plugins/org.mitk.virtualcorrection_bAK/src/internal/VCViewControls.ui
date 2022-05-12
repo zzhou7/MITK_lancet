@@ -23,7 +23,7 @@
    <item>
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>2</number>
+      <number>5</number>
      </property>
      <widget class="QWidget" name="tab">
       <attribute name="title">
@@ -654,30 +654,6 @@
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="pushButton_drr">
-         <property name="text">
-          <string>DRR</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="pushButton_test">
-         <property name="text">
-          <string>test</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QSpinBox" name="spinBox_test"/>
-       </item>
-       <item>
-        <widget class="QPushButton" name="pushButton_test2">
-         <property name="text">
-          <string>test2</string>
-         </property>
-        </widget>
-       </item>
-       <item>
         <spacer name="verticalSpacer">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
@@ -696,25 +672,25 @@
       <attribute name="title">
        <string>Node operation</string>
       </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout_2">
-       <item>
-        <widget class="QPushButton" name="pushButton_initPos">
-         <property name="text">
-          <string>Initial Pos</string>
-         </property>
-        </widget>
+      <layout class="QGridLayout" name="gridLayout_10">
+       <item row="0" column="0">
+        <widget class="QLineEdit" name="lineEdit_surfaceName"/>
        </item>
-       <item>
+       <item row="0" column="1" colspan="2">
         <widget class="QPushButton" name="pushButton_enabelT">
          <property name="text">
           <string>Enable Transform</string>
          </property>
         </widget>
        </item>
-       <item>
-        <widget class="QLineEdit" name="lineEdit_surfaceName"/>
+       <item row="0" column="3">
+        <widget class="QPushButton" name="pushButton_initPos">
+         <property name="text">
+          <string>Initial Pos</string>
+         </property>
+        </widget>
        </item>
-       <item>
+       <item row="1" column="0" colspan="4">
         <layout class="QGridLayout" name="gridLayout_7">
          <item row="2" column="2">
           <widget class="QPushButton" name="pushButton_ryp">
@@ -802,7 +778,14 @@
          </item>
         </layout>
        </item>
-       <item>
+       <item row="2" column="0">
+        <widget class="QLabel" name="label_9">
+         <property name="text">
+          <string>选择假体</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1" colspan="2">
         <widget class="QComboBox" name="comboBox_stemList">
          <item>
           <property name="text">
@@ -816,109 +799,42 @@
          </item>
         </widget>
        </item>
-       <item>
-        <widget class="QLabel" name="label_9">
-         <property name="text">
-          <string>选择假体</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="pushButton_clip">
-         <property name="text">
-          <string>切割股骨</string>
-         </property>
-        </widget>
-       </item>
-       <item>
+       <item row="3" column="0" colspan="2">
         <widget class="QPushButton" name="pushButton_stemCenter">
          <property name="text">
           <string>股骨柄装配中心</string>
          </property>
         </widget>
        </item>
-       <item>
-        <widget class="QPushButton" name="pushButton_cutFemur">
+       <item row="3" column="2" colspan="2">
+        <widget class="QPushButton" name="pushButton_clip">
          <property name="text">
-          <string>cut Femur</string>
+          <string>切割股骨</string>
          </property>
         </widget>
        </item>
-       <item>
+       <item row="4" column="0">
         <widget class="QPushButton" name="pushButton_upSample">
          <property name="text">
           <string>upSample</string>
          </property>
         </widget>
        </item>
-       <item>
-        <widget class="QPushButton" name="pushButton_cut">
+       <item row="4" column="1">
+        <widget class="QPushButton" name="pushButton_cutFemur">
          <property name="text">
-          <string>打磨</string>
+          <string>cut Femur</string>
          </property>
         </widget>
        </item>
-       <item>
+       <item row="5" column="0" colspan="4">
         <layout class="QGridLayout" name="gridLayout_9">
-         <item row="4" column="1">
-          <layout class="QHBoxLayout" name="horizontalLayout_6">
-           <item>
-            <widget class="QLabel" name="label_33">
-             <property name="text">
-              <string>Moving Node</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QmitkSingleNodeSelectionWidget" name="widget_MovingNode" native="true">
-             <property name="minimumSize">
-              <size>
-               <width>0</width>
-               <height>30</height>
-              </size>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </item>
-         <item row="5" column="1">
-          <layout class="QHBoxLayout" name="horizontalLayout_7">
-           <item>
-            <widget class="QPushButton" name="pushButton_applyLandMark">
-             <property name="text">
-              <string>Apply LandMark</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="pushButton_applyIcp">
-             <property name="text">
-              <string>Apply ICP</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="pushButton_undo">
-             <property name="text">
-              <string>Un do</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="pushButton_clearRegist">
-             <property name="text">
-              <string>Clear ALL</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </item>
          <item row="1" column="1">
           <layout class="QHBoxLayout" name="horizontalLayout_4">
            <item>
             <widget class="QLabel" name="label_32">
              <property name="text">
-              <string>Source LandMarks</string>
+              <string>Source Points</string>
              </property>
             </widget>
            </item>
@@ -939,7 +855,7 @@
            <item>
             <widget class="QLabel" name="label_31">
              <property name="text">
-              <string>Target LandMarks</string>
+              <string>Target Points</string>
              </property>
             </widget>
            </item>
@@ -958,24 +874,21 @@
          <item row="0" column="1">
           <widget class="QLabel" name="label_34">
            <property name="text">
-            <string>Surface Registration</string>
+            <string>LandMark Transform:</string>
            </property>
           </widget>
          </item>
-         <item row="6" column="1">
-          <widget class="QTextBrowser" name="textBrowser_trans_info"/>
-         </item>
          <item row="3" column="1">
-          <layout class="QHBoxLayout" name="horizontalLayout_8">
+          <layout class="QHBoxLayout" name="horizontalLayout_6">
            <item>
-            <widget class="QLabel" name="label_47">
+            <widget class="QLabel" name="label_33">
              <property name="text">
-              <string>ICP Points</string>
+              <string>Moving Node</string>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QmitkSingleNodeSelectionWidget" name="widget_IcpPset" native="true">
+            <widget class="QmitkSingleNodeSelectionWidget" name="widget_MovingNode" native="true">
              <property name="minimumSize">
               <size>
                <width>0</width>
@@ -985,6 +898,27 @@
             </widget>
            </item>
           </layout>
+         </item>
+         <item row="4" column="1">
+          <layout class="QHBoxLayout" name="horizontalLayout_7">
+           <item>
+            <widget class="QPushButton" name="pushButton_applyTrans">
+             <property name="text">
+              <string>Apply Transform</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="pushButton_undo">
+             <property name="text">
+              <string>Un do</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item row="5" column="1">
+          <widget class="QTextBrowser" name="textBrowser_trans_info"/>
          </item>
         </layout>
        </item>
@@ -1098,77 +1032,21 @@
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_5">
        <item>
+        <widget class="QComboBox" name="comboBox">
+         <item>
+          <property name="text">
+           <string>法线模式</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>点集模式</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item>
         <layout class="QGridLayout" name="gridLayout_11">
-         <item row="4" column="1">
-          <widget class="QmitkSingleNodeSelectionWidget" name="widget_plane_front" native="true">
-           <property name="minimumSize">
-            <size>
-             <width>0</width>
-             <height>30</height>
-            </size>
-           </property>
-          </widget>
-         </item>
-         <item row="6" column="0">
-          <widget class="QPushButton" name="pushButton_calAngle">
-           <property name="text">
-            <string>计算角度</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="1">
-          <widget class="QmitkSingleNodeSelectionWidget" name="widget_plane_backOblique" native="true">
-           <property name="minimumSize">
-            <size>
-             <width>0</width>
-             <height>30</height>
-            </size>
-           </property>
-          </widget>
-         </item>
-         <item row="5" column="0">
-          <widget class="QPushButton" name="pushButton_calNormalPlaneRMS">
-           <property name="text">
-            <string>计算法线共面性</string>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="1">
-          <widget class="QmitkSingleNodeSelectionWidget" name="widget_plane_back" native="true">
-           <property name="minimumSize">
-            <size>
-             <width>0</width>
-             <height>30</height>
-            </size>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="0">
-          <widget class="QLabel" name="label_37">
-           <property name="maximumSize">
-            <size>
-             <width>60</width>
-             <height>16777215</height>
-            </size>
-           </property>
-           <property name="text">
-            <string>后</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="0">
-          <widget class="QLabel" name="label_35">
-           <property name="maximumSize">
-            <size>
-             <width>60</width>
-             <height>16777215</height>
-            </size>
-           </property>
-           <property name="text">
-            <string>远端</string>
-           </property>
-          </widget>
-         </item>
          <item row="3" column="0">
           <widget class="QLabel" name="label_38">
            <property name="maximumSize">
@@ -1182,10 +1060,13 @@
            </property>
           </widget>
          </item>
-         <item row="5" column="1">
-          <widget class="QLabel" name="label_normalPlaneRMS">
-           <property name="text">
-            <string/>
+         <item row="1" column="1">
+          <widget class="QmitkSingleNodeSelectionWidget" name="widget_plane_backOblique" native="true">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>30</height>
+            </size>
            </property>
           </widget>
          </item>
@@ -1202,8 +1083,15 @@
            </property>
           </widget>
          </item>
-         <item row="4" column="0">
-          <widget class="QLabel" name="label_39">
+         <item row="5" column="1">
+          <widget class="QLabel" name="label_normalPlaneRMS">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="0">
+          <widget class="QLabel" name="label_37">
            <property name="maximumSize">
             <size>
              <width>60</width>
@@ -1211,7 +1099,17 @@
             </size>
            </property>
            <property name="text">
-            <string>前</string>
+            <string>后</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="1">
+          <widget class="QmitkSingleNodeSelectionWidget" name="widget_plane_back" native="true">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>30</height>
+            </size>
            </property>
           </widget>
          </item>
@@ -1225,6 +1123,36 @@
            </property>
           </widget>
          </item>
+         <item row="4" column="1">
+          <widget class="QmitkSingleNodeSelectionWidget" name="widget_plane_front" native="true">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>30</height>
+            </size>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="0">
+          <widget class="QPushButton" name="pushButton_calNormalPlaneRMS">
+           <property name="text">
+            <string>计算法线共面性</string>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="0">
+          <widget class="QLabel" name="label_39">
+           <property name="maximumSize">
+            <size>
+             <width>60</width>
+             <height>16777215</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>前</string>
+           </property>
+          </widget>
+         </item>
          <item row="3" column="1">
           <widget class="QmitkSingleNodeSelectionWidget" name="widget_plane_frontOblique" native="true">
            <property name="minimumSize">
@@ -1235,77 +1163,23 @@
            </property>
           </widget>
          </item>
-         <item row="6" column="1">
-          <widget class="QComboBox" name="comboBox">
-           <item>
-            <property name="text">
-             <string>法线模式</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>点集模式</string>
-            </property>
-           </item>
-          </widget>
-         </item>
-        </layout>
-       </item>
-       <item>
-        <widget class="QPushButton" name="pushButton_genNormals">
-         <property name="text">
-          <string>生成法线</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="pushButton_genPlanes">
-         <property name="text">
-          <string>生成平面</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <layout class="QGridLayout" name="gridLayout_12">
          <item row="0" column="0">
-          <widget class="QLabel" name="label_40">
-           <property name="text">
-            <string>反转法线</string>
+          <widget class="QLabel" name="label_35">
+           <property name="maximumSize">
+            <size>
+             <width>60</width>
+             <height>16777215</height>
+            </size>
            </property>
-          </widget>
-         </item>
-         <item row="1" column="0">
-          <widget class="QCheckBox" name="checkBox_disal">
            <property name="text">
             <string>远端</string>
            </property>
           </widget>
          </item>
-         <item row="2" column="0">
-          <widget class="QCheckBox" name="checkBox_ant">
+         <item row="6" column="0">
+          <widget class="QPushButton" name="pushButton_calAngle">
            <property name="text">
-            <string>前端</string>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="0">
-          <widget class="QCheckBox" name="checkBox_antCham">
-           <property name="text">
-            <string>前斜</string>
-           </property>
-          </widget>
-         </item>
-         <item row="4" column="0">
-          <widget class="QCheckBox" name="checkBox_post">
-           <property name="text">
-            <string>后端</string>
-           </property>
-          </widget>
-         </item>
-         <item row="5" column="0">
-          <widget class="QCheckBox" name="checkBox_postCham">
-           <property name="text">
-            <string>后斜</string>
+            <string>计算角度</string>
            </property>
           </widget>
          </item>
@@ -1315,20 +1189,6 @@
         <widget class="QTextBrowser" name="textBrowser_5Cut"/>
        </item>
        <item>
-        <widget class="QPushButton" name="pushButton_pInPoly">
-         <property name="text">
-          <string>PointInPolygon</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="pushButton_genPolygon">
-         <property name="text">
-          <string>genPolygon</string>
-         </property>
-        </widget>
-       </item>
-       <item>
         <widget class="QPushButton" name="pushButton_seal">
          <property name="text">
           <string>sealImage</string>
@@ -1336,6 +1196,76 @@
         </widget>
        </item>
       </layout>
+     </widget>
+     <widget class="QWidget" name="tab_6">
+      <attribute name="title">
+       <string>Polish</string>
+      </attribute>
+      <widget class="QPushButton" name="pushButton_startPolishing">
+       <property name="geometry">
+        <rect>
+         <x>30</x>
+         <y>80</y>
+         <width>75</width>
+         <height>23</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Start</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="pushButton_stopPolishing">
+       <property name="geometry">
+        <rect>
+         <x>30</x>
+         <y>140</y>
+         <width>75</width>
+         <height>23</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Stop</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="pushButton_polishonce">
+       <property name="geometry">
+        <rect>
+         <x>150</x>
+         <y>80</y>
+         <width>75</width>
+         <height>23</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>PolishOnce</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="pushButton_restore">
+       <property name="geometry">
+        <rect>
+         <x>150</x>
+         <y>140</y>
+         <width>75</width>
+         <height>23</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Restore</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="pushButton_setupPolish">
+       <property name="geometry">
+        <rect>
+         <x>30</x>
+         <y>40</y>
+         <width>75</width>
+         <height>23</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>SetUp</string>
+       </property>
+      </widget>
      </widget>
     </widget>
    </item>

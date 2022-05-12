@@ -14,7 +14,6 @@ found in the LICENSE file.
 Below are Headers for the Node Editor plugin
 ==============================================================*/
 #include <sstream>
-
 #include <cmath>
 // Blueberry
 #include <berryISelectionService.h>
@@ -54,11 +53,13 @@ Below are Headers for the Node Editor plugin
 #include <mitkRotationOperation.h>
 #include <mitkSurface.h>
 #include <mitkSurfaceToImageFilter.h>
+#include <mitkImageToSurfaceFilter.h>
 #include <mitkVector.h>
 #include <vtkClipPolyData.h>
 #include <vtkImageStencil.h>
 #include <vtkLandmarkTransform.h>
 #include <vtkMatrix4x4.h>
+#include <vtkConnectivityFilter.h>
 #include <vtkPlane.h>
 #include <vtkSTLReader.h>
 #include <vtkPolyLine.h>
@@ -73,7 +74,7 @@ Below are Headers for the Node Editor plugin
 #include "volumeRegistrator.h"
 #include <twoprojectionregistration.h>
 #include <setuptcpcalibrator.h>
-
+#include <leastsquaresfit.h>
 /*=============================================================
 Above are Headers for the Node Editor plugin
 ==============================================================*/
@@ -100,6 +101,7 @@ Below are Headers for DRR testing
 #include <vtkPointData.h>
 #include <vtkPolyData.h>
 #include <iostream>
+#include <vtkCellArrayIterator.h>
 
 inline void NodeEditor::DrrCtImageChanged(QmitkSingleNodeSelectionWidget::NodeList /*nodes*/)
 {
@@ -2072,6 +2074,164 @@ void NodeEditor::InitialMetric()
 //   std::cout << "z: " << z_d << std::endl;
 // }
 
+void NodeEditor::ExtractSteelBallSurface()
+{
+  auto imageRaw = dynamic_cast<mitk::Image *>(m_InputImageToCropDataNode->GetData());
+  auto mitkSteelBallSurfaces = mitk::Surface::New();
+  mitk::ImageToSurfaceFilter::Pointer imageToSurfaceFilter = mitk::ImageToSurfaceFilter::New();
+  imageToSurfaceFilter->SetInput(imageRaw);
+  imageToSurfaceFilter->SetThreshold(10000);
+
+  vtkNew<vtkConnectivityFilter> connectivityFilter;
+  mitkSteelBallSurfaces = imageToSurfaceFilter->GetOutput();
+  connectivityFilter->SetInputData(mitkSteelBallSurfaces->GetVtkPolyData());  
+  
+  connectivityFilter->SetExtractionModeToAllRegions();
+  connectivityFilter->Update();
+  int numberOfSteelBalls = connectivityFilter->GetNumberOfExtractedRegions();
+
+  connectivityFilter->SetExtractionModeToSpecifiedRegions();
+  auto mitkSteelballCenterPointSet = mitk::PointSet::New();
+
+  double pointSetCenter[3]{0, 0, 0};
+
+  for (int m = 0; m < numberOfSteelBalls; m++)
+  {
+    connectivityFilter->InitializeSpecifiedRegionList();
+    connectivityFilter->AddSpecifiedRegion(m);
+    connectivityFilter->Update();
+
+    auto vtkSteelBallSurfaces = connectivityFilter->GetPolyDataOutput();
+    auto numberofcells = vtkSteelBallSurfaces->GetNumberOfCells();
+
+    std::vector<double> inp_x(numberofcells);
+    std::vector<double> inp_y(numberofcells);
+    std::vector<double> inp_z(numberofcells);
+
+    for (int n = 0; n < numberofcells; n++)
+    {
+      auto tmpPoint = vtkSteelBallSurfaces->GetCell(n)->GetPoints()->GetPoint(0);
+
+
+
+      inp_x[n] = tmpPoint[0];
+      inp_y[n] = tmpPoint[1];
+      inp_z[n] = tmpPoint[2];
+    }
+
+    double cx, cy, cz;
+    double R;
+
+    lancetAlgorithm::fit_sphere(inp_x, inp_y, inp_z, cx, cy, cz, R);
+
+    mitk::Point3D mitkTmpCenterPoint3D;
+    mitkTmpCenterPoint3D[0] = cx;
+    mitkTmpCenterPoint3D[1] = cy;
+    mitkTmpCenterPoint3D[2] = cz;
+    mitkSteelballCenterPointSet->InsertPoint(mitkTmpCenterPoint3D);
+
+    pointSetCenter[0] = pointSetCenter[0] + cx;
+    pointSetCenter[1] = pointSetCenter[1] + cy;
+    pointSetCenter[2] = pointSetCenter[2] + cz;
+
+    // // Draw simulated spheres
+    // auto vtkBallSource0 = vtkSmartPointer<vtkSphereSource>::New();
+    // vtkBallSource0->SetCenter(cx, cy, cz);
+    // vtkBallSource0->SetRadius(R);
+    // vtkBallSource0->Update();
+    //
+    // auto tmpNode = mitk::DataNode::New();
+    //
+    // tmpNode->SetName("Single steelball sphere");
+    // auto mitkSteelBallSurfacesNew1 = mitk::Surface::New();
+    // mitkSteelBallSurfacesNew1->SetVtkPolyData(vtkBallSource0->GetOutput());
+    // tmpNode->SetData(mitkSteelBallSurfacesNew1);
+    // GetDataStorage()->Add(tmpNode);
+  }
+
+  pointSetCenter[0] = pointSetCenter[0] / numberOfSteelBalls;
+  pointSetCenter[1] = pointSetCenter[1] / numberOfSteelBalls;
+  pointSetCenter[2] = pointSetCenter[2] / numberOfSteelBalls;
+
+  std::vector<double> distancesToPointSetCenter(numberOfSteelBalls);
+  std::vector<int> distanceRanks(numberOfSteelBalls);
+  
+
+
+  for (int i = 0; i < numberOfSteelBalls; i++)
+  {
+    distancesToPointSetCenter[i] = sqrt(pow(pointSetCenter[0] - mitkSteelballCenterPointSet->GetPoint(i)[0], 2) +
+                                        pow(pointSetCenter[1] - mitkSteelballCenterPointSet->GetPoint(i)[1], 2) +
+                                        pow(pointSetCenter[2] - mitkSteelballCenterPointSet->GetPoint(i)[2], 2));
+    distanceRanks[i] = i;
+  }
+  
+  MITK_INFO << "Distance before: " << distancesToPointSetCenter[0];
+  MITK_INFO << distancesToPointSetCenter[1];
+  MITK_INFO << distancesToPointSetCenter[2];
+  MITK_INFO << distancesToPointSetCenter[3];
+  MITK_INFO << distancesToPointSetCenter[4];
+  MITK_INFO << distancesToPointSetCenter[5];
+  MITK_INFO << distancesToPointSetCenter[6];
+
+  for (int i = 0; i < numberOfSteelBalls-2; i++)
+  {
+    for (int j = 0; j < numberOfSteelBalls -1 - i; j++)
+    {
+      double temp = 0;
+      double temp2 = 0;
+      if (distancesToPointSetCenter[j] > distancesToPointSetCenter[j + 1])
+      {
+        temp = distancesToPointSetCenter[j];
+        distancesToPointSetCenter[j] = distancesToPointSetCenter[j + 1];
+        distancesToPointSetCenter[j + 1] = temp;
+
+        temp2 = distanceRanks[j];
+        distanceRanks[j] = distanceRanks[j + 1];
+        distanceRanks[j + 1] = temp2;
+      }
+    }
+  }
+
+  MITK_INFO << "Distance after: " << distancesToPointSetCenter[0];
+  MITK_INFO << distancesToPointSetCenter[1];
+  MITK_INFO << distancesToPointSetCenter[2];
+  MITK_INFO << distancesToPointSetCenter[3];
+  MITK_INFO << distancesToPointSetCenter[4];
+  MITK_INFO << distancesToPointSetCenter[5];
+  MITK_INFO << distancesToPointSetCenter[6];
+
+  auto mitkSortedSteelballCenterPointSet = mitk::PointSet::New();
+  for (int i = 0; i < numberOfSteelBalls; i++)
+  {
+    mitkSortedSteelballCenterPointSet->InsertPoint(mitkSteelballCenterPointSet->GetPoint(distanceRanks[i]));
+  }
+
+
+  // MITK_INFO << "Rank: " << distanceRanks[0] << distanceRanks[1] << distanceRanks[2];
+
+  // draw extracted  steel ball surfaces
+  auto nodeSteelballSurfaces = mitk::DataNode::New();
+  nodeSteelballSurfaces->SetName("Extracted Steelball surfaces");
+  // add new node
+  nodeSteelballSurfaces->SetData(mitkSteelBallSurfaces);
+  GetDataStorage()->Add(nodeSteelballSurfaces);
+
+  // add steel ball centers
+  auto nodeSteelballCenters = mitk::DataNode::New();
+  nodeSteelballCenters->SetName("Steel ball centers");
+  // add new node
+  nodeSteelballCenters->SetData(mitkSteelballCenterPointSet);
+  GetDataStorage()->Add(nodeSteelballCenters);
+
+  // add sorted steel ball centers
+  auto nodeSortedSteelballCenters = mitk::DataNode::New();
+  nodeSortedSteelballCenters->SetName("Sorted Steel ball centers");
+  // add new node
+  nodeSortedSteelballCenters->SetData(mitkSortedSteelballCenterPointSet);
+  GetDataStorage()->Add(nodeSortedSteelballCenters);
+
+}
 
 
 //-------------------------------- ↓  QT part  ↓---------------------------------------
@@ -2205,5 +2365,8 @@ void NodeEditor::CreateQtPartControl(QWidget *parent)
   // stl polydata to imagedata
   connect(m_Controls.surfaceToImagePushButton, &QPushButton::clicked, this, &NodeEditor::PolyDataToImageData);
   connect(m_Controls.generateWhiteImagePushButton, &QPushButton::clicked, this, &NodeEditor::GenerateWhiteImage);
+
+  // extract the surface of the image data
+  connect(m_Controls.extractSteelballsPushButton, &QPushButton::clicked, this, &NodeEditor::ExtractSteelBallSurface);
 }
 //-------------------------------- ↑  QT part  ↑---------------------------------------

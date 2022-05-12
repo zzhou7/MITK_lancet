@@ -17,6 +17,20 @@ found in the LICENSE file.
 #include <vtkPoints.h>
 #include <vtkPolyData.h>
 
+
+mitk::SurfaceRegistration::SurfaceRegistration()
+  : m_MatrixLandMark(vtkMatrix4x4::New()), m_ResultMatrix(vtkMatrix4x4::New())
+{
+  // LandMark registration result is always the first element in MatrixList
+  m_MatrixList.push_back(m_MatrixLandMark);
+}
+
+mitk::SurfaceRegistration::~SurfaceRegistration()
+{
+  m_MatrixList.clear();
+  m_MatrixLandMark->Delete();
+}
+
 void mitk::SurfaceRegistration::AddLandMark(mitk::Point3D point)
 {
   if (m_LandmarksTarget!=nullptr)
@@ -72,6 +86,7 @@ bool mitk::SurfaceRegistration::ComputeLandMarkResult()
 		m_MatrixLandMark->DeepCopy(landmarkTransform->GetMatrix());
 		return true;
 	}
+
 	MITK_ERROR << "SurfaceRegistration Error: landmark size wrong";
 	return false;
 }
@@ -92,6 +107,7 @@ bool mitk::SurfaceRegistration::ComputeIcpResult()
 
   //The new transformation is computed under the result of the preceding transformation,
   //but we don't move the source surface,so we move target icp points inversely.
+  //To be confirmed: SetTarget should contain more points than SetSource 
 	auto pTransform = vtkSmartPointer<vtkTransform>::New();
 	pTransform->Identity();
 	pTransform->Concatenate(GetResult());
@@ -105,7 +121,7 @@ bool mitk::SurfaceRegistration::ComputeIcpResult()
 	vtkSmartPointer<vtkIterativeClosestPointTransform> pIcp =
 		vtkSmartPointer<vtkIterativeClosestPointTransform>::New();
 	pIcp->SetSource(pSource);
-	pIcp->SetTarget(m_SurfaceSrc->GetVtkPolyData());
+	pIcp->SetTarget(m_SurfaceSrc->GetVtkPolyData()); 
 	pIcp->GetLandmarkTransform()->SetModeToRigidBody();
 	pIcp->SetMaximumNumberOfIterations(1000);
 	pIcp->SetCheckMeanDistance(true);
@@ -136,13 +152,15 @@ void mitk::SurfaceRegistration::Clear()
 {
 	m_MatrixList.clear();
 	m_MatrixLandMark->Identity();
+  m_MatrixList.push_back(m_MatrixLandMark);
+
 	m_ResultMatrix->Identity();
-	m_MatrixList.push_back(m_MatrixLandMark);
+	
 }
 
 vtkMatrix4x4 * mitk::SurfaceRegistration::GetResult()
 {
-	auto transform = vtkSmartPointer<vtkTransform>::New();
+	auto transform = vtkSmartPointer<vtkTransform>::New(); // Use the default mode "premultiply"
   for (auto matrix : m_MatrixList)
   {
 	  transform->Concatenate(matrix);
@@ -152,16 +170,4 @@ vtkMatrix4x4 * mitk::SurfaceRegistration::GetResult()
 	return m_ResultMatrix;
 }
 
-mitk::SurfaceRegistration::SurfaceRegistration()
-  : m_MatrixLandMark(vtkMatrix4x4::New()),
-    m_ResultMatrix(vtkMatrix4x4::New())
-{
-  //LandMark registration result always the first and only one element in MatrixList
-	m_MatrixList.push_back(m_MatrixLandMark);
-}
 
-mitk::SurfaceRegistration::~SurfaceRegistration()
-{
-	m_MatrixList.clear();
-	m_MatrixLandMark->Delete();
-}

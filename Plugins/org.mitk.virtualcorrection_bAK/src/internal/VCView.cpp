@@ -24,21 +24,16 @@ found in the LICENSE file.
 
 // mitk image
 #include "basic.h"
-#include "leastsquaresfit.h"
 #include "mitkImagePixelReadAccessor.h"
 #include "mitkImagePixelWriteAccessor.h"
-#include "mitkLayoutAnnotationRenderer.h"
 #include "mitkNodePredicateAnd.h"
 #include "mitkNodePredicateDataType.h"
 #include "mitkNodePredicateNot.h"
 #include "mitkNodePredicateOr.h"
 #include "mitkNodePredicateProperty.h"
 #include "mitkSurfaceOperation.h"
-#include "mitkTextAnnotation2D.h"
 #include "physioModelFactory.h"
-#include "polish.h"
-#include "QmitkRenderWindow.h"
-#include "surfaceboolean.h"
+#include "QmitkSingleNodeSelectionWidget.h"
 #include <QComboBox>
 #include <itkBSplineInterpolateImageFunction.h>
 #include <itkResampleImageFilter.h>
@@ -63,17 +58,9 @@ found in the LICENSE file.
 
 #include <eigen3/Eigen/Eigen>
 #include <mitkPadImageFilter.h>
-//#include <drr.h>
-#include <nodebinder.h>
-#include <surfaceregistraion.h>
-#include <vtkPolygon.h>
-#include <basic.h>
-#include <vtkBooleanOperationPolyDataFilter.h>
-#include <vtkCleanPolyData.h>
-#include <vtkPlaneSource.h>
-#include <vtkTransformPolyDataFilter.h>
-#include <vtkTriangleFilter.h>
 
+#include <polish.h>
+#include <vtkLinearSubdivisionFilter.h>
 #define PI acos(-1)
 const std::string VCView::VIEW_ID = "org.mitk.views.vcview";
 
@@ -82,7 +69,7 @@ void VCView::SetFocus()
   m_Controls.pushButton_applyPelvicVC->setFocus();
 }
 
-void VCView::InitPointSetSelector(QmitkSingleNodeSelectionWidget *widget)
+void VCView::InitPointSetSelector(QmitkSingleNodeSelectionWidget* widget)
 {
   widget->SetDataStorage(GetDataStorage());
   widget->SetNodePredicate(mitk::NodePredicateAnd::New(
@@ -172,10 +159,8 @@ void VCView::CreateQtPartControl(QWidget *parent)
   InitPointSetSelector(m_Controls.widget_SourcePset);
   // target
   InitPointSetSelector(m_Controls.widget_TargetPset);
-  //target
-  InitPointSetSelector(m_Controls.widget_IcpPset);
- 
-  //moving node
+
+  // moving node
   m_Controls.widget_MovingNode->SetDataStorage(GetDataStorage());
   m_Controls.widget_MovingNode->SetNodePredicate(mitk::NodePredicateNot::New(mitk::NodePredicateOr::New(
     mitk::NodePredicateProperty::New("helper object"), mitk::NodePredicateProperty::New("hidden object"))));
@@ -185,18 +170,19 @@ void VCView::CreateQtPartControl(QWidget *parent)
   m_Controls.widget_MovingNode->SetEmptyInfo(QString("Please select a node"));
   m_Controls.widget_MovingNode->SetPopUpTitel(QString("Select node"));
 
-  connect(m_Controls.widget_SourcePset, &QmitkSingleNodeSelectionWidget::CurrentSelectionChanged,
-      this, &VCView::onSourcePsetChanged);
-  connect(m_Controls.widget_TargetPset, &QmitkSingleNodeSelectionWidget::CurrentSelectionChanged,
-      this, &VCView::onTargetPsetChanged);
-  connect(m_Controls.widget_IcpPset, &QmitkSingleNodeSelectionWidget::CurrentSelectionChanged,
-      this, &VCView::onIcpPsetChanged);
-  connect(m_Controls.widget_MovingNode, &QmitkSingleNodeSelectionWidget::CurrentSelectionChanged,
-      this, &VCView::onMovingNodeChanged);
-  connect(m_Controls.pushButton_applyLandMark, &QPushButton::clicked, this, &VCView::OnPushButtonApplyLandMarks);
-  connect(m_Controls.pushButton_applyIcp, &QPushButton::clicked, this, &VCView::OnPushButtonApplyICP);
-  connect(m_Controls.pushButton_undo, &QPushButton::clicked, this, &VCView::OnPushButtonUndo);
-  connect(m_Controls.pushButton_clearRegist, &QPushButton::clicked, this, &VCView::OnPushButtonClearRegist);
+  connect(m_Controls.widget_SourcePset,
+          &QmitkSingleNodeSelectionWidget::CurrentSelectionChanged,
+          this,
+          &VCView::onSourcePsetChanged);
+  connect(m_Controls.widget_TargetPset,
+          &QmitkSingleNodeSelectionWidget::CurrentSelectionChanged,
+          this,
+          &VCView::onTargetPsetChanged);
+  connect(m_Controls.widget_MovingNode,
+          &QmitkSingleNodeSelectionWidget::CurrentSelectionChanged,
+          this,
+          &VCView::onMovingNodeChanged);
+  connect(m_Controls.pushButton_applyTrans, &QPushButton::clicked, this, &VCView::OnPushButtonApplyTrans);
 
   // 5Cut
   // 1
@@ -227,32 +213,13 @@ void VCView::CreateQtPartControl(QWidget *parent)
           this,
           &VCView::onTargetPsetChanged);
   connect(m_Controls.pushButton_padImage, &QPushButton::clicked, this, &VCView::padImage);
-  connect(m_Controls.pushButton_pInPoly, &QPushButton::clicked, this, &VCView::OnPushButton_pInPoly);
-  connect(m_Controls.pushButton_genPolygon, &QPushButton::clicked, this, &VCView::OnPushButton_genPolygon);
-  connect(m_Controls.pushButton_genNormals, &QPushButton::clicked, this, &VCView::GenerateNormals);
-  connect(m_Controls.pushButton_genPlanes, &QPushButton::clicked, this, &VCView::GeneratePlanes);
-  //drr
-  connect(m_Controls.pushButton_drr, &QPushButton::clicked, this, &VCView::runDRR);
 
-  connect(m_Controls.pushButton_calAngle, &QPushButton::clicked, this, &VCView::GenerateNormalsFromDesignAngle);
-  //Init node binder
-  //bind landmark to bone
-  /*if (m_femurLeftGroup == nullptr)
-  {*/
-      m_femurLeftGroup = NodeBinder::New();
-  /*}*/
-
-  /*if (m_femurRightGroup == nullptr)
-  {*/
-      m_femurRightGroup = NodeBinder::New();
-  /*}*/
-//test here
-      connect(m_Controls.pushButton_test, &QPushButton::clicked, this, &VCView::Test);
-      connect(m_Controls.pushButton_test2, &QPushButton::clicked, this, &VCView::Test2);
-
-  //surfaceboolean
-      connect(m_Controls.pushButton_cut, &QPushButton::clicked, this, &VCView::surfaceBoolean);
-
+  //polish
+  connect(m_Controls.pushButton_setupPolish, &QPushButton::clicked, this, &VCView::SetupPolish);
+  connect(m_Controls.pushButton_startPolishing, &QPushButton::clicked, this, &VCView::StartPolish);
+  connect(m_Controls.pushButton_stopPolishing, &QPushButton::clicked, this, &VCView::StopPolishing);
+  connect(m_Controls.pushButton_polishonce, &QPushButton::clicked, this, &VCView::PolishOnce);
+  connect(m_Controls.pushButton_restore, &QPushButton::clicked, this, &VCView::RestorePolish);
 }
 
 void VCView::CutImage()
@@ -506,23 +473,12 @@ void VCView::OnSelectionChanged(berry::IWorkbenchPart::Pointer /*source*/, const
     }
 
     node->GetName(nodeName);
-    
-    if (node!=nullptr)
+    mitk::Surface *p_surface = dynamic_cast<mitk::Surface *>(node->GetData());
+    if (p_surface != nullptr)
     {
-        m_transData = node->GetData();
+      m_Controls.lineEdit_surfaceName->setText(QString::fromStdString(nodeName));
+      m_tmpSurface = p_surface;
     }
-    // mitk::Surface *p_surface = dynamic_cast<mitk::Surface *>(node->GetData());
-    // if (p_surface != nullptr)
-    // {
-    //   m_Controls.lineEdit_surfaceName->setText(QString::fromStdString(nodeName));
-    //   m_tmpSurface = p_surface;
-    // }
-    // mitk::Image* p_image = dynamic_cast<mitk::Image*>(node->GetData());
-    // if (p_image != nullptr)
-    // {
-    //     m_Controls.lineEdit_surfaceName->setText(QString::fromStdString(nodeName));
-    //     m_tmpImage = p_image;
-    // }
     // pelvis
     if (nodeName == "pelvis")
     {
@@ -544,7 +500,7 @@ void VCView::OnSelectionChanged(berry::IWorkbenchPart::Pointer /*source*/, const
     {
       m_femurL = dynamic_cast<mitk::Surface *>(node->GetData());
       m_Controls.lineEdit_objname_femurL->setText(QString::fromStdString(nodeName));
-      m_femurLeftGroup->SetReferenceNode(node);
+      m_femurLeftGroup[0] = m_femurL;
     }
     if (nodeName == "femurimage_left")
     {
@@ -555,44 +511,44 @@ void VCView::OnSelectionChanged(berry::IWorkbenchPart::Pointer /*source*/, const
     {
       m_kneeL = dynamic_cast<mitk::Surface *>(node->GetData());
       m_Controls.lineEdit_objname_kneeL->setText(QString::fromStdString(nodeName));
-      m_femurLeftGroup->AddBindingNode(node);
+      m_femurLeftGroup[1] = m_kneeL;
     }
     if (nodeName == "femurAxis_left")
     {
       m_canalAxisL = dynamic_cast<mitk::PointSet *>(node->GetData());
       m_Controls.lineEdit_objname_femurAxisL->setText(QString::fromStdString(nodeName));
-      m_femurLeftGroup->AddBindingNode(node);
+      m_femurLeftGroup[2] = m_canalAxisL;
     }
     if (nodeName == "trochanter_left")
     {
       m_trochanterL = dynamic_cast<mitk::PointSet *>(node->GetData());
       m_Controls.lineEdit_objname_trochanterL->setText(QString::fromStdString(nodeName));
-      m_femurLeftGroup->AddBindingNode(node);
+      m_femurLeftGroup[3] = m_trochanterL;
     }
 
     if (nodeName == "femurCOR_left")
     {
       m_fhcL = dynamic_cast<mitk::PointSet *>(node->GetData());
       m_Controls.lineEdit_objname_femurCorL->setText(QString::fromStdString(nodeName));
-      m_femurLeftGroup->AddBindingNode(node);
+      m_femurLeftGroup[4] = m_fhcL;
     }
     if (nodeName == "Btrochanter_left")
     {
       m_BtrochanterL = dynamic_cast<mitk::PointSet *>(node->GetData());
       m_Controls.lineEdit_objname_BTrochanterL->setText(QString::fromStdString(nodeName));
-      m_femurLeftGroup->AddBindingNode(node);
+      m_femurLeftGroup[5] = m_BtrochanterL;
     }
     if (nodeName == "condyles_left")
     {
       m_condylesL = dynamic_cast<mitk::PointSet *>(node->GetData());
       m_Controls.lineEdit_objname_condylesL->setText(QString::fromStdString(nodeName));
-      m_femurLeftGroup->AddBindingNode(node);
+      m_femurLeftGroup[6] = m_condylesL;
     }
     if (nodeName == "femur_right")
     {
       m_femurR = dynamic_cast<mitk::Surface *>(node->GetData());
       m_Controls.lineEdit_objname_femurR->setText(QString::fromStdString(nodeName));
-      m_femurRightGroup->SetReferenceNode(node);
+      m_femurRightGroup[0] = m_femurR;
     }
     if (nodeName == "femurimage_right")
     {
@@ -603,37 +559,37 @@ void VCView::OnSelectionChanged(berry::IWorkbenchPart::Pointer /*source*/, const
     {
       m_kneeR = dynamic_cast<mitk::Surface *>(node->GetData());
       m_Controls.lineEdit_objname_kneeR->setText(QString::fromStdString(nodeName));
-      m_femurRightGroup->AddBindingNode(node);
+      m_femurRightGroup[1] = m_kneeR;
     }
     if (nodeName == "femurAxis_right")
     {
       m_canalAxisR = dynamic_cast<mitk::PointSet *>(node->GetData());
       m_Controls.lineEdit_objname_femurAxisR->setText(QString::fromStdString(nodeName));
-      m_femurRightGroup->AddBindingNode(node);
+      m_femurRightGroup[2] = m_canalAxisR;
     }
     if (nodeName == "trochanter_right")
     {
       m_trochanterR = dynamic_cast<mitk::PointSet *>(node->GetData());
       m_Controls.lineEdit_objname_trochanterR->setText(QString::fromStdString(nodeName));
-      m_femurRightGroup->AddBindingNode(node);
+      m_femurRightGroup[3] = m_trochanterR;
     }
     if (nodeName == "femurCOR_right")
     {
       m_fhcR = dynamic_cast<mitk::PointSet *>(node->GetData());
       m_Controls.lineEdit_objname_femurCorR->setText(QString::fromStdString(nodeName));
-      m_femurRightGroup->AddBindingNode(node);
+      m_femurRightGroup[4] = m_fhcR;
     }
     if (nodeName == "Btrochanter_right")
     {
       m_BtrochanterR = dynamic_cast<mitk::PointSet *>(node->GetData());
       m_Controls.lineEdit_objname_BTrochanterR->setText(QString::fromStdString(nodeName));
-      m_femurRightGroup->AddBindingNode(node);
+      m_femurRightGroup[5] = m_BtrochanterR;
     }
     if (nodeName == "condyles_right")
     {
       m_condylesR = dynamic_cast<mitk::PointSet *>(node->GetData());
       m_Controls.lineEdit_objname_condylesR->setText(QString::fromStdString(nodeName));
-      m_femurRightGroup->AddBindingNode(node);
+      m_femurRightGroup[6] = m_condylesR;
     }
   }
 
@@ -663,7 +619,7 @@ void VCView::AutoDetect()
 
   std::string nodeName;
   mitk::DataStorage::SetOfObjects::ConstPointer SetofObj = GetDataStorage()->GetAll();
-  for (auto &dataNode : *SetofObj)
+  for (auto dataNode : *SetofObj)
   {
     if (dataNode.IsNull())
     {
@@ -694,12 +650,12 @@ void VCView::AutoDetect()
     {
       m_femurL = dynamic_cast<mitk::Surface *>(dataNode->GetData());
       m_Controls.lineEdit_objname_femurL->setText(QString::fromStdString(nodeName));
-      m_femurLeftGroup->SetReferenceNode(dataNode);
+      m_femurLeftGroup[0] = m_femurL;
     }
     if (nodeName == "femur_clipped_left")
     {
       m_femurClipL = dynamic_cast<mitk::Surface *>(dataNode->GetData());
-      m_femurLeftGroup->AddBindingNode(dataNode);
+      m_femurLeftGroup[7] = m_femurClipL;
     }
     if (nodeName == "femurimage_left")
     {
@@ -710,49 +666,49 @@ void VCView::AutoDetect()
     {
       m_kneeL = dynamic_cast<mitk::Surface *>(dataNode->GetData());
       m_Controls.lineEdit_objname_kneeL->setText(QString::fromStdString(nodeName));
-      m_femurLeftGroup->AddBindingNode(dataNode);
+      m_femurLeftGroup[1] = m_kneeL;
     }
     if (nodeName == "femurAxis_left")
     {
       m_canalAxisL = dynamic_cast<mitk::PointSet *>(dataNode->GetData());
       m_Controls.lineEdit_objname_femurAxisL->setText(QString::fromStdString(nodeName));
-      m_femurLeftGroup->AddBindingNode(dataNode);
+      m_femurLeftGroup[2] = m_canalAxisL;
     }
     if (nodeName == "trochanter_left")
     {
       m_trochanterL = dynamic_cast<mitk::PointSet *>(dataNode->GetData());
       m_Controls.lineEdit_objname_trochanterL->setText(QString::fromStdString(nodeName));
-      m_femurLeftGroup->AddBindingNode(dataNode);
+      m_femurLeftGroup[3] = m_trochanterL;
     }
 
     if (nodeName == "femurCOR_left")
     {
       m_fhcL = dynamic_cast<mitk::PointSet *>(dataNode->GetData());
       m_Controls.lineEdit_objname_femurCorL->setText(QString::fromStdString(nodeName));
-      m_femurLeftGroup->AddBindingNode(dataNode);
+      m_femurLeftGroup[4] = m_fhcL;
     }
     if (nodeName == "Btrochanter_left")
     {
       m_BtrochanterL = dynamic_cast<mitk::PointSet *>(dataNode->GetData());
       m_Controls.lineEdit_objname_BTrochanterL->setText(QString::fromStdString(nodeName));
-      m_femurLeftGroup->AddBindingNode(dataNode);
+      m_femurLeftGroup[5] = m_BtrochanterL;
     }
     if (nodeName == "condyles_left")
     {
       m_condylesL = dynamic_cast<mitk::PointSet *>(dataNode->GetData());
       m_Controls.lineEdit_objname_condylesL->setText(QString::fromStdString(nodeName));
-      m_femurLeftGroup->AddBindingNode(dataNode);
+      m_femurLeftGroup[6] = m_condylesL;
     }
     if (nodeName == "femur_right")
     {
       m_femurR = dynamic_cast<mitk::Surface *>(dataNode->GetData());
       m_Controls.lineEdit_objname_femurR->setText(QString::fromStdString(nodeName));
-      m_femurRightGroup->SetReferenceNode(dataNode);
+      m_femurRightGroup[0] = m_femurR;
     }
     if (nodeName == "femur_clipped_right")
     {
       m_femurClipR = dynamic_cast<mitk::Surface *>(dataNode->GetData());
-      m_femurRightGroup->AddBindingNode(dataNode);
+      m_femurRightGroup[7] = m_femurClipR;
     }
     if (nodeName == "femurimage_right")
     {
@@ -763,37 +719,37 @@ void VCView::AutoDetect()
     {
       m_kneeR = dynamic_cast<mitk::Surface *>(dataNode->GetData());
       m_Controls.lineEdit_objname_kneeR->setText(QString::fromStdString(nodeName));
-      m_femurRightGroup->AddBindingNode(dataNode);
+      m_femurRightGroup[1] = m_kneeR;
     }
     if (nodeName == "femurAxis_right")
     {
       m_canalAxisR = dynamic_cast<mitk::PointSet *>(dataNode->GetData());
       m_Controls.lineEdit_objname_femurAxisR->setText(QString::fromStdString(nodeName));
-      m_femurRightGroup->AddBindingNode(dataNode);
+      m_femurRightGroup[2] = m_canalAxisR;
     }
     if (nodeName == "trochanter_right")
     {
       m_trochanterR = dynamic_cast<mitk::PointSet *>(dataNode->GetData());
       m_Controls.lineEdit_objname_trochanterR->setText(QString::fromStdString(nodeName));
-      m_femurRightGroup->AddBindingNode(dataNode);
+      m_femurRightGroup[3] = m_trochanterR;
     }
     if (nodeName == "femurCOR_right")
     {
       m_fhcR = dynamic_cast<mitk::PointSet *>(dataNode->GetData());
       m_Controls.lineEdit_objname_femurCorR->setText(QString::fromStdString(nodeName));
-      m_femurRightGroup->AddBindingNode(dataNode);
+      m_femurRightGroup[4] = m_fhcR;
     }
     if (nodeName == "Btrochanter_right")
     {
       m_BtrochanterR = dynamic_cast<mitk::PointSet *>(dataNode->GetData());
       m_Controls.lineEdit_objname_BTrochanterR->setText(QString::fromStdString(nodeName));
-      m_femurRightGroup->AddBindingNode(dataNode);
+      m_femurRightGroup[5] = m_BtrochanterR;
     }
     if (nodeName == "condyles_right")
     {
       m_condylesR = dynamic_cast<mitk::PointSet *>(dataNode->GetData());
       m_Controls.lineEdit_objname_condylesR->setText(QString::fromStdString(nodeName));
-      m_femurRightGroup->AddBindingNode(dataNode);
+      m_femurRightGroup[6] = m_condylesR;
     }
   }
   if (m_Controls.lineEdit_objname_pelvis->text() != "" && m_Controls.lineEdit_objname_asis->text() != "" &&
@@ -813,10 +769,6 @@ void VCView::AutoDetect()
   {
     m_Controls.pushButton_buildFemurR->setEnabled(true);
   }
-
-  MITK_INFO << "add bind node success";
-  m_femurLeftGroup->EnableBind();
-  m_femurRightGroup->EnableBind();
 }
 
 void VCView::ApplyPelvicVC()
@@ -868,8 +820,17 @@ void VCView::ApplyFemurVC()
   MITK_INFO << "!L:" << rotateAxisL;
   mitk::RotationOperation *op_L =
     new mitk::RotationOperation(mitk::OpROTATE, m_fhcL->GetPoint(0), rotateAxisL, m_rotateFemurLeftAngle * 180 / PI);
-  
-  m_femurL->GetGeometry()->ExecuteOperation(op_L);
+  for (auto data : m_femurLeftGroup)
+  {
+    if (data != nullptr)
+    {
+      data->GetGeometry()->ExecuteOperation(op_L);
+    }
+    else
+    {
+      MITK_ERROR << "group data null";
+    }
+  }
   m_femurImageL->GetGeometry()->ExecuteOperation(op_L);
   delete op_L;
   //----------------------------------------------------------------------------------------------------------------
@@ -881,10 +842,65 @@ void VCView::ApplyFemurVC()
   // mitk::Vector3D rotateAxisR{ axis };
   mitk::RotationOperation *op_R =
     new mitk::RotationOperation(mitk::OpROTATE, m_fhcR->GetPoint(0), rotateAxisR, m_rotateFemurRightAngle * 180 / PI);
-
-  m_femurR->GetGeometry()->ExecuteOperation(op_R);
+  for (auto data : m_femurRightGroup)
+  {
+    if (data != nullptr)
+    {
+      data->GetGeometry()->ExecuteOperation(op_R);
+    }
+    else
+    {
+      MITK_ERROR << "group data null";
+    }
+  }
   m_femurImageR->GetGeometry()->ExecuteOperation(op_R);
   delete op_R;
+
+  /*vtkSmartPointer<vtkTransform> transform_opside = vtkTransform::New();
+  transform_opside->SetMatrix(m_femurR->GetUpdatedGeometry()->GetVtkTransform()->GetMatrix());
+  // transform_opside->Concatenate(THA_MODEL.Femur_opSide()->GetMatrix(lancetAlgorithm::CANAL).data());
+  transform_opside->Concatenate(THA_MODEL.Femur_opSide()->GetMatrix(lancetAlgorithm::MECHANICS).data());
+
+  mitk::ApplyTransformMatrixOperation *op_opside = new mitk::ApplyTransformMatrixOperation(
+    mitk::OpAPPLYTRANSFORMMATRIX, transform_opside->GetMatrix(), mitk::Point3D{refPoint});
+
+
+  // FemurImageR
+  double rotateVec_X[3]{ 1, 0, 0 };
+  double rotateVec_Y[3]{ 0, 1, 0 };
+  double rotateVec_Z[3]{ 0, 0, 1 };
+  std::vector<double> op_R = this->vtkmatrix2angle(transform_opside->GetMatrix());
+  double m_beforeR = m_fhcR->GetPoint(0)[0];
+  // mitk::RotationOperation *op_rotateR_X =
+  //   new mitk::RotationOperation(mitk::OpROTATE, m_fhcR->GetPoint(0), mitk::Vector3D{rotateVec_X}, op_R[0] -
+  m_rotate_X);
+  // mitk::RotationOperation *op_rotateR_Y =
+  //   new mitk::RotationOperation(mitk::OpROTATE, m_fhcR->GetPoint(0), mitk::Vector3D{rotateVec_Y}, op_R[1] -
+  m_rotate_Y);
+  // mitk::RotationOperation *op_rotateR_Z =
+  //   new mitk::RotationOperation(mitk::OpROTATE, m_fhcR->GetPoint(0), mitk::Vector3D{rotateVec_Z}, op_R[2] -
+  m_rotate_Z); mitk::RotationOperation* op_rotateR_X = new mitk::RotationOperation(mitk::OpROTATE, m_fhcR->GetPoint(0),
+  mitk::Vector3D{ rotateVec_X }, op_R[0] ); mitk::RotationOperation* op_rotateR_Y = new
+  mitk::RotationOperation(mitk::OpROTATE, m_fhcR->GetPoint(0), mitk::Vector3D{ rotateVec_Y }, op_R[1] );
+  mitk::RotationOperation* op_rotateR_Z =
+      new mitk::RotationOperation(mitk::OpROTATE, m_fhcR->GetPoint(0), mitk::Vector3D{ rotateVec_Z }, op_R[2] );
+  m_femurImageR->GetGeometry()->ExecuteOperation(op_rotateR_Y);
+  m_femurImageR->GetGeometry()->ExecuteOperation(op_rotateR_X);
+  m_femurImageR->GetGeometry()->ExecuteOperation(op_rotateR_Z);
+  delete op_rotateR_X, op_rotateR_Y, op_rotateR_Z;
+
+  for (auto data : m_femurRightGroup)
+  {
+    if (data != nullptr)
+    {
+      data->GetGeometry()->ExecuteOperation(op_opside);
+    }
+    else
+    {
+      MITK_ERROR << "group data null";
+    }
+  }
+  delete op_opside;*/
 
   BuildFemurL();
   BuildFemurR();
@@ -1149,7 +1165,6 @@ mitk::Image::Pointer VCView::SurfaceCutImage(mitk::Surface *surface,
   surface_to_image->SetImage(image);
   surface_to_image->SetInput(surface);
   surface_to_image->SetReverseStencil(isReverseStencil);
-  surface_to_image->SetMakeOutputBinary(true);
   surface_to_image->Update();
 
   if (!isSmallestCut)
@@ -1369,20 +1384,19 @@ void VCView::CutRightFemur() {}
 
 void VCView::EnableTransform()
 {
-  //m_transData = m_tmpSurface;
-    //m_image_transform = m_tmpImage;
+  m_surface_transform = m_tmpSurface;
 }
 
-void VCView::move(double d[3], mitk::BaseData*data)
+void VCView::move(double d[3], mitk::Surface *surface)
 {
-  if (data != nullptr)
+  if (surface != nullptr)
   {
     mitk::Point3D direciton{d};
     auto *doOp = new mitk::PointOperation(mitk::OpMOVE, 0, direciton, 0);
     // execute the Operation
     // here no undo is stored, because the movement-steps aren't interesting.
     // only the start and the end is interisting to store for undo.
-    data->GetGeometry()->ExecuteOperation(doOp);
+    m_surface_transform->GetGeometry()->ExecuteOperation(doOp);
     delete doOp;
     updateStemCenter();
 
@@ -1390,9 +1404,9 @@ void VCView::move(double d[3], mitk::BaseData*data)
   }
 }
 
-void VCView::rotate(double center[3], double axis[3], mitk::BaseData*data)
+void VCView::rotate(double center[3], double axis[3], mitk::Surface *surface)
 {
-  if (data != nullptr)
+  if (surface != nullptr)
   {
     mitk::Point3D rotateCenter{center};
     mitk::Vector3D rotateAxis{axis};
@@ -1400,7 +1414,7 @@ void VCView::rotate(double center[3], double axis[3], mitk::BaseData*data)
     // execute the Operation
     // here no undo is stored, because the movement-steps aren't interesting.
     // only the start and the end is interisting to store for undo.
-    data->GetGeometry()->ExecuteOperation(doOp);
+    m_surface_transform->GetGeometry()->ExecuteOperation(doOp);
     delete doOp;
     updateStemCenter();
     mitk::RenderingManager::GetInstance()->RequestUpdateAll();
@@ -1410,81 +1424,81 @@ void VCView::rotate(double center[3], double axis[3], mitk::BaseData*data)
 void VCView::moveXp()
 {
   double p[3]{3, 0, 0};
-  move(p, m_transData);
+  move(p, m_surface_transform);
 }
 
 void VCView::moveXm()
 {
   double p[3]{-3, 0, 0};
-  move(p, m_transData);
+  move(p, m_surface_transform);
 }
 
 void VCView::moveYm()
 {
   double p[3]{0, -3, 0};
-  move(p, m_transData);
+  move(p, m_surface_transform);
 }
 
 void VCView::moveYp()
 {
   double p[3]{0, 3, 0};
-  move(p, m_transData);
+  move(p, m_surface_transform);
 }
 
 void VCView::moveZm()
 {
   double p[3]{0, 0, -3};
-  move(p, m_transData);
+  move(p, m_surface_transform);
 }
 
 void VCView::moveZp()
 {
   double p[3]{0, 0, 3};
-  move(p, m_transData);
+  move(p, m_surface_transform);
 }
 
 void VCView::rotateXp()
 {
-  if (m_transData)
+  if (m_surface_transform)
   {
     double axis[3]{1, 0, 0};
-    rotate(m_transData->GetGeometry()->GetCenter().GetDataPointer(), axis, m_transData);
+    rotate(m_surface_transform->GetGeometry()->GetCenter().GetDataPointer(), axis, m_surface_transform);
   }
 }
 
 void VCView::rotateXm()
 {
-  if (m_transData)
+  if (m_surface_transform)
   {
     double axis[3]{-1, 0, 0};
-    rotate(m_transData->GetGeometry()->GetCenter().GetDataPointer(), axis, m_transData);
+    rotate(m_surface_transform->GetGeometry()->GetCenter().GetDataPointer(), axis, m_surface_transform);
   }
 }
 
 void VCView::rotateYm()
 {
-  if (m_transData)
+  if (m_surface_transform)
   {
     double axis[3]{0, -1, 0};
-    rotate(m_transData->GetGeometry()->GetCenter().GetDataPointer(), axis, m_transData);
+    rotate(m_surface_transform->GetGeometry()->GetCenter().GetDataPointer(), axis, m_surface_transform);
   }
 }
 
 void VCView::rotateYp()
 {
-  if (m_transData)
+  if (m_surface_transform)
   {
     double axis[3]{0, 1, 0};
-    rotate(m_transData->GetGeometry()->GetCenter().GetDataPointer(), axis, m_transData);
+    rotate(m_surface_transform->GetGeometry()->GetCenter().GetDataPointer(), axis, m_surface_transform);
   }
 }
 
 void VCView::rotateZp()
 {
-  if (m_transData)
+  if (m_surface_transform)
   {
     double axis[3]{0, 0, 1};
-    rotate(m_transData->GetGeometry()->GetCenter().GetDataPointer(), axis, m_transData);
+    rotate(m_surface_transform->GetGeometry()->GetCenter().GetDataPointer(), axis, m_surface_transform);
   }
 }
 
@@ -1885,486 +1899,6 @@ void VCView::OnpushButton_calNormalPlaneRMS() {}
 
 void VCView::OnpushButtonCalAngle() {}
 
-void VCView::showRectangle(mitk::Point3D center,
-                           mitk::Vector3D normal,
-                           mitk::Vector3D x_axis,
-                           mitk::Vector3D y_axis,
-                           double length,
-                           double width,
-                           int color,
-                           std::string name,
-                           bool overwrite)
-{
-  vtkSmartPointer<vtkPlaneSource> planeSource = vtkPlaneSource::New();
-  planeSource->SetOrigin(-length / 2, -width / 2, 0);
-  planeSource->SetPoint1(length / 2, -width / 2, 0);
-  planeSource->SetPoint2(-length / 2, width / 2, 0);
-  //planeSource->SetCenter(center.data());
-  //planeSource->SetNormal(normal.data());
-  planeSource->Update();
-
-  vtkMatrix4x4 *matrix = vtkMatrix4x4::New();
-  matrix->Identity();
-  for (int i = 0; i < 3; i++)
-  {
-    matrix->SetElement(i, 0, x_axis[i]);
-    matrix->SetElement(i, 1, y_axis[i]);
-    matrix->SetElement(i, 2, normal[i]);
-    matrix->SetElement(i, 3, center[i]);
-  }
-  vtkSmartPointer<vtkTransform> transform = vtkTransform::New();
-  transform->SetMatrix(matrix);
-  transform->Update();
-
-  vtkSmartPointer<vtkTransformPolyDataFilter> transFilter = vtkTransformPolyDataFilter::New();
-  transFilter->SetInputData(planeSource->GetOutput());
-  transFilter->SetTransform(transform);
-  transFilter->Update();
-
-  mitk::Surface::Pointer planeSurface = mitk::Surface::New();
-  planeSurface->SetVtkPolyData(transFilter->GetOutput());
-
-  mitk::DataNode::Pointer planeNode = mitk::DataNode::New();
-  //arrowNode->SetName("arrow");
-  planeNode->SetData(planeSurface);
-  //sphereNode->SetProperty("Surface", mitk::BoolProperty::New(true));
-  planeNode->SetName(name);
-  planeNode->SetVisibility(true);
-
-  switch (color)
-  {
-    case 0:
-      planeNode->SetColor(1, 0, 0);
-      break;
-    case 1:
-      planeNode->SetColor(0, 1, 0);
-      break;
-    case 2:
-      planeNode->SetColor(0, 0, 1);
-      break;
-
-    default:
-      planeNode->SetColor(0.5, 1, 1);
-  }
-
-  if (overwrite == true)
-  {
-    auto node = GetDataStorage()->GetNamedNode(name);
-    if (node)
-    {
-      GetDataStorage()->Remove(node);
-    }
-  }
-
-  GetDataStorage()->Add(planeNode);
-}
-
-void VCView::OnPushButton_pInPoly()
-{
-    // Create the polygon
-    //vtkNew<vtkPolygon> polygon;
-    auto pSet = GetDataStorage()->GetNamedObject<mitk::PointSet>("distalBound");
-    if (pSet==nullptr)
-    {
-        MITK_ERROR << "distalBound null";
-        return;
-    }
-    // for (int i = 0; i < pSet->GetSize(); i++)
-    // {
-    //     polygon->GetPoints()->InsertNextPoint(pSet->GetPoint(i).GetDataPointer());
-    // }
-
-    auto testSet = GetDataStorage()->GetNamedObject<mitk::PointSet>("testPoint");
-    if (testSet == nullptr)
-    {
-        MITK_ERROR << "testPoint null";
-        return;
-    }
-    MITK_INFO << "testIn in polygon? "
-        << projectPointInPolygon(testSet->GetPoint(0).GetDataPointer(), pSet);
-
-    // double n[3];
-    // polygon->ComputeNormal(
-    //     polygon->GetPoints()->GetNumberOfPoints(),
-    //     static_cast<double*>(polygon->GetPoints()->GetData()->GetVoidPointer(0)),
-    //     n);
-    //
-    // double bounds[6];
-    // polygon->GetPoints()->GetBounds(bounds);
-    //
-    // MITK_INFO << "testIn in polygon? "
-    //     << polygon->PointInPolygon(
-    //         testSet->GetPoint(0).GetDataPointer(), polygon->GetPoints()->GetNumberOfPoints(),
-    //         static_cast<double*>(
-    //             polygon->GetPoints()->GetData()->GetVoidPointer(0)),
-    //         bounds, n);
-
-    // std::cout << "testOut in polygon? "
-    //     << polygon->PointInPolygon(
-    //         testOut, polygon->GetPoints()->GetNumberOfPoints(),
-    //         static_cast<double*>(
-    //             polygon->GetPoints()->GetData()->GetVoidPointer(0)),
-    //         bounds, n)
-    //     << std::endl;
-}
-
-void VCView::OnPushButton_genPolygon()
-{
-  //   auto pSet = GetDataStorage()->GetNamedObject<mitk::PointSet>("distalBound");
-  //   if (pSet == nullptr)
-  //   {
-  //       MITK_ERROR << "distalBound null";
-  //       return;
-  //   }
-  //   // Setup four points
-  //   vtkNew<vtkPoints> points;
-  //   vtkNew<vtkPolygon> polygon;
-  //   polygon->GetPointIds()->SetNumberOfIds(pSet->GetSize());
-  // for (int i =0;i< pSet->GetSize();i++)
-  // {
-  //     points->InsertNextPoint(pSet->GetPoint(i).GetDataPointer());
-  //     //polygon->GetPoints()->InsertNextPoint(pSet->GetPoint(i).GetDataPointer());
-  //     polygon->GetPointIds()->SetId(i, i);
-  // }
-  //
-  //   // // Create the polygon
-  //   //
-  //   // polygon->GetPointIds()->SetNumberOfIds(4); // make a quad
-  //   // polygon->GetPointIds()->SetId(0, 0);
-  //   // polygon->GetPointIds()->SetId(1, 1);
-  //   // polygon->GetPointIds()->SetId(2, 2);
-  //   // polygon->GetPointIds()->SetId(3, 3);
-  //
-  //   // Add the polygon to a list of polygons
-  //   vtkNew<vtkCellArray> polygons;
-  //   polygons->InsertNextCell(polygon);
-  //
-  //   // Create a PolyData
-  //   vtkNew<vtkPolyData> polygonPolyData;
-  //   polygonPolyData->SetPoints(points);
-  //   polygonPolyData->SetPolys(polygons);
-  //
-  //
-  //   //
-  // // // Setup four points
-  // //   vtkNew<vtkPoints> points;
-  // //   points->InsertNextPoint(0.0, 0.0, 0.0);
-  // //   points->InsertNextPoint(100.0, 0.0, 0.0);
-  // //   points->InsertNextPoint(100.0, 100.0, 0.0);
-  // //   points->InsertNextPoint(0.0, 100.0, 0.0);
-  // //
-  // //   // Create the polygon
-  // //   vtkNew<vtkPolygon> polygon;
-  // //   polygon->GetPointIds()->SetNumberOfIds(4); // make a quad
-  // //   polygon->GetPointIds()->SetId(0, 0);
-  // //   polygon->GetPointIds()->SetId(1, 1);
-  // //   polygon->GetPointIds()->SetId(2, 2);
-  // //   polygon->GetPointIds()->SetId(3, 3);
-  // //
-  // //   // Add the polygon to a list of polygons
-  // //   vtkNew<vtkCellArray> polygons;
-  // //   polygons->InsertNextCell(polygon);
-  //
-  //   // // Create a PolyData
-  //   // vtkNew<vtkPolyData> polygonPolyData;
-  //   // polygonPolyData->SetPoints(points);
-  //   // polygonPolyData->SetPolys(polygons);
-  //
-  //   mitk::Surface::Pointer s = mitk::Surface::New();
-  //   s->SetVtkPolyData(polygonPolyData);
-  //
-  //   auto dn = mitk::DataNode::New();
-  //   dn->SetData(s);
-  //   dn->SetName("polygon");
-  //   GetDataStorage()->Add(dn);
-    std::vector<std::string> names{
-      "AnteriorChamferCutBorder" ,"AnteriorChamferCutBorderExtended",
-      "AnteriorCutBorder" ,"AnteriorCutBorderExtended",
-      "DistalCutBorder","DistalCutBorderExtended",
-      "PosteriorChamferCutBorder","PosteriorChamferCutBorderExtended",
-      "PosteriorCutBorder","PosteriorCutBorderExtended",
-      "ProximalCutBorder","ProximalCutBorderExtended"
-    };
-
-  for (auto name : names)
-  {
-      auto pSet = GetDataStorage()->GetNamedObject<mitk::PointSet>(name);
-      if (pSet != nullptr)
-      {
-          projectPointSetToPlane(pSet);
-          MITK_INFO << name;
-          MITK_INFO << "-- fixed";
-
-      }
-  }
-}
-void VCView::projectPointSetToPlane(mitk::PointSet* pset)
-{
-    std::vector<double> points;
-    for (int i =0;i<pset->GetSize();i++)
-    {
-        points.push_back(pset->GetPoint(i)[0]);
-        points.push_back(pset->GetPoint(i)[1]);
-        points.push_back(pset->GetPoint(i)[2]);
-    }
-    std::array<double, 3> center{};
-    std::array<double, 3> normal{};
-    lancetAlgorithm::fit_plane(points, center, normal);
-    vtkSmartPointer<vtkPlane> plane = vtkPlane::New();
-    plane->SetOrigin(center.data());
-    plane->SetNormal(normal.data());
-
-    //mitk::PointSet::Pointer res_pset = mitk::PointSet::New();
-  for (int i = 0; i < pset->GetSize(); i++)
-  {
-      double p[3]{};
-      plane->ProjectPoint(pset->GetPoint(i).GetDataPointer(), p);
-      //res_pset->InsertPoint(i, p);
-      pset->SetPoint(i, p);
-  }
-
-  // mitk::DataNode::Pointer dn = mitk::DataNode::New();
-  // dn->SetData(res_pset);
-  // dn->SetName("test_pset");
-  //
-  // GetDataStorage()->Add(dn);
-   
-}
-int VCView::projectPointInPolygon(double *point, mitk::PointSet *polygonPset)
-{
-    // Create the polygon
-    vtkNew<vtkPolygon> vtkpolygon;
-
-    if (polygonPset == nullptr)
-    {
-        MITK_ERROR << "polygonPset null";
-        return -1;
-    }
-    for (int i = 0; i < polygonPset->GetSize(); i++)
-    {
-        vtkpolygon->GetPoints()->InsertNextPoint(polygonPset->GetPoint(i).GetDataPointer());
-    }
-
-    if (point == nullptr)
-    {
-        MITK_ERROR << "point null";
-        return -1;
-    }
-
-    double n[3];
-    vtkpolygon->ComputeNormal(
-        vtkpolygon->GetPoints()->GetNumberOfPoints(),
-        static_cast<double*>(vtkpolygon->GetPoints()->GetData()->GetVoidPointer(0)),
-        n);
-
-    double bounds[6];
-    vtkpolygon->GetPoints()->GetBounds(bounds);
-
-    //project point to polygon plane
-    double projected[3];
-    vtkPlane::ProjectPoint(point, polygonPset->GetPoint(0).GetDataPointer(), n, projected);
-
-    return vtkpolygon->PointInPolygon(
-        projected, vtkpolygon->GetPoints()->GetNumberOfPoints(),
-        static_cast<double*>(
-            vtkpolygon->GetPoints()->GetData()->GetVoidPointer(0)),
-        bounds, n);
-}
-
-bool VCView::GenNormalFromSurface(mitk::Surface::Pointer surface,std::string name,bool flip)
-{
-  if (surface==nullptr)
-  {
-      return false;
-  }
-  auto normal_Pset = mitk::PointSet::New();
-  auto pointsize = surface->GetVtkPolyData()->GetNumberOfPoints();
-  std::vector<double> points;
-  std::array<double, 3> center{0,0,0};
-  std::array<double, 3> normal1{ 0,0,0 };
-  //here
-  mitk::Vector3D normal;
-  //
-  for (int i=0;i<pointsize;i++)
-  {
-    auto p = surface->GetVtkPolyData()->GetPoint(i);
-    points.push_back(p[0]);
-    points.push_back(p[1]);
-    points.push_back(p[2]);
-  }
-  if (!lancetAlgorithm::fit_plane(points, center, normal1))
-  {
-      return false;
-  }
-
-  normal_Pset->InsertPoint(center.data());
-
-  //here
-  if (name == "DistalCut")
-  {
-      normal = m_distal;
-  }
-  else if (name == "AnteriorCut")
-  {
-      normal = m_ant;
-  }
-  else if (name == "AnteriorChamferCut")
-  {
-      normal = m_antCham;
-  }
-  else if (name == "PosteriorCut")
-  {
-      normal = m_post;
-  }
-  else if (name == "PosteriorChamferCut")
-  {
-      normal = m_postCham;
-  }
-  //
-  if (flip)
-  {
-      normal[0] = -normal[0];
-      normal[1] = -normal[1];
-      normal[2] = -normal[2];
-      
-  }
-  //normal_Pset->InsertPoint(mitk::Point3D{ center.data() } + mitk::Vector3D{ normal.data() }*30);
-  normal_Pset->InsertPoint(mitk::Point3D{ center.data() } + normal*30);
-
-  auto normal_node = mitk::DataNode::New();
-  normal_node->SetData(normal_Pset);
-  normal_node->SetName(name);
-  normal_node->SetBoolProperty("show contour", true);
-  normal_node->SetFloatProperty("pointsize", 1);
-
-  GetDataStorage()->Add(normal_node);
-
-  //GenPlaneFromNormal(mitk::Point3D{ center.data() }, normal, name+"PlaneNew");
-
-  //print infomation
-  std::ostringstream output;
-  output<<"\""<< name << R"(": { "x":")" <<center[0]<< R"(","y":")" << center[1] << R"(", "z" :")" << center[2] <<
-    R"(", "nx" :")" << normal[0] << R"(", "ny":")" << normal[1] << R"(", "nz" :")" << normal[2] << "\"},";
-  MITK_INFO << output.str();
-  m_Controls.textBrowser_5Cut ->append(QString::fromStdString(output.str()) );
-  return true;
-}
-
-void VCView::GenPlaneFromNormal(mitk::Point3D p, mitk::Vector3D v,std::string name)
-{
-    // mitk::Vector3D x{ {1,0,0} };
-    // Eigen::Vector3d x_eigen{ x.GetDataPointer() };
-    // Eigen::Vector3d z_eigen{ v.GetDataPointer() };
-    //
-    // Eigen::Vector3d y = z_eigen.cross(x_eigen);
-    // showRectangle(p, v, x, mitk::Vector3D{ y.data() }, 80, 80, 1, name, true);
-}
-
-void VCView::GenerateNormals()
-{
-    m_Controls.textBrowser_5Cut->clear();
-    auto ant = GetDataStorage()->GetNamedObject<mitk::Surface>("AnteriorCutPlane");
-    auto postCham = GetDataStorage()->GetNamedObject<mitk::Surface>("PosteriorChamferCutPlane");
-    auto antCham = GetDataStorage()->GetNamedObject<mitk::Surface>("AnteriorChamferCutPlane");
-    auto distal = GetDataStorage()->GetNamedObject<mitk::Surface>("DistalCutPlane");
-    auto post = GetDataStorage()->GetNamedObject<mitk::Surface>("PosteriorCutPlane");
-
-    GenNormalFromSurface(distal, "DistalCut", m_Controls.checkBox_disal->isChecked());
-    GenNormalFromSurface(ant,"AnteriorCut", m_Controls.checkBox_ant->isChecked());
-    GenNormalFromSurface(antCham, "AnteriorChamferCut", m_Controls.checkBox_antCham->isChecked());
-    GenNormalFromSurface(post, "PosteriorCut", m_Controls.checkBox_post->isChecked());
-    GenNormalFromSurface(postCham, "PosteriorChamferCut", m_Controls.checkBox_postCham->isChecked());
-}
-
-void VCView::GeneratePlanes()
-{
-    auto designPoints = GetDataStorage()->GetNamedObject<mitk::PointSet>("DesignPoints");
-    if (designPoints==nullptr)
-    {
-        MITK_ERROR << "design points null";
-        return;
-    }
-  //generate centers
-  //ant
-    auto antradian = AntDesignAngle / 180 * PI;
-    double v[3]{ 0,cos(antradian),sin(antradian) };
-    mitk::Vector3D antDirection{ v };
-
-    auto ant_p = designPoints->GetPoint(0);
-    ant_p[0] = 0;
-
-    mitk::Point3D ant_center = ant_p + antDirection * 15;
-
-    //antCham
-    auto antChamP1 = designPoints->GetPoint(0);
-    auto antChamP2 = designPoints->GetPoint(1);
-    
-    mitk::Vector3D antCham_center_V = mitk::Vector3D{ antChamP1.GetDataPointer() } + mitk::Vector3D{ antChamP2.GetDataPointer() };
-    antCham_center_V /= 2;
-    antCham_center_V[0] = 0;
-    mitk::Point3D antCham_center{ antCham_center_V.GetDataPointer() };
-    //distal
-    auto distalP1 = designPoints->GetPoint(1);
-    auto distalP2 = designPoints->GetPoint(2);
-    mitk::Vector3D distal_center_V = mitk::Vector3D{ distalP1.GetDataPointer() } + mitk::Vector3D{ distalP2.GetDataPointer() };
-    distal_center_V /= 2;
-    distal_center_V[0] = 0;
-    mitk::Point3D distal_center{ distal_center_V.GetDataPointer() };
-    //postCham
-    auto postChamP1 = designPoints->GetPoint(2);
-    auto postChamP2 = designPoints->GetPoint(3);
-    mitk::Vector3D postCham_center_V = mitk::Vector3D{ postChamP1.GetDataPointer() } + mitk::Vector3D{ postChamP2.GetDataPointer() };
-    postCham_center_V /= 2;
-    postCham_center_V[0] = 0;
-    mitk::Point3D postCham_center{ postCham_center_V.GetDataPointer() };
-    //post
-    auto postradian = postDesignAngle / 180 * PI;
-    double v_post[3]{ 0,-cos(postradian),sin(postradian) };
-    mitk::Vector3D postDirection{ v_post };
-
-    auto post_p = designPoints->GetPoint(3);
-    post_p[0] = 0;
-
-    mitk::Point3D post_center = post_p + postDirection * 10;
-
-
-    GenPlaneFromNormal(ant_center, m_ant, "AnteriorCutPlane");
-    GenPlaneFromNormal(antCham_center, m_antCham, "AnteriorChamferCutPlane");
-    GenPlaneFromNormal(distal_center, m_distal, "DistalCutPlane");
-    GenPlaneFromNormal(post_center, m_post, "PosteriorCutPlane"); 
-    GenPlaneFromNormal(postCham_center, m_postCham, "PosteriorChamferCutPlane");
-}
-
-mitk::Vector3D VCView::DesignAngle2Normal(double angle)
-{
-    auto Radian = (90 - angle) / 180 * PI;
-    double v[3]{ 0,-cos(Radian),-sin(Radian) };
-    mitk::Vector3D Normal{ v };
-    return Normal;
-}
-
-void VCView::GenerateNormalsFromDesignAngle()
-{
-    double ant = AntDesignAngle;
-    double antCham = AntChamDesignAngle;
-    double postCham = postChamDesignAngle;
-    double post = postDesignAngle;
-
-    MITK_INFO<<"postCham" << DesignAngle2Normal(postCham);
-    MITK_INFO << "post" << DesignAngle2Normal(post);
-    MITK_INFO << "ant" << DesignAngle2Normal(180 - ant);
-    MITK_INFO << "antCham" << DesignAngle2Normal(180 - antCham);
-    MITK_INFO << "distal" << DesignAngle2Normal(0);
-
-    m_postCham =  DesignAngle2Normal(postCham);
-    m_post = DesignAngle2Normal(post);
-    m_ant = DesignAngle2Normal(-ant);
-    m_antCham = DesignAngle2Normal(-antCham);
-    m_distal = DesignAngle2Normal(0);
-
-    
-}
-
 void VCView::padImage()
 {
   auto padImgFilter = mitk::PadImageFilter::New();
@@ -2389,334 +1923,145 @@ void VCView::padImage()
   GetDataStorage()->Add(newNode);
 }
 
-void VCView::runDRR()
+void VCView::SetupPolish()
 {
-    // auto image = GetDataStorage()->GetNamedObject<mitk::Image>("Image");
-    // if (image == nullptr)
-    // {
-    //     MITK_ERROR << "Can't Run DRR: Image null";
-    //     return;
-    // }
-    // itk::SmartPointer<DrrFilter> drrFilter = DrrFilter::New();
-    // drrFilter->SetInput(image);
-    //
-    // // auto tx = m_Controls.doubleSpinBox_tx->value();
-    // // auto ty = m_Controls.doubleSpinBox_ty->value();
-    // // auto tz = m_Controls.doubleSpinBox_tz->value();
-    // //
-    // // auto rx = m_Controls.doubleSpinBox_rx->value();
-    // // auto ry = m_Controls.doubleSpinBox_ry->value();
-    // // auto rz = m_Controls.doubleSpinBox_rz->value();
-    // //drrFilter->SetObjTranslate(tx, ty, tz);
-    // //drrFilter->SetObjRotate(rx, ry, rz);
-    // drrFilter->Update();
-    //
-    // auto node = GetDataStorage()->GetNamedNode("drr_image");
-    // if (node == nullptr)
-    // {
-    //     auto newnode = mitk::DataNode::New();
-    //     newnode->SetName("drr_image");
-    //     newnode->SetData(drrFilter->GetOutput());
-    //     GetDataStorage()->Add(newnode);
-    // }
+  auto boneImage = GetDataStorage()->GetNamedObject<mitk::Image>("boneImage");
+  if (boneImage == nullptr)
+  {
+    MITK_ERROR << "boneImage null";
+    return;
+  }
+  auto toolSurface = GetDataStorage()->GetNamedObject<mitk::Surface>("tool");
+  if (toolSurface == nullptr)
+  {
+    MITK_ERROR << "toolSurface null";
+    return;
+  }
+  auto boneSurface = GetDataStorage()->GetNamedObject<mitk::Surface>("boneSurface");
+  if (boneSurface == nullptr)
+  {
+    MITK_ERROR << "boneSurface null";
+    return;
+  }
+  if (m_polish.IsNull())
+  {
+    m_polish = Polish::New();
+  }
+
+  m_polish->SetboneImage(boneImage);
+  m_polish->SettoolSurface(toolSurface);
+  m_polish->SetboneSurface(boneSurface);
+
+  //for showing the polish result
+  auto resnode = GetDataStorage()->GetNamedNode("BoneSurfacePolished");
+  if (resnode == nullptr)
+  {
+    mitk::DataNode::Pointer resnode = mitk::DataNode::New();
+    resnode->SetData(m_polish->GetboneSurface_polished());
+    resnode->SetName("BoneSurfacePolished");
+
+    GetDataStorage()->Add(resnode);
+  }
+  else
+  {
+    resnode->SetData(m_polish->GetboneImage_polished());
+  }
 }
 
-void VCView::Test()
+void VCView::PolishOnce()
 {
-    // mitk::PointSet::Pointer pSet = mitk::PointSet::New();
-    // double o[3]{ 0,0,0 };
-    // double a[3]{ 10,0,0 };
-    // double b[3]{ 0,10,0 };
-    // double c[3]{ 0,0,10 };
-    //
-    // pSet->InsertPoint(mitk::Point3D{ o });
-    // pSet->InsertPoint(mitk::Point3D{ a });
-    // pSet->InsertPoint(mitk::Point3D{ b });
-    // pSet->InsertPoint(mitk::Point3D{ c });
-    //
-    // //pSet->SetHideInfo(0, true);
-    // pSet->SetMarkInfo(1, true);
-    // pSet->SetSpecificationTypeInfo(1, mitk::PBIG);
-    // pSet->SetSpecificationTypeInfo(2, mitk::PSMALL);
-    // mitk::DataNode::Pointer psetnode = mitk::DataNode::New();
-    // psetnode->SetData(pSet);
-    // psetnode->SetFloatProperty("pointsize", 2);
-    // psetnode->SetName("testNode");
-    // psetnode->SetStringProperty("label", "test");
-    // psetnode->SetStringProperty("label1", "test1");
-    // psetnode->SetStringProperty("label2", "test2");
-    // GetDataStorage()->Add(psetnode);
+  m_polish->PolishWorkflow();
 
-  // // Create a textAnnotation2D
-  //   mitk::TextAnnotation2D::Pointer textAnnotation = mitk::TextAnnotation2D::New();
-  //   textAnnotation->SetText("Test!"); // set UTF-8 encoded text to render
-  //   textAnnotation->SetFontSize(40);
-  //   textAnnotation->SetColor(1, 0, 0); // Set text color to red
-  //   textAnnotation->SetOpacity(1);
-  //   // The position of the Annotation can be set to a fixed coordinate on the display.
-  //   mitk::Point2D pos;
-  //   pos[0] = 10;
-  //   pos[1] = 20;
-  //   textAnnotation->SetPosition2D(pos);
-  //   
-  //   std::string rendererID = GetRenderWindowPart()->GetActiveQmitkRenderWindow()->GetRenderer()->GetName();
-  //   // The LayoutAnnotationRenderer can place the TextAnnotation2D at some defined corner positions
-  //   mitk::LayoutAnnotationRenderer::AddAnnotation(
-  //       textAnnotation, rendererID, mitk::LayoutAnnotationRenderer::TopLeft, 5, 5, 1);
+  mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+}
+
+void VCView::StartPolish()
+{
+
+  
+  // vtkNew<vtkLinearSubdivisionFilter> subdivision;
+  // subdivision->SetInputData(toolSurface->GetVtkPolyData());
+  // subdivision->SetNumberOfSubdivisions(1);
+  // subdivision->Update();
+  // toolSurface->SetVtkPolyData(subdivision->GetOutput());
+  
+  
+  //m_polish->PolishWorkflow();
+  m_polish->StartPolishing();
+
+  
   //
-  //   MITK_INFO << "rendererID:" << rendererID;
+  mitk::RenderingManager::GetInstance()->RequestUpdateAll();
 }
 
-void VCView::Test2()
+void VCView::StopPolishing()
 {
-    // mitk::PointSet::Pointer pSet = GetDataStorage()->GetNamedObject<mitk::PointSet>("testNode");
-    // pSet->SetHideInfo(m_Controls.spinBox_test->value(), true);
-    //
-    // RequestRenderWindowUpdate();
+  if (m_polish.IsNotNull())
+  {
+    m_polish ->StopPolishing();
+  }
 }
 
-void VCView::surfaceBoolean()
+void VCView::RestorePolish()
 {
-    // auto boneImage = GetDataStorage()->GetNamedObject<mitk::Image>("boneImage");
-    // if (boneImage == nullptr)
-    // {
-    //     MITK_ERROR << "boneImage null";
-    //   return;
-    // }
-    // auto toolSurface = GetDataStorage()->GetNamedObject<mitk::Surface>("tool");
-    // if (toolSurface == nullptr)
-    // {
-    //     MITK_ERROR << "toolSurface null";
-    //     return;
-    // }
-    // auto boneSurface = GetDataStorage()->GetNamedObject<mitk::Surface>("boneSurface");
-    // if (boneSurface == nullptr)
-    // {
-    //     MITK_ERROR << "boneSurface null";
-    //     return;
-    // }
-    // if (m_polish.IsNull())
-    // {
-    //     m_polish = Polish::New();
-    //     
-    // }  
-    // m_polish->SetboneImage(boneImage);
-    // m_polish->SettoolSurface(toolSurface);
-    // m_polish->SetboneSurface(boneSurface);
-    // //toolSurface->GetGeometry()->AddObserver(itk::ModifiedEvent(), m_polish);
-    // //m_polish->run();
-    // m_polish->StartPolish();
-    // // auto resnode = GetDataStorage()->GetNamedNode("resImage");
-    // // if (resnode == nullptr)
-    // // {
-    // //     mitk::DataNode::Pointer resnode = mitk::DataNode::New();
-    // //     resnode->SetData(m_polish->GetresSurface());
-    // //     resnode->SetName("resImage");
-    // //
-    // //     GetDataStorage()->Add(resnode);
-    // // }
-    // // else
-    // // {
-    // //     resnode->SetData(m_polish->GetresSurface());
-    // // }
-    //
-    // mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+  if (m_polish.IsNotNull())
+  {
+    m_polish->RestorePolish();
+  }
 }
 
-void VCView::surfaceBoolean2()
+void VCView::OnPushButtonApplyTrans()
 {
-    // auto boneSurface = GetDataStorage()->GetNamedObject<mitk::Surface>("boneSurface");
-    // if (boneSurface == nullptr)
-    // {
-    //     MITK_ERROR << "boneSurface null";
-    //     return;
-    // }
-    // auto toolSurface = GetDataStorage()->GetNamedObject<mitk::Surface>("tool");
-    // if (toolSurface == nullptr)
-    // {
-    //     MITK_ERROR << "toolSurface null";
-    //     return;
-    // }
-    // if (m_polish.IsNull())
-    // {
-    //     m_polish = Polish::New();
-    //     
-    // }
-    // m_polish->SetboneSurface(boneSurface);
-    // m_polish->SettoolSurface(toolSurface);
-    // m_polish->run2();
-    //
-    // auto resnode = GetDataStorage()->GetNamedNode("resImage");
-    // if (resnode == nullptr)
-    // {
-    //     mitk::DataNode::Pointer resnode = mitk::DataNode::New();
-    //     resnode->SetData(m_polish->GetresSurface());
-    //     resnode->SetName("resImage");
-    //
-    //     GetDataStorage()->Add(resnode);
-    // }
-    // else
-    // {
-    //     resnode->SetData(m_polish->GetresSurface());
-    // }
-    //
-    // mitk::RenderingManager::GetInstance()->RequestUpdateAll();
-}
+  MITK_INFO << "OnPushButtonApplyTrans";
+  if (m_targetPset == nullptr || m_sourcePset == nullptr)
+  {
+    m_Controls.textBrowser_trans_info->append("select source and target pointset first");
+    return;
+  }
+  auto sourcePointset = dynamic_cast<mitk::PointSet *>(m_sourcePset->GetData());
+  auto targetPointset = dynamic_cast<mitk::PointSet *>(m_targetPset->GetData());
+  if (sourcePointset->GetSize() != targetPointset->GetSize())
+  {
+    m_Controls.textBrowser_trans_info->append("Failed: the Size of source and target pointset should be same");
+    return;
+  }
 
-void VCView::OnPushButtonApplyLandMarks()
-{
-    if (m_surfaceRegistration == nullptr)
-    {
-        m_surfaceRegistration = mitk::SurfaceRegistration::New();
-    }
-    MITK_INFO << "OnPushButtonApplyLandMark";
-    if (m_sourcePset != nullptr && m_targetPset != nullptr)
-    {
-        auto sourcePointset = dynamic_cast<mitk::PointSet*>(m_sourcePset->GetData());
-        auto targetPointset = dynamic_cast<mitk::PointSet*>(m_targetPset->GetData());
-        m_surfaceRegistration->SetLandmarksSrc(sourcePointset);
-        m_surfaceRegistration->SetLandmarksTarget(targetPointset);
-        m_surfaceRegistration->ComputeLandMarkResult();
-    }
-    std::ostringstream os;
-    m_surfaceRegistration->GetResult()->Print(os);
-    m_Controls.textBrowser_trans_info->append(QString::fromStdString(os.str()));
+  vtkSmartPointer<vtkPoints> sourcePoints = vtkPoints::New();
+  vtkSmartPointer<vtkPoints> targetPoints = vtkPoints::New();
 
-    if (m_registSrc != nullptr)
-    {
-        //create a copy node of regist src
-        auto name = m_registSrc->GetName() + "_regist";
-        if (GetDataStorage()->GetNamedNode(name)==nullptr)
-        {
-            mitk::DataNode::Pointer tmpNode = mitk::DataNode::New();
-            tmpNode->SetName(name);
-            mitk::Surface::Pointer surface = dynamic_cast<mitk::Surface*>(m_registSrc->GetData())->Clone();
-            tmpNode->SetData(surface);
-            tmpNode->SetVisibility(true);
-            GetDataStorage()->Add(tmpNode);
-        }
-        //reinit copy node geometry to src geometry
-        auto copyNode = GetDataStorage()->GetNamedNode(name);
-        copyNode->GetData()->SetGeometry(m_registSrc->GetData()->GetGeometry());
-        
+  for (int i = 0; i < sourcePointset->GetSize(); i++)
+  {
+    targetPoints->InsertPoint(i, targetPointset->GetPoint(i).GetDataPointer());
+    sourcePoints->InsertPoint(i, sourcePointset->GetPoint(i).GetDataPointer());
+  }
 
-        vtkTransform* trans = vtkTransform::New();
-        trans->SetMatrix(copyNode->GetData()->GetGeometry()->GetVtkMatrix());
-        trans->Concatenate(m_surfaceRegistration->GetResult());
-        trans->Update();
-        mitk::Point3D ref;
-        auto* doOp = new mitk::ApplyTransformMatrixOperation(mitk::OpAPPLYTRANSFORMMATRIX, trans->GetMatrix(), ref);
-        // execute the Operation
-        // here no undo is stored, because the movement-steps aren't interesting.
-        // only the start and the end is interisting to store for undo.
-        copyNode->GetData()->GetGeometry()->ExecuteOperation(doOp);
-        delete doOp;
+  vtkSmartPointer<vtkLandmarkTransform> transform = vtkLandmarkTransform::New();
 
-        mitk::RenderingManager::GetInstance()->RequestUpdateAll();
-    }
-}
+  transform->SetSourceLandmarks(sourcePoints);
+  transform->SetTargetLandmarks(targetPoints);
+  transform->SetMode(VTK_LANDMARK_RIGIDBODY);
+  transform->Update();
 
-void VCView::OnPushButtonApplyICP()
-{
-    if (m_surfaceRegistration == nullptr)
-    {
-        m_surfaceRegistration = mitk::SurfaceRegistration::New();
-    }
-    MITK_INFO << "OnPushButtonApplyICP";
+  std::ostringstream os;
+  transform->Print(os);
+  m_Controls.textBrowser_trans_info->append(QString::fromStdString(os.str()));
 
+  if (m_movingNode != nullptr)
+  {
+    vtkTransform *trans = vtkTransform::New();
+    trans->SetMatrix(m_movingNode->GetData()->GetGeometry()->GetVtkMatrix());
+    trans->Concatenate(transform->GetMatrix());
+    trans->Update();
+    mitk::Point3D ref;
+    auto *doOp = new mitk::ApplyTransformMatrixOperation(mitk::OpAPPLYTRANSFORMMATRIX, trans->GetMatrix(), ref);
+    // execute the Operation
+    // here no undo is stored, because the movement-steps aren't interesting.
+    // only the start and the end is interisting to store for undo.
+    m_movingNode->GetData()->GetGeometry()->ExecuteOperation(doOp);
+    delete doOp;
 
-    if (m_icpPset != nullptr && m_registSrc != nullptr)
-    {
-        auto IcpPointset = dynamic_cast<mitk::PointSet*>(m_icpPset->GetData());
-        auto surface = dynamic_cast<mitk::Surface*>(m_registSrc->GetData());
-        m_surfaceRegistration->SetIcpPoints(IcpPointset);
-        m_surfaceRegistration->SetSurfaceSrc(surface);
-        m_surfaceRegistration->ComputeIcpResult();
-    }
-
-    std::ostringstream os;
-    m_surfaceRegistration->GetResult()->Print(os);
-    m_Controls.textBrowser_trans_info->append(QString::fromStdString(os.str()));
-
-    if (m_registSrc != nullptr)
-    {
-        //create a copy node of regist src
-        auto name = m_registSrc->GetName() + "_regist";
-        if (GetDataStorage()->GetNamedNode(name) == nullptr)
-        {
-            mitk::DataNode::Pointer tmpNode = mitk::DataNode::New();
-            tmpNode->SetName(name);
-            mitk::Surface::Pointer surface = dynamic_cast<mitk::Surface*>(m_registSrc->GetData())->Clone();
-            tmpNode->SetData(surface);
-            tmpNode->SetVisibility(true);
-            GetDataStorage()->Add(tmpNode);
-        }
-        //reinit copy node geometry to src geometry
-        auto copyNode = GetDataStorage()->GetNamedNode(name);
-        copyNode->GetData()->SetGeometry(m_registSrc->GetData()->GetGeometry());
-
-        vtkTransform* trans = vtkTransform::New();
-        trans->SetMatrix(copyNode->GetData()->GetGeometry()->GetVtkMatrix());
-        trans->Concatenate(m_surfaceRegistration->GetResult());
-        trans->Update();
-        mitk::Point3D ref;
-        auto* doOp = new mitk::ApplyTransformMatrixOperation(mitk::OpAPPLYTRANSFORMMATRIX, trans->GetMatrix(), ref);
-        // execute the Operation
-        // here no undo is stored, because the movement-steps aren't interesting.
-        // only the start and the end is interisting to store for undo.
-        copyNode->GetData()->GetGeometry()->ExecuteOperation(doOp);
-        delete doOp;
-
-        mitk::RenderingManager::GetInstance()->RequestUpdateAll();
-    }
-}
-
-void VCView::OnPushButtonUndo()
-{
-    if (m_surfaceRegistration != nullptr)
-    {
-        m_surfaceRegistration->Undo();
-        std::ostringstream os;
-        m_surfaceRegistration->GetResult()->Print(os);
-        m_Controls.textBrowser_trans_info->append(QString::fromStdString(os.str()));
-
-        if (m_registSrc != nullptr)
-        {
-            //create a copy node of regist src
-            auto name = m_registSrc->GetName() + "_regist";
-            if (GetDataStorage()->GetNamedNode(name) == nullptr)
-            {
-                mitk::DataNode::Pointer tmpNode = mitk::DataNode::New();
-                tmpNode->SetName(name);
-                mitk::Surface::Pointer surface = dynamic_cast<mitk::Surface*>(m_registSrc->GetData())->Clone();
-                tmpNode->SetData(surface);
-                tmpNode->SetVisibility(true);
-                GetDataStorage()->Add(tmpNode);
-            }
-            //reinit copy node geometry to src geometry
-            auto copyNode = GetDataStorage()->GetNamedNode(name);
-            copyNode->GetData()->SetGeometry(m_registSrc->GetData()->GetGeometry());
-
-            vtkTransform* trans = vtkTransform::New();
-            trans->SetMatrix(copyNode->GetData()->GetGeometry()->GetVtkMatrix());
-            trans->Concatenate(m_surfaceRegistration->GetResult());
-            trans->Update();
-            mitk::Point3D ref;
-            auto* doOp = new mitk::ApplyTransformMatrixOperation(mitk::OpAPPLYTRANSFORMMATRIX, trans->GetMatrix(), ref);
-            // execute the Operation
-            // here no undo is stored, because the movement-steps aren't interesting.
-            // only the start and the end is interisting to store for undo.
-            copyNode->GetData()->GetGeometry()->ExecuteOperation(doOp);
-            delete doOp;
-
-            mitk::RenderingManager::GetInstance()->RequestUpdateAll();
-        }
-    }
-}
-
-void VCView::OnPushButtonClearRegist()
-{
-    m_surfaceRegistration->Clear();
+    mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+  }
 }
 
 void VCView::OnpushButton_PLC()
@@ -2910,7 +2255,6 @@ mitk::Vector3D VCView::CalCOR(mitk::PointSet *inp_pointset, double &radius)
   mitk::Vector3D cor{temp};
   return cor;
 }
-
 
 void VCView::OnpushButton_Updata()
 {
@@ -3611,10 +2955,10 @@ void VCView::OnpushButton_PelvisVersionAngle()
 
 void VCView::rotateZm()
 {
-  if (m_transData)
+  if (m_surface_transform)
   {
     double axis[3]{0, 0, -1};
-    rotate(m_transData->GetGeometry()->GetCenter().GetDataPointer(), axis, m_transData);
+    rotate(m_surface_transform->GetGeometry()->GetCenter().GetDataPointer(), axis, m_surface_transform);
   }
 }
 

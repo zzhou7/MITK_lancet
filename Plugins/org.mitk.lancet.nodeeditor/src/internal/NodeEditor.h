@@ -108,6 +108,9 @@ protected:
   // Calculate multi-line intersection
   void GetIntersection();
 
+  // Test ImageToSurfaceFilter
+  void ExtractSteelBallSurface();
+  
 
   // set up the coordinate of the TCP calibrator
   // void SetUpTcpCalibrator(double toolPointA[3],
