@@ -11,24 +11,24 @@ found in the LICENSE file.
 ============================================================================*/
 
 
-#ifndef TwoProjectionRegistration_h
-#define TwoProjectionRegistration_h
+#ifndef Spine2D3DRegistration_h
+#define Spine2D3DRegistration_h
 
 #include <berryISelectionListener.h>
 
 #include <QmitkAbstractView.h>
 
-#include "ui_TwoProjectionRegistrationControls.h"
+#include "ui_Spine2D3DRegistrationControls.h"
 
 /**
-  \brief TwoProjectionRegistration
+  \brief Spine2D3DRegistration
 
   \warning  This class is not yet documented. Use "git blame" and ask the author to provide basic documentation.
 
   \sa QmitkAbstractView
   \ingroup ${plugin_target}_internal
 */
-class TwoProjectionRegistration : public QmitkAbstractView
+class Spine2D3DRegistration : public QmitkAbstractView
 {
   // this is needed for all Qt objects that should have a Qt meta-object
   // (everything that derives from QObject and wants to have signal/slots)
@@ -49,7 +49,7 @@ protected:
   /// \brief Called when the user clicks the GUI button
   void DoImageProcessing();
 
-  Ui::TwoProjectionRegistrationControls m_Controls;
+  Ui::Spine2D3DRegistrationControls m_Controls;
 };
 
-#endif // TwoProjectionRegistration_h
+#endif // Spine2D3DRegistration_h

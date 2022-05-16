@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+
+  <extension point="org.blueberry.ui.views">
+    <view id="org.mitk.views.spine2d3dregistration"
+          name="Spine 2D3D Registration"
+          class="Spine2D3DRegistration"
+          icon="resources/icon.xpm" />
+  </extension>
+
+</plugin>

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>TwoProjectionRegistrationControls</class>
- <widget class="QWidget" name="TwoProjectionRegistrationControls">
+ <class>Spine2D3DRegistrationControls</class>
+ <widget class="QWidget" name="Spine2D3DRegistrationControls">
   <property name="geometry">
    <rect>
     <x>0</x>

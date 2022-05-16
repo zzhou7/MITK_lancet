@@ -3,17 +3,17 @@ set(SRC_CPP_FILES
 )
 
 set(INTERNAL_CPP_FILES
-  org_mitk_lancet_twoprojregistration_Activator.cpp
-  TwoProjectionRegistration.cpp
+  org_mitk_lancet_spine2d3dregistration_Activator.cpp
+  Spine2D3DRegistration.cpp
 )
 
 set(UI_FILES
-  src/internal/TwoProjectionRegistrationControls.ui
+  src/internal/Spine2D3DRegistrationControls.ui
 )
 
 set(MOC_H_FILES
-  src/internal/org_mitk_lancet_twoprojregistration_Activator.h
-  src/internal/TwoProjectionRegistration.h
+  src/internal/org_mitk_lancet_spine2d3dregistration_Activator.h
+  src/internal/Spine2D3DRegistration.h
 )
 
 # list of resource files which can be used by the plug-in

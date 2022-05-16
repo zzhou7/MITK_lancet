@@ -90,5 +90,7 @@ set(MITK_PLUGINS
   org.mitk.lancet.robot:OFF
   org.mitk.virtualcorrection:ON
   org.mitk.lancet.fit:OFF
-  org.mitk.lancet.nodeeditor:OFF
+  org.mitk.lancet.nodeeditor:ON
+  org.mitk.lancet.spinectregistration:ON
+  org.mitk.lancet.spine2d3dregistration:ON
 )

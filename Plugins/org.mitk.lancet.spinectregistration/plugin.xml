@@ -2,9 +2,9 @@
 <plugin>
 
   <extension point="org.blueberry.ui.views">
-    <view id="org.mitk.views.twoprojectionregistration"
-          name="Two projection registration"
-          class="TwoProjectionRegistration"
+    <view id="org.mitk.views.spinectregistration"
+          name="Spine CT Registration"
+          class="SpineCTRegistration"
           icon="resources/icon.xpm" />
   </extension>
 

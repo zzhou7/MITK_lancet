@@ -1,11 +1,11 @@
 /**
-\page org_mitk_lancet_twoprojregistration The Twoprojregistration
+\page org_mitk_lancet_spinectregistration The Spinectregistration
 
-\imageMacro{icon.png,"Icon of Twoprojregistration",2.00}
+\imageMacro{icon.png,"Icon of Spinectregistration",2.00}
 
 \tableofcontents
 
-\section org_mitk_lancet_twoprojregistrationOverview Overview
+\section org_mitk_lancet_spinectregistrationOverview Overview
 Describe the features of your awesome plugin here
 <ul>
 <li>Increases productivity

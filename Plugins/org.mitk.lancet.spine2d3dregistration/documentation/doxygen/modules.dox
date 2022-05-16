@@ -1,0 +1,16 @@
+/**
+  \defgroup org_mitk_lancet_spine2d3dregistration org.mitk.lancet.spine2d3dregistration
+  \ingroup MITKPlugins
+
+  \brief Describe your plugin here.
+
+*/
+
+/**
+  \defgroup org_mitk_lancet_spine2d3dregistration_internal Internal
+  \ingroup org_mitk_lancet_spine2d3dregistration
+
+  \brief This subcategory includes the internal classes of the org.mitk.lancet.spine2d3dregistration plugin. Other
+  plugins must not rely on these classes. They contain implementation details and their interface
+  may change at any time. We mean it.
+*/

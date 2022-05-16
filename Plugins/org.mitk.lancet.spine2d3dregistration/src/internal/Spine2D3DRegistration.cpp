@@ -16,7 +16,7 @@ found in the LICENSE file.
 #include <berryIWorkbenchWindow.h>
 
 // Qmitk
-#include "TwoProjectionRegistration.h"
+#include "Spine2D3DRegistration.h"
 
 // Qt
 #include <QMessageBox>
@@ -24,21 +24,21 @@ found in the LICENSE file.
 // mitk image
 #include <mitkImage.h>
 
-const std::string TwoProjectionRegistration::VIEW_ID = "org.mitk.views.twoprojectionregistration";
+const std::string Spine2D3DRegistration::VIEW_ID = "org.mitk.views.spine2d3dregistration";
 
-void TwoProjectionRegistration::SetFocus()
+void Spine2D3DRegistration::SetFocus()
 {
   m_Controls.buttonPerformImageProcessing->setFocus();
 }
 
-void TwoProjectionRegistration::CreateQtPartControl(QWidget *parent)
+void Spine2D3DRegistration::CreateQtPartControl(QWidget *parent)
 {
   // create GUI widgets from the Qt Designer's .ui file
   m_Controls.setupUi(parent);
-  connect(m_Controls.buttonPerformImageProcessing, &QPushButton::clicked, this, &TwoProjectionRegistration::DoImageProcessing);
+  connect(m_Controls.buttonPerformImageProcessing, &QPushButton::clicked, this, &Spine2D3DRegistration::DoImageProcessing);
 }
 
-void TwoProjectionRegistration::OnSelectionChanged(berry::IWorkbenchPart::Pointer /*source*/,
+void Spine2D3DRegistration::OnSelectionChanged(berry::IWorkbenchPart::Pointer /*source*/,
                                                 const QList<mitk::DataNode::Pointer> &nodes)
 {
   // iterate all selected objects, adjust warning visibility
@@ -56,7 +56,7 @@ void TwoProjectionRegistration::OnSelectionChanged(berry::IWorkbenchPart::Pointe
   m_Controls.buttonPerformImageProcessing->setEnabled(false);
 }
 
-void TwoProjectionRegistration::DoImageProcessing()
+void Spine2D3DRegistration::DoImageProcessing()
 {
   QList<mitk::DataNode::Pointer> nodes = this->GetDataManagerSelection();
   if (nodes.empty())

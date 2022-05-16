@@ -2166,7 +2166,7 @@ void NodeEditor::ExtractSteelBallSurface()
     distanceRanks[i] = i;
   }
   
-  MITK_INFO << "Distance before: " << distancesToPointSetCenter[0];
+  MITK_INFO << "Distance before sorting: " << distancesToPointSetCenter[0];
   MITK_INFO << distancesToPointSetCenter[1];
   MITK_INFO << distancesToPointSetCenter[2];
   MITK_INFO << distancesToPointSetCenter[3];
@@ -2193,7 +2193,7 @@ void NodeEditor::ExtractSteelBallSurface()
     }
   }
 
-  MITK_INFO << "Distance after: " << distancesToPointSetCenter[0];
+  MITK_INFO << "Distance after sorting: " << distancesToPointSetCenter[0];
   MITK_INFO << distancesToPointSetCenter[1];
   MITK_INFO << distancesToPointSetCenter[2];
   MITK_INFO << distancesToPointSetCenter[3];
