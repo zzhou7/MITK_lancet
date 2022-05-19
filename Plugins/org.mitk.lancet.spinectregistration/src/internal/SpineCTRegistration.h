@@ -20,6 +20,8 @@ found in the LICENSE file.
 
 #include "ui_SpineCTRegistrationControls.h"
 
+#include <eigen3/Eigen/Eigen>
+
 /**
   \brief SpineCTRegistration
 
@@ -45,15 +47,40 @@ protected:
   // Member variables
   Ui::SpineCTRegistrationControls m_Controls;
   mitk::DataNode *m_CtImageDataNode{nullptr};
+  mitk::DataNode *m_MovingSurfaceDataNode{nullptr};
+  mitk::DataNode *m_LandmarkSrcPointsetDataNode{nullptr};
+  mitk::DataNode *m_LandmarkTargetPointsetDataNode{nullptr};
+  mitk::DataNode *m_IcpSrcSurfaceDataNode{nullptr};
+  mitk::DataNode *m_IcpTargetPointsetDataNode{nullptr};
 
+  Eigen::Matrix4d m_TmpRegistrationResult;
 
   // QT slots
 
   // User selects a node
   void ChangeCtImage(QmitkSingleNodeSelectionWidget::NodeList);
+  void ChangeMovingSurface(QmitkSingleNodeSelectionWidget::NodeList);
+  void ChangeLandmarkSrcPointset(QmitkSingleNodeSelectionWidget::NodeList);
+  void ChangeLandmarkTargetPointset(QmitkSingleNodeSelectionWidget::NodeList);
+  void ChangeIcpSrcSurface(QmitkSingleNodeSelectionWidget::NodeList);
+  void ChangeIcpTargetPointset(QmitkSingleNodeSelectionWidget::NodeList);
+
+
 
   // Extract steelball centers as a pointset
   void GetSteelballCenters();
+
+  // Reset the origin of an mitk::Image to (0, 0, 0), realign the image's axes to the standard xyz axes
+  void ResetImage();
+
+  // Landmark registration (pointset to pointset)
+  void LandmarkRegistration();
+
+  // ICP registration (surface to pointset)
+  void IcpRegistration();
+
+  // Update the registration result in the UI
+  void UpdateRegistrationMatrixInUI();
 
 };
 

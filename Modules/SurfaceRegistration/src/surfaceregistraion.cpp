@@ -107,7 +107,7 @@ bool mitk::SurfaceRegistration::ComputeIcpResult()
 
   //The new transformation is computed under the result of the preceding transformation,
   //but we don't move the source surface,so we move target icp points inversely.
-  //To be confirmed: SetTarget should contain more points than SetSource 
+  //Reason: SetTarget should contain more points than SetSource 
 	auto pTransform = vtkSmartPointer<vtkTransform>::New();
 	pTransform->Identity();
 	pTransform->Concatenate(GetResult());

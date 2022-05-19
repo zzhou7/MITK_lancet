@@ -74,7 +74,7 @@ namespace mitk
     mitk::Surface::Pointer m_SurfaceSrc;
 
     mitk::PointSet::Pointer m_LandmarksTarget;
-    mitk::PointSet::Pointer m_IcpPoints;
+    mitk::PointSet::Pointer m_IcpPoints; // ICP points are on the target surface
 
     vtkMatrix4x4* m_MatrixLandMark;
     std::vector<vtkMatrix4x4*> m_MatrixList;
@@ -82,7 +82,7 @@ namespace mitk
 
     bool m_ContinuesRegist{ false };
   };
-} // Ende Namespace
+} // End Namespace
 
 
 #endif // SURFACEREGISTRATION_H
