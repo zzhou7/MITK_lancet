@@ -5,6 +5,9 @@ set(SRC_CPP_FILES
 set(INTERNAL_CPP_FILES
   org_mitk_lancet_spinectregistration_Activator.cpp
   SpineCTRegistration.cpp
+  SpineCTRegistration_UI_initialization.cpp
+  SpineCTRegistration_Slots_SteelballExtraction.cpp
+  SpineCTRegistration_Slots_Registration.cpp
 )
 
 set(UI_FILES

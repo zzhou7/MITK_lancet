@@ -128,7 +128,7 @@
          <item>
           <widget class="QLabel" name="label_8">
            <property name="text">
-            <string>Moving surface:</string>
+            <string>Moving object:</string>
            </property>
           </widget>
          </item>
@@ -154,9 +154,9 @@
           </widget>
          </item>
          <item row="3" column="0">
-          <widget class="QPushButton" name="pushButton_ApplyTransform">
+          <widget class="QPushButton" name="pushButton_TransformSurface">
            <property name="text">
-            <string>Apply transform</string>
+            <string>Transform surface</string>
            </property>
           </widget>
          </item>
@@ -301,6 +301,13 @@
           <widget class="QLineEdit" name="lineEdit_RegistrationMatrix_7">
            <property name="enabled">
             <bool>false</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="0">
+          <widget class="QPushButton" name="pushButton_TransformImage">
+           <property name="text">
+            <string>Transform image</string>
            </property>
           </widget>
          </item>

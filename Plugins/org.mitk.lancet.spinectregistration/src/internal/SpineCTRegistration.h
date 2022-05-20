@@ -10,7 +10,6 @@ found in the LICENSE file.
 
 ============================================================================*/
 
-
 #ifndef SpineCTRegistration_h
 #define SpineCTRegistration_h
 
@@ -54,6 +53,7 @@ protected:
   mitk::DataNode *m_IcpTargetPointsetDataNode{nullptr};
 
   Eigen::Matrix4d m_TmpRegistrationResult;
+    
 
   // QT slots
 
@@ -64,8 +64,6 @@ protected:
   void ChangeLandmarkTargetPointset(QmitkSingleNodeSelectionWidget::NodeList);
   void ChangeIcpSrcSurface(QmitkSingleNodeSelectionWidget::NodeList);
   void ChangeIcpTargetPointset(QmitkSingleNodeSelectionWidget::NodeList);
-
-
 
   // Extract steelball centers as a pointset
   void GetSteelballCenters();
@@ -81,6 +79,10 @@ protected:
 
   // Update the registration result in the UI
   void UpdateRegistrationMatrixInUI();
+
+  // Apply the calculated registration transform to the moving object
+  void TransformSurface();
+  void TransformImage();
 
 };
 
