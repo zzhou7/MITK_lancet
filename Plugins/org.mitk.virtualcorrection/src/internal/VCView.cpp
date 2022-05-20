@@ -2601,6 +2601,7 @@ void VCView::OnPushButtonApplyLandMarks()
         
 
         vtkTransform* trans = vtkTransform::New();
+        trans->PostMultiply(); 
         trans->SetMatrix(copyNode->GetData()->GetGeometry()->GetVtkMatrix());
         trans->Concatenate(m_surfaceRegistration->GetResult());
         trans->Update();
@@ -2656,6 +2657,7 @@ void VCView::OnPushButtonApplyICP()
         copyNode->GetData()->SetGeometry(m_registSrc->GetData()->GetGeometry());
 
         vtkTransform* trans = vtkTransform::New();
+        trans->PostMultiply(); 
         trans->SetMatrix(copyNode->GetData()->GetGeometry()->GetVtkMatrix());
         trans->Concatenate(m_surfaceRegistration->GetResult());
         trans->Update();
