@@ -16,6 +16,7 @@ found in the LICENSE file.
 #include "vtkIterativeClosestPointTransform.h"
 #include <vtkPoints.h>
 #include <vtkPolyData.h>
+#include <vtkTransformFilter.h>
 
 
 mitk::SurfaceRegistration::SurfaceRegistration()
@@ -118,10 +119,23 @@ bool mitk::SurfaceRegistration::ComputeIcpResult()
 	auto pSource = vtkSmartPointer<vtkPolyData>::New();
 	pSource->SetPoints(icpPoints_transed);
 
+  // In case m_SurfaceSrc does not have an identity geometry matrix
+  vtkTransform *tmpTrans = vtkTransform::New();
+  tmpTrans->Identity();
+  tmpTrans->PostMultiply();
+  tmpTrans->SetMatrix(m_SurfaceSrc->GetGeometry()->GetVtkMatrix());
+  auto correctedSurface = vtkSmartPointer<vtkPolyData>::New();
+  vtkNew<vtkTransformFilter> transformFilter;
+  transformFilter->SetInputData(m_SurfaceSrc->GetVtkPolyData());
+  transformFilter->SetTransform(tmpTrans);
+  transformFilter->Update();
+
 	vtkSmartPointer<vtkIterativeClosestPointTransform> pIcp =
 		vtkSmartPointer<vtkIterativeClosestPointTransform>::New();
 	pIcp->SetSource(pSource);
-	pIcp->SetTarget(m_SurfaceSrc->GetVtkPolyData()); 
+	// pIcp->SetTarget(m_SurfaceSrc->GetVtkPolyData()); // the PolyData here must have an identity geometry matrix !
+  pIcp->SetTarget(transformFilter->GetPolyDataOutput());
+
 	pIcp->GetLandmarkTransform()->SetModeToRigidBody();
 	pIcp->SetMaximumNumberOfIterations(1000);
 	pIcp->SetCheckMeanDistance(true);
