@@ -19,8 +19,6 @@ found in the LICENSE file.
 
 // Qt
 #include "leastsquaresfit.h"
-#include "mitkApplyTransformMatrixOperation.h"
-#include "mitkInteractionConst.h"
 #include <QMessageBox>
 #include <QPushButton>
 
@@ -63,64 +61,152 @@ void SpineCTRegistration::ResetImage()
     //because the spacing is determined by the matrix diagonal
 }
 
-void SpineCTRegistration::TransformSurface()
+void SpineCTRegistration::ReconstructSpineSurface()
 {
-  auto movingObject = dynamic_cast<mitk::Surface *>(m_MovingSurfaceDataNode->GetData());
+  auto inputCtImage = dynamic_cast<mitk::Image *>(m_CtImageDataNode->GetData());
 
-  double registrationResult[16];
+  // The isosurface of all steelballs as into a single polydata
+  double threshold = m_Controls.lineEdit_BoneSurfaceThreshold->text().toDouble();
+  auto mitkSteelBallSurfaces = mitk::Surface::New();
+  mitk::ImageToSurfaceFilter::Pointer imageToSurfaceFilter = mitk::ImageToSurfaceFilter::New();
 
-  for (int m=0; m < 16; m++)
-  {
-    registrationResult[m] = *(m_TmpRegistrationResult.data() + m);
-  }
+  imageToSurfaceFilter->SetInput(inputCtImage);
+  imageToSurfaceFilter->SetThreshold(threshold);
+  mitkSteelBallSurfaces = imageToSurfaceFilter->GetOutput();
 
-  vtkSmartPointer<vtkMatrix4x4> tmpVtkMatrixRegistrationResult = vtkSmartPointer<vtkMatrix4x4>::New();
-  tmpVtkMatrixRegistrationResult->DeepCopy(registrationResult);
-  tmpVtkMatrixRegistrationResult->Transpose();
+  // // Separate steelball surface by examining their connectivity
+  // vtkNew<vtkConnectivityFilter> vtkConnectivityFilter;
+  // vtkConnectivityFilter->SetInputData(mitkSteelBallSurfaces->GetVtkPolyData());
+  //
+  // vtkConnectivityFilter->SetExtractionModeToAllRegions();
+  // vtkConnectivityFilter->Update();
+  // int numberOfTotalSteelBalls = vtkConnectivityFilter->GetNumberOfExtractedRegions();
+  //
+  // auto mitkSingleSteelballCenterPointset = mitk::PointSet::New(); // store each steelball's center
+  // double centerOfAllSteelballs[3]{0, 0, 0};                       // the center of all steel balls
+  //
+  // vtkConnectivityFilter->SetExtractionModeToSpecifiedRegions();
+  // for (int m = 0; m < numberOfTotalSteelBalls; m++)
+  // {
+  //   vtkConnectivityFilter->InitializeSpecifiedRegionList();
+  //   vtkConnectivityFilter->AddSpecifiedRegion(m);
+  //   vtkConnectivityFilter->Update();
+  //
+  //   auto vtkSingleSteelBallSurface = vtkConnectivityFilter->GetPolyDataOutput();
+  //
+  //   auto numberOfCells =
+  //     vtkSingleSteelBallSurface->GetNumberOfCells(); // the total number of cells of a single mesh surface; each cell
+  //                                                    // stores one facet of the mesh surface
+  //
+  //   std::vector<double> inp_x(
+  //     numberOfCells); // inp_x, inp_y and inp_z store one point of each facet on the mesh surface
+  //   std::vector<double> inp_y(
+  //     numberOfCells); // inp_x, inp_y and inp_z store one point of each facet on the mesh surface
+  //   std::vector<double> inp_z(
+  //     numberOfCells); // inp_x, inp_y and inp_z store one point of each facet on the mesh surface
+  //
+  //   for (int n = 0; n < numberOfCells; n++)
+  //   {
+  //     auto tmpPoint = vtkSingleSteelBallSurface->GetCell(n)->GetPoints()->GetPoint(0);
+  //
+  //     inp_x[n] = tmpPoint[0];
+  //     inp_y[n] = tmpPoint[1];
+  //     inp_z[n] = tmpPoint[2];
+  //   }
+  //
+  //   // use inp_x, inp_y and inp_z to simulate a sphere
+  //   double cx, cy, cz;
+  //   double R;
+  //
+  //   lancetAlgorithm::fit_sphere(inp_x, inp_y, inp_z, cx, cy, cz, R);
+  //
+  //   mitk::Point3D mitkTmpCenterPoint3D;
+  //   mitkTmpCenterPoint3D[0] = cx;
+  //   mitkTmpCenterPoint3D[1] = cy;
+  //   mitkTmpCenterPoint3D[2] = cz;
+  //   mitkSingleSteelballCenterPointset->InsertPoint(mitkTmpCenterPoint3D);
+  //
+  //   centerOfAllSteelballs[0] = centerOfAllSteelballs[0] + cx;
+  //   centerOfAllSteelballs[1] = centerOfAllSteelballs[1] + cy;
+  //   centerOfAllSteelballs[2] = centerOfAllSteelballs[2] + cz;
+  //
+  //   // // Draw simulated spheres
+  //   // auto vtkBallSource0 = vtkSmartPointer<vtkSphereSource>::New();
+  //   // vtkBallSource0->SetCenter(cx, cy, cz);
+  //   // vtkBallSource0->SetRadius(R);
+  //   // vtkBallSource0->Update();
+  //   //
+  //   // auto tmpNode = mitk::DataNode::New();
+  //   //
+  //   // tmpNode->SetName("Single steelball sphere");
+  //   // auto mitkSteelBallSurfacesNew1 = mitk::Surface::New();
+  //   // mitkSteelBallSurfacesNew1->SetVtkPolyData(vtkBallSource0->GetOutput());
+  //   // tmpNode->SetData(mitkSteelBallSurfacesNew1);
+  //   // GetDataStorage()->Add(tmpNode);
+  // }
+  //
+  // centerOfAllSteelballs[0] = centerOfAllSteelballs[0] / numberOfTotalSteelBalls;
+  // centerOfAllSteelballs[1] = centerOfAllSteelballs[1] / numberOfTotalSteelBalls;
+  // centerOfAllSteelballs[2] = centerOfAllSteelballs[2] / numberOfTotalSteelBalls;
+  //
+  // // Sort the centers of the separate steelballs according to their distances to the group center
+  // std::vector<double> distancesToPointSetCenter(numberOfTotalSteelBalls);
+  // std::vector<int> distanceRanks(numberOfTotalSteelBalls);
+  //
+  // for (int i = 0; i < numberOfTotalSteelBalls; i++)
+  // {
+  //   distancesToPointSetCenter[i] =
+  //     sqrt(pow(centerOfAllSteelballs[0] - mitkSingleSteelballCenterPointset->GetPoint(i)[0], 2) +
+  //          pow(centerOfAllSteelballs[1] - mitkSingleSteelballCenterPointset->GetPoint(i)[1], 2) +
+  //          pow(centerOfAllSteelballs[2] - mitkSingleSteelballCenterPointset->GetPoint(i)[2], 2));
+  //
+  //   distanceRanks[i] = i;
+  // }
+  //
+  // for (int i = 0; i < numberOfTotalSteelBalls; i++)
+  // {
+  //   MITK_INFO << "Distance before sorting: " << distancesToPointSetCenter[i];
+  // }
+  //
+  // for (int i = 0; i < numberOfTotalSteelBalls - 2; i++)
+  // {
+  //   for (int j = 0; j < numberOfTotalSteelBalls - 1 - i; j++)
+  //   {
+  //     double temp = 0;
+  //     double temp2 = 0;
+  //     if (distancesToPointSetCenter[j] > distancesToPointSetCenter[j + 1])
+  //     {
+  //       temp = distancesToPointSetCenter[j];
+  //       distancesToPointSetCenter[j] = distancesToPointSetCenter[j + 1];
+  //       distancesToPointSetCenter[j + 1] = temp;
+  //
+  //       temp2 = distanceRanks[j];
+  //       distanceRanks[j] = distanceRanks[j + 1];
+  //       distanceRanks[j + 1] = temp2;
+  //     }
+  //   }
+  // }
+  //
+  // for (int i = 0; i < numberOfTotalSteelBalls; i++)
+  // {
+  //   MITK_INFO << "Distance after sorting: " << distancesToPointSetCenter[i];
+  // }
+  //
+  // auto mitkSortedSingleSteelballCenterPointset = mitk::PointSet::New();
+  // for (int i = 0; i < numberOfTotalSteelBalls; i++)
+  // {
+  //   mitkSortedSingleSteelballCenterPointset->InsertPoint(mitkSingleSteelballCenterPointset->GetPoint(distanceRanks[i]));
+  // }
 
-  vtkTransform *trans = vtkTransform::New();
-  trans->PostMultiply();
-  trans->SetMatrix(movingObject->GetGeometry()->GetVtkMatrix());
-  trans->Concatenate(tmpVtkMatrixRegistrationResult);
-  trans->Update();
-
-  mitk::Point3D ref;
-  auto *mitkMatrixOperation =
-    new mitk::ApplyTransformMatrixOperation(mitk::OpAPPLYTRANSFORMMATRIX, trans->GetMatrix(), ref);
-
-  movingObject->GetGeometry()->ExecuteOperation(mitkMatrixOperation);
-
-  delete mitkMatrixOperation;
-
-  mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+  // draw extracted  steel ball surfaces
+  auto nodeSteelballSurfaces = mitk::DataNode::New();
+  nodeSteelballSurfaces->SetName("Bone surface");
+  // add new node
+  nodeSteelballSurfaces->SetData(mitkSteelBallSurfaces);
+  GetDataStorage()->Add(nodeSteelballSurfaces);
 
 }
 
-void SpineCTRegistration::TransformImage()
-{
-  auto movingObject = dynamic_cast<mitk::Image *>(m_MovingSurfaceDataNode->GetData());
-
-  double registrationResult[16];
-
-  for (int m = 0; m < 16; m++)
-  {
-    registrationResult[m] = *(m_TmpRegistrationResult.data() + m);
-  }
-
-  vtkSmartPointer<vtkMatrix4x4> tmpVtkMatrixRegistrationResult = vtkSmartPointer<vtkMatrix4x4>::New();
-  tmpVtkMatrixRegistrationResult->DeepCopy(registrationResult);
-  tmpVtkMatrixRegistrationResult->Transpose();
-
-  vtkTransform *trans = vtkTransform::New();
-  trans->PostMultiply();
-  trans->SetMatrix(movingObject->GetGeometry()->GetVtkMatrix());
-  trans->Concatenate(tmpVtkMatrixRegistrationResult);
-  trans->Update();
-
-  movingObject->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(trans->GetMatrix());
-
-  mitk::RenderingManager::GetInstance()->RequestUpdateAll();
-}
 
 
 

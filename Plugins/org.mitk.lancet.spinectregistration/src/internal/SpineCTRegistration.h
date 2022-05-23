@@ -68,6 +68,9 @@ protected:
   // Extract steelball centers as a pointset
   void GetSteelballCenters();
 
+  // Coarse reconstruction of the vertebrae
+  void ReconstructSpineSurface();
+
   // Reset the origin of an mitk::Image to (0, 0, 0), realign the image's axes to the standard xyz axes
   void ResetImage();
 

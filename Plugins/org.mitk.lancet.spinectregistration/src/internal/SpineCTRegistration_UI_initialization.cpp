@@ -94,6 +94,13 @@ void SpineCTRegistration::CreateQtPartControl(QWidget *parent)
   connect(m_Controls.pushButton_TransformSurface, &QPushButton::clicked, this, &SpineCTRegistration::TransformSurface);
 
   connect(m_Controls.pushButton_TransformImage, &QPushButton::clicked, this, &SpineCTRegistration::TransformImage);
+
+  connect(
+    m_Controls.pushButton_ExtractSteelballs, &QPushButton::clicked, this, &SpineCTRegistration::GetSteelballCenters);
+
+  connect(
+    m_Controls.pushButton_ReconstructBones, &QPushButton::clicked, this, &SpineCTRegistration::ReconstructSpineSurface);
+
 }
 
 void SpineCTRegistration::InitNodeSelector(QmitkSingleNodeSelectionWidget *widget)

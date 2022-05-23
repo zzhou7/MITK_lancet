@@ -19,6 +19,8 @@ found in the LICENSE file.
 
 // Qt
 #include "leastsquaresfit.h"
+#include "mitkApplyTransformMatrixOperation.h"
+#include "mitkInteractionConst.h"
 #include <QMessageBox>
 #include <QPushButton>
 
@@ -114,5 +116,61 @@ void SpineCTRegistration::UpdateRegistrationMatrixInUI()
 };
 
 
+void SpineCTRegistration::TransformSurface()
+{
+  auto movingObject = dynamic_cast<mitk::Surface *>(m_MovingSurfaceDataNode->GetData());
 
+  double registrationResult[16];
+
+  for (int m = 0; m < 16; m++)
+  {
+    registrationResult[m] = *(m_TmpRegistrationResult.data() + m);
+  }
+
+  vtkSmartPointer<vtkMatrix4x4> tmpVtkMatrixRegistrationResult = vtkSmartPointer<vtkMatrix4x4>::New();
+  tmpVtkMatrixRegistrationResult->DeepCopy(registrationResult);
+  tmpVtkMatrixRegistrationResult->Transpose();
+
+  vtkTransform *trans = vtkTransform::New();
+  trans->PostMultiply();
+  trans->SetMatrix(movingObject->GetGeometry()->GetVtkMatrix());
+  trans->Concatenate(tmpVtkMatrixRegistrationResult);
+  trans->Update();
+
+  mitk::Point3D ref;
+  auto *mitkMatrixOperation =
+    new mitk::ApplyTransformMatrixOperation(mitk::OpAPPLYTRANSFORMMATRIX, trans->GetMatrix(), ref);
+
+  movingObject->GetGeometry()->ExecuteOperation(mitkMatrixOperation);
+
+  delete mitkMatrixOperation;
+
+  mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+}
+
+void SpineCTRegistration::TransformImage()
+{
+  auto movingObject = dynamic_cast<mitk::Image *>(m_MovingSurfaceDataNode->GetData());
+
+  double registrationResult[16];
+
+  for (int m = 0; m < 16; m++)
+  {
+    registrationResult[m] = *(m_TmpRegistrationResult.data() + m);
+  }
+
+  vtkSmartPointer<vtkMatrix4x4> tmpVtkMatrixRegistrationResult = vtkSmartPointer<vtkMatrix4x4>::New();
+  tmpVtkMatrixRegistrationResult->DeepCopy(registrationResult);
+  tmpVtkMatrixRegistrationResult->Transpose();
+
+  vtkTransform *trans = vtkTransform::New();
+  trans->PostMultiply();
+  trans->SetMatrix(movingObject->GetGeometry()->GetVtkMatrix());
+  trans->Concatenate(tmpVtkMatrixRegistrationResult);
+  trans->Update();
+
+  movingObject->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(trans->GetMatrix());
+
+  mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+}
 

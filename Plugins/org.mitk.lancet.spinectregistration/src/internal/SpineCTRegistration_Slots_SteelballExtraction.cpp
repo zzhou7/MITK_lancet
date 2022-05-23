@@ -40,12 +40,12 @@ void SpineCTRegistration::GetSteelballCenters()
   auto inputCtImage = dynamic_cast<mitk::Image *>(m_CtImageDataNode->GetData());
 
   // The isosurface of all steelballs as into a single polydata
-  double threshold = m_Controls.lineEdit_SteelballThreshold->text().toDouble();
+  double voxelThreshold = m_Controls.lineEdit_SteelballThreshold->text().toDouble();
   auto mitkSteelBallSurfaces = mitk::Surface::New();
   mitk::ImageToSurfaceFilter::Pointer imageToSurfaceFilter = mitk::ImageToSurfaceFilter::New();
 
   imageToSurfaceFilter->SetInput(inputCtImage);
-  imageToSurfaceFilter->SetThreshold(threshold);
+  imageToSurfaceFilter->SetThreshold(voxelThreshold);
   mitkSteelBallSurfaces = imageToSurfaceFilter->GetOutput();
 
   // Separate steelball surface by examining their connectivity
@@ -54,13 +54,15 @@ void SpineCTRegistration::GetSteelballCenters()
 
   vtkConnectivityFilter->SetExtractionModeToAllRegions();
   vtkConnectivityFilter->Update();
-  int numberOfTotalSteelBalls = vtkConnectivityFilter->GetNumberOfExtractedRegions();
+  int numberOfPotentialSteelBalls = vtkConnectivityFilter->GetNumberOfExtractedRegions();
+
 
   auto mitkSingleSteelballCenterPointset = mitk::PointSet::New(); // store each steelball's center
   double centerOfAllSteelballs[3]{0, 0, 0};                       // the center of all steel balls
 
+  // Iterate over all the potential steelball regions, extract the real ones by assessing their size (facets numbers)
   vtkConnectivityFilter->SetExtractionModeToSpecifiedRegions();
-  for (int m = 0; m < numberOfTotalSteelBalls; m++)
+  for (int m = 0; m < numberOfPotentialSteelBalls; m++)
   {
     vtkConnectivityFilter->InitializeSpecifiedRegionList();
     vtkConnectivityFilter->AddSpecifiedRegion(m);
@@ -72,62 +74,72 @@ void SpineCTRegistration::GetSteelballCenters()
       vtkSingleSteelBallSurface->GetNumberOfCells(); // the total number of cells of a single mesh surface; each cell
                                                      // stores one facet of the mesh surface
 
-    std::vector<double> inp_x(
-      numberOfCells); // inp_x, inp_y and inp_z store one point of each facet on the mesh surface
-    std::vector<double> inp_y(
-      numberOfCells); // inp_x, inp_y and inp_z store one point of each facet on the mesh surface
-    std::vector<double> inp_z(
-      numberOfCells); // inp_x, inp_y and inp_z store one point of each facet on the mesh surface
+    int facetNumberUpperThreshold = m_Controls.lineEdit_MaxFacetNumber->text().toInt();
+    int facetNumberLowerThreshold = m_Controls.lineEdit_MinFacetNumber->text().toInt();
 
-    for (int n = 0; n < numberOfCells; n++)
+    if (numberOfCells < facetNumberUpperThreshold && numberOfCells > facetNumberLowerThreshold)
     {
-      auto tmpPoint = vtkSingleSteelBallSurface->GetCell(n)->GetPoints()->GetPoint(0);
+      std::vector<double> inp_x(
+        numberOfCells); // inp_x, inp_y and inp_z store one point of each facet on the mesh surface
+      std::vector<double> inp_y(
+        numberOfCells); // inp_x, inp_y and inp_z store one point of each facet on the mesh surface
+      std::vector<double> inp_z(
+        numberOfCells); // inp_x, inp_y and inp_z store one point of each facet on the mesh surface
 
-      inp_x[n] = tmpPoint[0];
-      inp_y[n] = tmpPoint[1];
-      inp_z[n] = tmpPoint[2];
+      for (int n = 0; n < numberOfCells; n++)
+      {
+        auto tmpPoint = vtkSingleSteelBallSurface->GetCell(n)->GetPoints()->GetPoint(0);
+
+        inp_x[n] = tmpPoint[0];
+        inp_y[n] = tmpPoint[1];
+        inp_z[n] = tmpPoint[2];
+      }
+
+      // use inp_x, inp_y and inp_z to simulate a sphere
+      double cx, cy, cz;
+      double R;
+
+      lancetAlgorithm::fit_sphere(inp_x, inp_y, inp_z, cx, cy, cz, R);
+
+      mitk::Point3D mitkTmpCenterPoint3D;
+      mitkTmpCenterPoint3D[0] = cx;
+      mitkTmpCenterPoint3D[1] = cy;
+      mitkTmpCenterPoint3D[2] = cz;
+      mitkSingleSteelballCenterPointset->InsertPoint(mitkTmpCenterPoint3D);
+
+      centerOfAllSteelballs[0] = centerOfAllSteelballs[0] + cx;
+      centerOfAllSteelballs[1] = centerOfAllSteelballs[1] + cy;
+      centerOfAllSteelballs[2] = centerOfAllSteelballs[2] + cz;
+
+      // Draw simulated spheres
+      auto vtkBallSource0 = vtkSmartPointer<vtkSphereSource>::New();
+      vtkBallSource0->SetCenter(cx, cy, cz);
+      vtkBallSource0->SetRadius(R);
+      vtkBallSource0->Update();
+      
+      auto tmpNode = mitk::DataNode::New();
+      
+      tmpNode->SetName("Single steelball sphere");
+      auto mitkSteelBallSurfacesNew1 = mitk::Surface::New();
+      mitkSteelBallSurfacesNew1->SetVtkPolyData(vtkBallSource0->GetOutput());
+      tmpNode->SetData(mitkSteelBallSurfacesNew1);
+      GetDataStorage()->Add(tmpNode);
     }
 
-    // use inp_x, inp_y and inp_z to simulate a sphere
-    double cx, cy, cz;
-    double R;
-
-    lancetAlgorithm::fit_sphere(inp_x, inp_y, inp_z, cx, cy, cz, R);
-
-    mitk::Point3D mitkTmpCenterPoint3D;
-    mitkTmpCenterPoint3D[0] = cx;
-    mitkTmpCenterPoint3D[1] = cy;
-    mitkTmpCenterPoint3D[2] = cz;
-    mitkSingleSteelballCenterPointset->InsertPoint(mitkTmpCenterPoint3D);
-
-    centerOfAllSteelballs[0] = centerOfAllSteelballs[0] + cx;
-    centerOfAllSteelballs[1] = centerOfAllSteelballs[1] + cy;
-    centerOfAllSteelballs[2] = centerOfAllSteelballs[2] + cz;
-
-    // // Draw simulated spheres
-    // auto vtkBallSource0 = vtkSmartPointer<vtkSphereSource>::New();
-    // vtkBallSource0->SetCenter(cx, cy, cz);
-    // vtkBallSource0->SetRadius(R);
-    // vtkBallSource0->Update();
-    //
-    // auto tmpNode = mitk::DataNode::New();
-    //
-    // tmpNode->SetName("Single steelball sphere");
-    // auto mitkSteelBallSurfacesNew1 = mitk::Surface::New();
-    // mitkSteelBallSurfacesNew1->SetVtkPolyData(vtkBallSource0->GetOutput());
-    // tmpNode->SetData(mitkSteelBallSurfacesNew1);
-    // GetDataStorage()->Add(tmpNode);
+     
   }
 
-  centerOfAllSteelballs[0] = centerOfAllSteelballs[0] / numberOfTotalSteelBalls;
-  centerOfAllSteelballs[1] = centerOfAllSteelballs[1] / numberOfTotalSteelBalls;
-  centerOfAllSteelballs[2] = centerOfAllSteelballs[2] / numberOfTotalSteelBalls;
+  int numberOfActualSteelballs = mitkSingleSteelballCenterPointset->GetSize();
+
+  centerOfAllSteelballs[0] = centerOfAllSteelballs[0] / numberOfActualSteelballs;
+  centerOfAllSteelballs[1] = centerOfAllSteelballs[1] / numberOfActualSteelballs;
+  centerOfAllSteelballs[2] = centerOfAllSteelballs[2] / numberOfActualSteelballs;
 
   // Sort the centers of the separate steelballs according to their distances to the group center
-  std::vector<double> distancesToPointSetCenter(numberOfTotalSteelBalls);
-  std::vector<int> distanceRanks(numberOfTotalSteelBalls);
+  std::vector<double> distancesToPointSetCenter(numberOfActualSteelballs);
+  std::vector<int> distanceRanks(numberOfActualSteelballs);
 
-  for (int i = 0; i < numberOfTotalSteelBalls; i++)
+  for (int i = 0; i < numberOfActualSteelballs; i++)
   {
     distancesToPointSetCenter[i] =
       sqrt(pow(centerOfAllSteelballs[0] - mitkSingleSteelballCenterPointset->GetPoint(i)[0], 2) +
@@ -137,14 +149,14 @@ void SpineCTRegistration::GetSteelballCenters()
     distanceRanks[i] = i;
   }
 
-  for (int i = 0; i < numberOfTotalSteelBalls; i++)
+  for (int i = 0; i < numberOfActualSteelballs; i++)
   {
     MITK_INFO << "Distance before sorting: " << distancesToPointSetCenter[i];
   }
 
-  for (int i = 0; i < numberOfTotalSteelBalls - 2; i++)
+  for (int i = 0; i < numberOfActualSteelballs - 2; i++)
   {
-    for (int j = 0; j < numberOfTotalSteelBalls - 1 - i; j++)
+    for (int j = 0; j < numberOfActualSteelballs - 1 - i; j++)
     {
       double temp = 0;
       double temp2 = 0;
@@ -161,13 +173,13 @@ void SpineCTRegistration::GetSteelballCenters()
     }
   }
 
-  for (int i = 0; i < numberOfTotalSteelBalls; i++)
+  for (int i = 0; i < numberOfActualSteelballs; i++)
   {
     MITK_INFO << "Distance after sorting: " << distancesToPointSetCenter[i];
   }
 
   auto mitkSortedSingleSteelballCenterPointset = mitk::PointSet::New();
-  for (int i = 0; i < numberOfTotalSteelBalls; i++)
+  for (int i = 0; i < numberOfActualSteelballs; i++)
   {
     mitkSortedSingleSteelballCenterPointset->InsertPoint(mitkSingleSteelballCenterPointset->GetPoint(distanceRanks[i]));
   }
