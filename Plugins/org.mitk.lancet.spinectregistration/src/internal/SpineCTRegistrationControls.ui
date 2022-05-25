@@ -37,7 +37,7 @@
    <item row="1" column="0">
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>0</number>
+      <number>2</number>
      </property>
      <widget class="QWidget" name="tab">
       <attribute name="title">
@@ -407,7 +407,7 @@
      </widget>
      <widget class="QWidget" name="tab_2">
       <attribute name="title">
-       <string>Registration</string>
+       <string>Surface Registration</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout_5">
        <item row="0" column="0">
@@ -701,6 +701,105 @@
         </spacer>
        </item>
       </layout>
+     </widget>
+     <widget class="QWidget" name="tab_4">
+      <attribute name="title">
+       <string>NDI tool design</string>
+      </attribute>
+      <widget class="QPushButton" name="pushButton_checkNDI">
+       <property name="geometry">
+        <rect>
+         <x>50</x>
+         <y>70</y>
+         <width>75</width>
+         <height>23</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Check</string>
+       </property>
+      </widget>
+      <widget class="QTextBrowser" name="textBrowser_checkNDI">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>100</y>
+         <width>791</width>
+         <height>431</height>
+        </rect>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="pushButton_OptimizeTool">
+       <property name="geometry">
+        <rect>
+         <x>160</x>
+         <y>70</y>
+         <width>75</width>
+         <height>23</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Optimize</string>
+       </property>
+      </widget>
+      <widget class="QWidget" name="">
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>10</y>
+         <width>572</width>
+         <height>52</height>
+        </rect>
+       </property>
+       <layout class="QVBoxLayout" name="verticalLayout">
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_10">
+          <item>
+           <widget class="QLabel" name="label_17">
+            <property name="text">
+             <string>X:</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="lineEdit_pX_0"/>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="lineEdit_pX_1"/>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="lineEdit_pX_2"/>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="lineEdit_pX_3"/>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_11">
+          <item>
+           <widget class="QLabel" name="label_18">
+            <property name="text">
+             <string>Y:</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="lineEdit_pY_0"/>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="lineEdit_pY_1"/>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="lineEdit_pY_2"/>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="lineEdit_pY_3"/>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
      </widget>
     </widget>
    </item>

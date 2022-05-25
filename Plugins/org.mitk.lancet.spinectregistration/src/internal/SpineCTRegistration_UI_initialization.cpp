@@ -101,6 +101,9 @@ void SpineCTRegistration::CreateQtPartControl(QWidget *parent)
   connect(
     m_Controls.pushButton_ReconstructBones, &QPushButton::clicked, this, &SpineCTRegistration::ReconstructSpineSurface);
 
+  connect(m_Controls.pushButton_checkNDI, &QPushButton::clicked, this, &SpineCTRegistration::CheckToolValidity);
+
+  connect(m_Controls.pushButton_OptimizeTool, &QPushButton::clicked, this, &SpineCTRegistration::OptimizeTool);
 }
 
 void SpineCTRegistration::InitNodeSelector(QmitkSingleNodeSelectionWidget *widget)

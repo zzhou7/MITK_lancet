@@ -87,6 +87,29 @@ protected:
   void TransformSurface();
   void TransformImage();
 
+  // NDI tool design
+
+  int metric[3]{0, 0, 0}; // a metric to measure whether the new tool meets all 3 design requirements ( {1, 1, 1} )
+
+  double inputTool[8] // {x0, x1, x2, x3, y0, y1, y2, y3}
+  {
+    0, 60, 0, 50,
+    70, 0, 0, 85
+  };
+
+  // {x0, x1, x2, x3, y0, y1, y2, y3}
+  // double optimizedTool[8]{0}; 
+
+
+  // {x0, x1, ...xN, y0, y1, ...yN}
+  double existingTools[16]{0, 70, 60, 0, 0, 0, 50, 50, 0, 0, 70, 0, 70, 51.97, 120, 25.9807};
+
+  int existingToolNum{2};
+
+  void CheckToolValidity();
+  void UpdateTool();
+  void OptimizeTool();
+
 };
 
 #endif // SpineCTRegistration_h

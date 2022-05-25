@@ -34,8 +34,6 @@ found in the LICENSE file.
 #include <mitkImage.h>
 #include <vtkSphereSource.h>
 
-
-
 // Reset the origin of an mitk::Image to (0, 0, 0), realign the image's axes to the standard xyz axes
 void SpineCTRegistration::ResetImage()
 {
@@ -55,10 +53,9 @@ void SpineCTRegistration::ResetImage()
   tmpVtkTransform->Identity();
   tmpVtkTransform->GetMatrix(tmpVtkMatrix);
 
-  inputImage->GetGeometry(0)->SetIndexToWorldTransformByVtkMatrixWithoutChangingSpacing(
-    tmpVtkMatrix);
-    // SetIndexToWorldTransformByVtkMatrix(tmpVtkMatrix) will set the spacing as (1, 1, 1),
-    //because the spacing is determined by the matrix diagonal
+  inputImage->GetGeometry(0)->SetIndexToWorldTransformByVtkMatrixWithoutChangingSpacing(tmpVtkMatrix);
+  // SetIndexToWorldTransformByVtkMatrix(tmpVtkMatrix) will set the spacing as (1, 1, 1),
+  // because the spacing is determined by the matrix diagonal
 }
 
 void SpineCTRegistration::ReconstructSpineSurface()
@@ -74,145 +71,326 @@ void SpineCTRegistration::ReconstructSpineSurface()
   imageToSurfaceFilter->SetThreshold(threshold);
   mitkSteelBallSurfaces = imageToSurfaceFilter->GetOutput();
 
-  // // Separate steelball surface by examining their connectivity
-  // vtkNew<vtkConnectivityFilter> vtkConnectivityFilter;
-  // vtkConnectivityFilter->SetInputData(mitkSteelBallSurfaces->GetVtkPolyData());
-  //
-  // vtkConnectivityFilter->SetExtractionModeToAllRegions();
-  // vtkConnectivityFilter->Update();
-  // int numberOfTotalSteelBalls = vtkConnectivityFilter->GetNumberOfExtractedRegions();
-  //
-  // auto mitkSingleSteelballCenterPointset = mitk::PointSet::New(); // store each steelball's center
-  // double centerOfAllSteelballs[3]{0, 0, 0};                       // the center of all steel balls
-  //
-  // vtkConnectivityFilter->SetExtractionModeToSpecifiedRegions();
-  // for (int m = 0; m < numberOfTotalSteelBalls; m++)
-  // {
-  //   vtkConnectivityFilter->InitializeSpecifiedRegionList();
-  //   vtkConnectivityFilter->AddSpecifiedRegion(m);
-  //   vtkConnectivityFilter->Update();
-  //
-  //   auto vtkSingleSteelBallSurface = vtkConnectivityFilter->GetPolyDataOutput();
-  //
-  //   auto numberOfCells =
-  //     vtkSingleSteelBallSurface->GetNumberOfCells(); // the total number of cells of a single mesh surface; each cell
-  //                                                    // stores one facet of the mesh surface
-  //
-  //   std::vector<double> inp_x(
-  //     numberOfCells); // inp_x, inp_y and inp_z store one point of each facet on the mesh surface
-  //   std::vector<double> inp_y(
-  //     numberOfCells); // inp_x, inp_y and inp_z store one point of each facet on the mesh surface
-  //   std::vector<double> inp_z(
-  //     numberOfCells); // inp_x, inp_y and inp_z store one point of each facet on the mesh surface
-  //
-  //   for (int n = 0; n < numberOfCells; n++)
-  //   {
-  //     auto tmpPoint = vtkSingleSteelBallSurface->GetCell(n)->GetPoints()->GetPoint(0);
-  //
-  //     inp_x[n] = tmpPoint[0];
-  //     inp_y[n] = tmpPoint[1];
-  //     inp_z[n] = tmpPoint[2];
-  //   }
-  //
-  //   // use inp_x, inp_y and inp_z to simulate a sphere
-  //   double cx, cy, cz;
-  //   double R;
-  //
-  //   lancetAlgorithm::fit_sphere(inp_x, inp_y, inp_z, cx, cy, cz, R);
-  //
-  //   mitk::Point3D mitkTmpCenterPoint3D;
-  //   mitkTmpCenterPoint3D[0] = cx;
-  //   mitkTmpCenterPoint3D[1] = cy;
-  //   mitkTmpCenterPoint3D[2] = cz;
-  //   mitkSingleSteelballCenterPointset->InsertPoint(mitkTmpCenterPoint3D);
-  //
-  //   centerOfAllSteelballs[0] = centerOfAllSteelballs[0] + cx;
-  //   centerOfAllSteelballs[1] = centerOfAllSteelballs[1] + cy;
-  //   centerOfAllSteelballs[2] = centerOfAllSteelballs[2] + cz;
-  //
-  //   // // Draw simulated spheres
-  //   // auto vtkBallSource0 = vtkSmartPointer<vtkSphereSource>::New();
-  //   // vtkBallSource0->SetCenter(cx, cy, cz);
-  //   // vtkBallSource0->SetRadius(R);
-  //   // vtkBallSource0->Update();
-  //   //
-  //   // auto tmpNode = mitk::DataNode::New();
-  //   //
-  //   // tmpNode->SetName("Single steelball sphere");
-  //   // auto mitkSteelBallSurfacesNew1 = mitk::Surface::New();
-  //   // mitkSteelBallSurfacesNew1->SetVtkPolyData(vtkBallSource0->GetOutput());
-  //   // tmpNode->SetData(mitkSteelBallSurfacesNew1);
-  //   // GetDataStorage()->Add(tmpNode);
-  // }
-  //
-  // centerOfAllSteelballs[0] = centerOfAllSteelballs[0] / numberOfTotalSteelBalls;
-  // centerOfAllSteelballs[1] = centerOfAllSteelballs[1] / numberOfTotalSteelBalls;
-  // centerOfAllSteelballs[2] = centerOfAllSteelballs[2] / numberOfTotalSteelBalls;
-  //
-  // // Sort the centers of the separate steelballs according to their distances to the group center
-  // std::vector<double> distancesToPointSetCenter(numberOfTotalSteelBalls);
-  // std::vector<int> distanceRanks(numberOfTotalSteelBalls);
-  //
-  // for (int i = 0; i < numberOfTotalSteelBalls; i++)
-  // {
-  //   distancesToPointSetCenter[i] =
-  //     sqrt(pow(centerOfAllSteelballs[0] - mitkSingleSteelballCenterPointset->GetPoint(i)[0], 2) +
-  //          pow(centerOfAllSteelballs[1] - mitkSingleSteelballCenterPointset->GetPoint(i)[1], 2) +
-  //          pow(centerOfAllSteelballs[2] - mitkSingleSteelballCenterPointset->GetPoint(i)[2], 2));
-  //
-  //   distanceRanks[i] = i;
-  // }
-  //
-  // for (int i = 0; i < numberOfTotalSteelBalls; i++)
-  // {
-  //   MITK_INFO << "Distance before sorting: " << distancesToPointSetCenter[i];
-  // }
-  //
-  // for (int i = 0; i < numberOfTotalSteelBalls - 2; i++)
-  // {
-  //   for (int j = 0; j < numberOfTotalSteelBalls - 1 - i; j++)
-  //   {
-  //     double temp = 0;
-  //     double temp2 = 0;
-  //     if (distancesToPointSetCenter[j] > distancesToPointSetCenter[j + 1])
-  //     {
-  //       temp = distancesToPointSetCenter[j];
-  //       distancesToPointSetCenter[j] = distancesToPointSetCenter[j + 1];
-  //       distancesToPointSetCenter[j + 1] = temp;
-  //
-  //       temp2 = distanceRanks[j];
-  //       distanceRanks[j] = distanceRanks[j + 1];
-  //       distanceRanks[j + 1] = temp2;
-  //     }
-  //   }
-  // }
-  //
-  // for (int i = 0; i < numberOfTotalSteelBalls; i++)
-  // {
-  //   MITK_INFO << "Distance after sorting: " << distancesToPointSetCenter[i];
-  // }
-  //
-  // auto mitkSortedSingleSteelballCenterPointset = mitk::PointSet::New();
-  // for (int i = 0; i < numberOfTotalSteelBalls; i++)
-  // {
-  //   mitkSortedSingleSteelballCenterPointset->InsertPoint(mitkSingleSteelballCenterPointset->GetPoint(distanceRanks[i]));
-  // }
-
   // draw extracted  steel ball surfaces
   auto nodeSteelballSurfaces = mitk::DataNode::New();
   nodeSteelballSurfaces->SetName("Bone surface");
   // add new node
   nodeSteelballSurfaces->SetData(mitkSteelBallSurfaces);
   GetDataStorage()->Add(nodeSteelballSurfaces);
+}
+
+void SpineCTRegistration::CheckToolValidity() // regard it as the metric
+{
+  m_Controls.textBrowser_checkNDI->append("~~~~~~ Checking tool validity ~~~~~~");
+  m_Controls.textBrowser_checkNDI->append(" ");
+
+  // Checkpoint 0: The distance between any 2 markers on the same tool should be longer than 50 mm
+  m_Controls.textBrowser_checkNDI->append("--------- Entered Check point 0 -----------");
+
+  metric[0] = 1; // a metric to measure whether the new tool meets all 3 design requirements ( {1, 1, 1} )
+  for (int m = 0; m < 4; m++)
+  {
+    for (int n = 0; n < 4; n++)
+    {
+      if (m < n)
+      {
+        // The distance between marker m and marker n
+        double marker_m[2]{inputTool[m], inputTool[m + 4]};
+        double marker_n[2]{inputTool[n], inputTool[n + 4]};
+
+        double internalSegDistance = sqrt(pow(marker_m[0] - marker_n[0], 2) + pow(marker_m[1] - marker_n[1], 2));
+
+        if (internalSegDistance < 50)
+        {
+          m_Controls.textBrowser_checkNDI->append("!!Warning!! On the new tool, the distance between Point_" +
+                                                  QString::number(m) + " and Point_" + QString::number(n) + " is " +
+                                                  QString::number(internalSegDistance) + " < 50");
+
+          metric[0] = 0;
+        }
+      }
+    }
+  }
+
+  if (metric[0] == 1) // The distance between any 2 markers on the same tool is longer than 50 mm
+  {
+    m_Controls.textBrowser_checkNDI->append("--------- Passed check point 0 (50 mm) ----------");
+  }
+  else
+  {
+    m_Controls.textBrowser_checkNDI->append("--------- Failed check point 0 (50 mm) ---------");
+    return;
+  }
+
+  // Checkpoint 2: The length difference of any 2 segments on the same tool should be more than 3.5 mm
+  metric[1] = 1;
+  m_Controls.textBrowser_checkNDI->append("--------- Entered Check point 1 -----------");
+
+  for (int m = 0; m < 4; m++)
+  {
+    for (int n = 0; n < 4; n++)
+    {
+      if (m < n)
+      {
+        // The distance between marker m and marker n
+        double marker_m[2]{inputTool[m], inputTool[m + 4]};
+        double marker_n[2]{inputTool[n], inputTool[n + 4]};
+
+        double internalSegDistance_0 = sqrt(pow(marker_m[0] - marker_n[0], 2) + pow(marker_m[1] - marker_n[1], 2));
+
+        for (int i = 0; i < 4; i++)
+        {
+          for (int j = 0; j < 4; j++)
+          {
+            if (((i < j) && ((m != i) || (n != j))) && ((m <= i) && (n <= j))) // avoid redundant repetition
+            {
+              // The distance between marker i and marker j
+              double marker_i[2]{inputTool[i], inputTool[i + 4]};
+              double marker_j[2]{inputTool[j], inputTool[j + 4]};
+
+              double internalSegDistance_1 =
+                sqrt(pow(marker_i[0] - marker_j[0], 2) + pow(marker_i[1] - marker_j[1], 2));
+
+              if (abs(internalSegDistance_1 - internalSegDistance_0) < 3.5)
+              {
+                metric[1] = 0;
+
+                m_Controls.textBrowser_checkNDI->append(
+                  "!!Warning!! Found internal segment length difference " +
+                  QString::number(abs(internalSegDistance_1 - internalSegDistance_0)) + " < 3.5 mm");
+
+                m_Controls.textBrowser_checkNDI->append("New tool segment_0: Point_" + QString::number(m) +
+                                                        " and Point_" + QString::number(n) + " ( " +
+                                                        QString::number(internalSegDistance_0) + " )");
+                m_Controls.textBrowser_checkNDI->append("New tool segment_1: Point_" + QString::number(i) +
+                                                        " and Point_" + QString::number(j) + " ( " +
+                                                        QString::number(internalSegDistance_1) + " )");
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  if (metric[1] == 1) // The length difference of any 2 segments on the same tool is more than 3.5 mm
+  {
+    m_Controls.textBrowser_checkNDI->append("--------- Passed check point 1 (3.5 mm) ----------");
+  }
+  else
+  {
+    m_Controls.textBrowser_checkNDI->append("--------- Failed check point 1 (3.5 mm) ---------");
+    return;
+  }
+
+  // Checkpoint 3: The length difference of any 2 segments on the same tool should be more than 3.5 mm
+  metric[2] = 1;
+  m_Controls.textBrowser_checkNDI->append("--------- Entered Check point 2 -----------");
+
+  for (int m = 0; m < 4; m++)
+  {
+    for (int n = 0; n < 4; n++)
+    {
+      if (m < n)
+      {
+        // The distance between marker m and marker n
+        double marker_m[2]{inputTool[m], inputTool[m + 4]};
+        double marker_n[2]{inputTool[n], inputTool[n + 4]};
+
+        double internalSegDistance_0 = sqrt(pow(marker_m[0] - marker_n[0], 2) + pow(marker_m[1] - marker_n[1], 2));
+
+        for (int i = 0; i < 4; i++)
+        {
+          for (int j = 0; j < 4; j++)
+          {
+            if (((i < j) && ((m != i) || (n != j))) && ((m <= i) && (n <= j))) // avoid redundant repetition
+            {
+              // The distance between marker m and marker n
+              double marker_i[2]{inputTool[i], inputTool[i + 4]};
+              double marker_j[2]{inputTool[j], inputTool[j + 4]};
+
+              double internalSegDistance_1 =
+                sqrt(pow(marker_i[0] - marker_j[0], 2) + pow(marker_i[1] - marker_j[1], 2));
+
+              // Till now, 1 segment pair on the new tool has been obtained
+              // Pair_0 = segment_0 + segment_1
+              // segment_0 = marker_m + marker_n
+              // segment_1 = marker_i + marker_j
+
+              // Next we want to get another segment pair on 1 existing tool
+              for (int existingToolCount = 0; existingToolCount < existingToolNum; existingToolCount++)
+              {
+                for (int q = 0; q < 4; q++)
+                {
+                  for (int s = 0; s < 4; s++)
+                  {
+                    if (q < s)
+                    {
+                      // The distance between marker q and marker s
+                      // double marker_q[2]{inputTool[q], inputTool[q + 4]};
+                      // double marker_s[2]{inputTool[s], inputTool[s + 4]};
+                      double marker_q[2]{existingTools[existingToolCount * 4 + q],
+                                         existingTools[existingToolNum * 4 + existingToolCount * 4 + q]};
+                      double marker_s[2]{existingTools[existingToolCount * 4 + s],
+                                         existingTools[existingToolNum * 4 + existingToolCount * 4 + s]};
+
+                      double internalSegDistance_2 =
+                        sqrt(pow(marker_q[0] - marker_s[0], 2) + pow(marker_q[1] - marker_s[1], 2));
+
+                      for (int d = 0; d < 4; d++)
+                      {
+                        for (int t = 0; t < 4; t++)
+                        {
+                          if (((d < t) && ((q != d) || (s != t))) &&
+                              ((q <= d) && (s <= t))) // avoid redundant repetition
+                          {
+                            // The distance between marker d and marker t
+                            double marker_d[2]{existingTools[existingToolCount * 4 + d],
+                                               existingTools[existingToolNum * 4 + existingToolCount * 4 + d]};
+                            double marker_t[2]{existingTools[existingToolCount * 4 + t],
+                                               existingTools[existingToolNum * 4 + existingToolCount * 4 + t]};
+
+                            double internalSegDistance_3 =
+                              sqrt(pow(marker_d[0] - marker_t[0], 2) + pow(marker_d[1] - marker_t[1], 2));
+
+                            // 1 segment pair on 1 existing tool has been obtained
+                            // Pair_1 = segment_2 + segment_3
+                            // segment_2 = marker_q + marker_s
+                            // segment_3 = marker_d + marker_t
+                            if (((abs(internalSegDistance_0 - internalSegDistance_2) < 3.5) &&
+                                 (abs(internalSegDistance_1 - internalSegDistance_3) < 3.5)) ||
+                                ((abs(internalSegDistance_0 - internalSegDistance_3) < 3.5) &&
+                                 (abs(internalSegDistance_1 - internalSegDistance_2) <
+                                  3.5))) // check if (segment_0 & segment_1) and (segment_2 & segment_3) are like
+                                         // segment pairs
+                            {
+                              // angle between (segment_0 & segment_1)
+                              Eigen::Vector2d vectorSegment_0(marker_m[0] - marker_n[0], marker_m[1] - marker_n[1]);
+                              Eigen::Vector2d vectorSegment_1(marker_i[0] - marker_j[0], marker_i[1] - marker_j[1]);
+                              vectorSegment_0.normalize();
+                              vectorSegment_1.normalize();
+
+                              double angleSeg_0_1 = 180 * acos(abs(vectorSegment_0.dot(vectorSegment_1))) / 3.1415926;
+
+                              // angle between (segment_0 & segment_1)
+                              Eigen::Vector2d vectorSegment_2(marker_q[0] - marker_s[0], marker_q[1] - marker_s[1]);
+                              Eigen::Vector2d vectorSegment_3(marker_d[0] - marker_t[0], marker_d[1] - marker_t[1]);
+                              vectorSegment_2.normalize();
+                              vectorSegment_3.normalize();
+
+                              double angleSeg_2_3 = 180 * acos(abs(vectorSegment_2.dot(vectorSegment_3))) / 3.1415926;
+
+                              if (abs(angleSeg_0_1 - angleSeg_2_3) < 2)
+                              {
+                                m_Controls.textBrowser_checkNDI->append(
+                                  "!!Warning!! Found like segment pairs having angle difference in degree: " +
+                                  QString::number(abs(angleSeg_0_1 - angleSeg_2_3)) + "( < 2)");
+
+                                m_Controls.textBrowser_checkNDI->append("Pair_0 on the new tool:");
+                                m_Controls.textBrowser_checkNDI->append("Pair_0, segment_0: Point_" +
+                                                                        QString::number(m) + " and Point_" +
+                                                                        QString::number(n));
+                                m_Controls.textBrowser_checkNDI->append("Pair_0, segment_1: Point_" +
+                                                                        QString::number(i) + " and Point_" +
+                                                                        QString::number(j));
+                                m_Controls.textBrowser_checkNDI->append("Pair_0 angle: " +
+                                                                        QString::number(angleSeg_0_1));
+
+
+                                m_Controls.textBrowser_checkNDI->append("Pair_1 on Tool_" +
+                                                                        QString::number(existingToolCount));
+                                m_Controls.textBrowser_checkNDI->append("Pair_1, segment_2: Point_" +
+                                                                        QString::number(q) + " and Point_" +
+                                                                        QString::number(s));
+                                m_Controls.textBrowser_checkNDI->append("Pair_1, segment_3: Point_" +
+                                                                        QString::number(d) + " and Point_" +
+                                                                        QString::number(t));
+                                m_Controls.textBrowser_checkNDI->append("Pair_1 angle: " +
+                                                                        QString::number(angleSeg_2_3));
+
+                                metric[2] = 0;
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  if (metric[2] == 1) // The length difference of any 2 segments on the same tool is more than 3.5 mm
+  {
+    m_Controls.textBrowser_checkNDI->append("--------- Passed check point 2 (2 degrees)-----------");
+  }
+  else
+  {
+    m_Controls.textBrowser_checkNDI->append("--------- Failed check point 2 (2 degrees) ----------");
+    return;
+  }
+
 
 }
 
 
+void SpineCTRegistration::UpdateTool()
+{
+  double toolCenter_x = (inputTool[0] + inputTool[1] + inputTool[2] + inputTool[3]) / 4;
+  double toolCenter_y = (inputTool[4] + inputTool[5] + inputTool[6] + inputTool[7]) / 4;
 
+  // failed the distance requirement so we span the tool geometry
+  if (metric[0] == 0 || metric[1] ==0)
+  {
+    double grow_factor{0.07};
+    inputTool[0] = (inputTool[0] - toolCenter_x) * grow_factor + inputTool[0];
+    inputTool[1] = (inputTool[1] - toolCenter_x) * grow_factor + inputTool[1];
+    inputTool[2] = (inputTool[2] - toolCenter_x) * grow_factor + inputTool[2];
+    inputTool[3] = (inputTool[3] - toolCenter_x) * grow_factor + inputTool[3];
 
+    inputTool[0] = (inputTool[0] - toolCenter_x) * grow_factor + inputTool[0];
+    inputTool[1] = (inputTool[1] - toolCenter_x) * grow_factor + inputTool[1];
+    inputTool[2] = (inputTool[2] - toolCenter_x) * grow_factor + inputTool[2];
+    inputTool[3] = (inputTool[3] - toolCenter_x) * grow_factor + inputTool[3];
 
+    inputTool[4] = (inputTool[4] - toolCenter_y) * grow_factor + inputTool[4];
+    inputTool[5] = (inputTool[5] - toolCenter_y) * grow_factor + inputTool[5];
+    inputTool[6] = (inputTool[6] - toolCenter_y) * grow_factor + inputTool[6];
+    inputTool[7] = (inputTool[7] - toolCenter_y) * grow_factor + inputTool[7];
 
+    return;
+  }
 
+  
+  if (metric[2] == 0)
+  {
+    double modulate_factor{0.05};
 
+    for (int n = 0; n < 4; n++)
+    {
+      srand((int)time(NULL));
+      if (rand() % 100 < 50)
+      {
+        inputTool[n] = (inputTool[n] - toolCenter_x) * modulate_factor + inputTool[n];
+        inputTool[n + 4] = (inputTool[n + 4] - toolCenter_x) * modulate_factor + inputTool[n + 4];
+      }else
+      {
+        modulate_factor = -modulate_factor;
+        inputTool[n] = (inputTool[n] - toolCenter_x) * modulate_factor + inputTool[n];
+        inputTool[n + 4] = (inputTool[n + 4] - toolCenter_x) * modulate_factor + inputTool[n + 4];
+      }
+      
+    }
+  }
+}
 
+void SpineCTRegistration::OptimizeTool()
+{
+  
+}
 
